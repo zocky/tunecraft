@@ -1,0 +1,14 @@
+{
+  "presets":[
+    ["@babel/preset-env",{
+      "targets": {
+          "browsers": ["last 1 Chrome version"]
+      }
+    }],
+    "@babel/preset-react"
+  ],
+  "plugins": [
+      ["@babel/plugin-proposal-decorators", { "legacy": true }],
+      ["@babel/plugin-proposal-class-properties", { "loose": false }]
+  ]
+}

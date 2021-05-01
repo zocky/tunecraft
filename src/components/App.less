@@ -1,0 +1,45 @@
+.tc.app {
+  position:fixed;
+  top:0;
+  left:0;
+  bottom:0;
+  right:0;
+  display:grid;
+  grid-template-areas: 
+    "player editor" 
+    "viewer editor" 
+    "viewer status";
+
+  grid-template-columns:  1fr 800px;
+  grid-template-rows: max-content 1fr max-content;
+
+  flex-flow:row;
+  background:#000;
+  color:white;
+  font-family:Roboto,sans-serif;
+
+  >.editor {
+    grid-area:editor;
+    font-size:32px;
+    overflow:hidden;
+  }
+  >.status {
+    grid-area:status;
+  }
+  >.viewer {
+    grid-area:viewer;
+    overflow:auto;
+  }
+  >.player {
+    grid-area:player;
+    overflow:auto;
+  }
+}
+
+.tc.link {
+  margin:0 4px;
+  cursor:pointer;
+  &.active, &:hover {
+    text-decoration:underline;
+  }
+}
