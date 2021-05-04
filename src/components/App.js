@@ -12,22 +12,22 @@ import {Tracks} from "./Tracks";
 
 @observer
 export class App extends React.Component {
+  componentDidMount() {
+    window.addEventListener('wheel',e => e.ctrlKey && e.preventDefault(),{passive:false});
+  }
+
   render() {
     const { app } = this.props;
 		
     return (
       <div className="tc app">
-        <div className="player">
+        <div className="left">
           <Player app={app}/>
-        </div>
-        <div className="editor">
-          <Editor app={app}/>
-        </div>
-				<div className="status">
-					<Status app={app}/>
-				</div>
-        <div className="viewer">
           <Output app={app}/>
+        </div>
+        <div className="right">
+          <Editor app={app}/>
+					<Status app={app}/>
         </div>
       </div>
     )
@@ -43,7 +43,7 @@ export class Output extends React.Component {
     case 'tracks':
       return <Tracks app={app}/>
     case 'result':
-      return <pre>{JSON.stringify(app.parsed||"",null,2)}</pre>
+      return <pre className="tc json">{JSON.stringify(app.parsed||"",null,2)}</pre>
     }
   }
 }
@@ -56,7 +56,7 @@ export class Status extends React.Component {
 
     if (app.error) {
       return <code>
-        <span>{app.error.location.start.line}:{app.error.location.start.column}</span>
+        <span>{app.error.location?.start.line}:{app.error.location?.start.column}</span>
         {" "}
         {app.error.message}
       </code>

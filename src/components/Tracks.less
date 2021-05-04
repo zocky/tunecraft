@@ -1,21 +1,44 @@
 .tc.tracks {
   position:relative;
+  height:100%;
+  width:100%;
+  overflow:auto;
+  >.tracks {
+    width:auto;
+    display:inline-block;
+  }
 }
 .tc.track {
   background:#333;
-  margin-top:4 
-  px;
-  .header {
+  display:flex;
+  flex-flow:row;
+  margin-top:1px;
+  > .header {
+    flex:0 0 100px;
+    width:100px;
+    overflow:hidden;
     background:#222;
     padding:2px 4px;
-    font-weight:300;
+    display: block;
+    position:sticky; 
+    font-weight:400;
+    font-size:13px;
+    left:0;
+    overflow:hidden;
+    text-overflow: ellipsis;
   }
 }
 
 .tc.seek-cursor {
+  pointer-events:none;
   position:absolute;
   top:0;
   bottom:0;
   width:0;
+  margin-left:100px;
   border-left:solid 1px white;
+}
+
+.tc.scroller {
+  flex: 0 1 0;
 }

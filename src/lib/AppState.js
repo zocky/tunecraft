@@ -9,12 +9,25 @@ export class AppState {
   context = new AudioContext();
   player = new PlayerState(this);
 
-  @observable zoomX = 64;
-  @observable zoomY = 1;
+  @observable 
+  zoomX = 64;
+  @observable 
+  zoomY = 2;
+
+  @action 
+  zoomInY() {
+    if (this.zoomY<8) this.zoomY++;
+  }
+
+  @action 
+  zoomOutY() {
+    if (this.zoomY>1) this.zoomY--;
+  }
 
   @observable viewerMode = "tracks";
 
   @observable source = "";
+
 
   @computed get result() {
     console.log('getting result')
@@ -37,17 +50,22 @@ export class AppState {
     const ret = [];
     if (!this.parsed) return ret;
     for (let id in this.parsed.tracks) {
+      const track=this.parsed.tracks[id];
+      if (track.length===0) continue;
       ret.push({
         id,
-        events: this.parsed.tracks[id]
+        events: track
       })
     }
     return ret;
   }
 
+  @computed.struct get trackKeys() {
+    return Object.keys(this.tracks);
+  }
+
   @computed get soundfonts() {
     trace();
-    console.log('getting soundfonts');
     if (!this.parsed) return {};
     return { default: "MusyngKite", ...this.parsed.soundfonts }
   }
@@ -57,7 +75,6 @@ export class AppState {
     const result = this.parsed;
     if (!result) return {};
     const ret = {};
-    console.log('getting instruments');
     for (const name in result.instruments) {
       const { font, id, ...rest } = result.instruments[name];
       const options = {}
@@ -78,7 +95,7 @@ export class AppState {
       lastResult = result;
       localStorage.tunecraft_save = this.source;
       if (result) {
-        this.parsed = result;
+        this.parsed = result; 
       }
     })
     this.init();
@@ -133,3 +150,4 @@ class InstrumentState {
     this.instrument?.stop();
   }
 }
+

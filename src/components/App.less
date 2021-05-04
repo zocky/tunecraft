@@ -1,38 +1,30 @@
+* {
+  box-sizing: border-box;
+}
 .tc.app {
   position:fixed;
   top:0;
   left:0;
   bottom:0;
   right:0;
-  display:grid;
-  grid-template-areas: 
-    "player editor" 
-    "viewer editor" 
-    "viewer status";
-
-  grid-template-columns:  1fr 800px;
-  grid-template-rows: max-content 1fr max-content;
-
+  display:flex;
   flex-flow:row;
   background:#000;
   color:white;
   font-family:Roboto,sans-serif;
-
-  >.editor {
-    grid-area:editor;
-    font-size:32px;
+  user-select: none;
+  
+  >.left {
+    flex:1 1;
+    display:flex;
+    flex-flow:column;
     overflow:hidden;
   }
-  >.status {
-    grid-area:status;
-  }
-  >.viewer {
-    grid-area:viewer;
-    overflow:auto;
-  }
-  >.player {
-    grid-area:player;
-    overflow:auto;
+  >.right {
+    flex:0 0 640px;
+    display:flex;
+    flex-flow:column;
+    overflow:hidden;
   }
 }
 
@@ -42,4 +34,8 @@
   &.active, &:hover {
     text-decoration:underline;
   }
+}
+
+.tc.json {
+  overflow:auto;
 }

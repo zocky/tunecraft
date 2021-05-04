@@ -33,19 +33,32 @@ const COLORS = [
 
 @observer
 export class Tracks extends React.Component {
-
+  onWheel = e => {
+    const { app } = this.props;
+    if (e.shiftKey) {
+      if (e.deltaY > 0) {
+        app.zoomOutY()
+      } else {
+        app.zoomInY()
+      }
+      e.preventDefault();
+    }
+  }
   render() {
     const { app } = this.props;
-    const tracks = app.tracks.filter(({ events }) => events.length);
-    console.log(tracks)
+    //const tracks = app.tracks.filter(({ events }) => events.length);
     return (
-      <div className="tc tracks">
-        <Scroller app={app}/>
-        {tracks.map((track, idx) =>
-          <Track key={track.id} app={app} track={track} id={track.id} idx={idx} color={COLORS[idx % COLORS.length]} />
-        )}
-        <SeekCursor app={app} tracks={app.parsed?.tracks} />
-      </div>
+      <>
+        <Scroller app={app} />
+        <div className="tc tracks">
+          <div className="tracks" ref={el=>el?.addEventListener('wheel',this.onWheel,{passive:false})}>
+            {app.trackKeys.map((idx) =>
+              <Track key={idx} app={app} idx={idx} color={COLORS[idx % COLORS.length]} />
+            )}
+          </div>
+          <SeekCursor app={app} tracks={app.parsed?.tracks} />
+        </div>
+      </>
     )
   }
 }
@@ -63,30 +76,17 @@ export class Scroller extends React.Component {
     const { app } = this.props;
     const { tracks } = app;
 
-    const zoomX = 32;
 
-    let min = 60;
-    let max = 60;
-
-    for (let track of tracks) {
-      for (let event of track.events) {
-        min = Math.min(event.note, min);
-        max = Math.max(event.note, max);
-      }
-    }
-
-    canvas.height = (max - min);
-    canvas.width = zoomX * app.parsed.length;
+    canvas.height = tracks.length * 4;
+    canvas.width = 32 * app.parsed.length;
     const ctx = canvas.getContext('2d');
     ctx.fillStyle = "#111";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.strokeStyle = "black";
-    ctx.strokeRect(0, (max - 60), canvas.width, 0);
 
     for (let idx in tracks) {
       let track = tracks[idx];
       let color = COLORS[idx % COLORS.length];
-      drawNotes(ctx, track, { color, min, max, zoomX, zoomY:1 });
+      drawNotes(ctx, track.events, { color, min: 0, max: tracks.length, zoomX: 32, zoomY: 2, fixedY: idx * 2, gap: 0 });
     }
 
     return canvas.toDataURL("image/png");
@@ -95,7 +95,7 @@ export class Scroller extends React.Component {
 
   render() {
     return (
-      <img src={this.scrollImage} />
+      <img style={{ imageRendering: "pixelated" }} className="tc scroller" src={this.scrollImage} />
     )
   }
 }
@@ -115,7 +115,8 @@ export class SeekCursor extends React.Component {
 
   }
   render() {
-    return <div ref={ref => ref?.scrollIntoView({ inline: 'center' })} className="tc seek-cursor" style={{ left: this.X }} />
+    const { app } = this.props;
+    return <div ref={ref => app.player.playing && ref?.scrollIntoView({ block: 'nearest', inline: app.player?.holding ? 'nearest' : 'center' })} className="tc seek-cursor" style={{ left: this.X }} />
   }
 }
 
@@ -126,52 +127,105 @@ export class Track extends React.Component {
     makeObservable(this);
   }
 
+
   @computed
   get trackImage() {
+    console.log('drawing', this.track.id)
     const canvas = document.createElement('canvas');
-    const { app, track, color } = this.props;
+    const { app, color } = this.props;
 
-    const zoomX = 64;
-    const zoomY = 3;
+    const zoomX = app.zoomX;
+    const zoomY = app.zoomY;
 
-    const min = Math.min(48, ...track.events.map(e => e.note));
-    const max = Math.max(72, ...track.events.map(e => e.note));
+    const notes = this.events.filter(e => 'note' in e);
 
-    console.log(min, max, app.parsed.length);
+    const min = Math.min(48, ...notes.map(e => e.note - 4));
+    const max = Math.max(72, ...notes.map(e => e.note + 2));
+
     canvas.height = zoomY * (max - min);
     canvas.width = zoomX * app.parsed.length;
 
     const ctx = canvas.getContext('2d');
-    ctx.fillStyle = "#333";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.strokeStyle = "black";
-    ctx.strokeRect(0, (max - 60) * zoomY, canvas.width, 0);
 
-    drawNotes(ctx, track, { color, min, max, zoomX, zoomY });
+    if (zoomY >= 4) {
+      for (let i = min; i <= max; i++) {
+        switch (i % 12) {
+          case 1:
+          case 3:
+          case 6:
+          case 8:
+          case 10:
+            ctx.fillStyle = "#0004";
+            break;
+          default:
+            ctx.fillStyle = "#fff4";
+        }
+        ctx.fillRect(0, (max - i) * zoomY + 0.5, canvas.width, zoomY - 1);
+      }
+    } else {
+      for (let i = min + 12 - min % 12; i <= max - min % 12; i+=12) {
+        if (i == 60) ctx.fillStyle = "#fff6";
+        else ctx.fillStyle = "#fff2";
+        ctx.fillRect(0, (max - i - 0.5) * zoomY, canvas.width, 1);
+      }
+    }
+
+    drawNotes(ctx, this.events, { color, min, max, zoomX, zoomY });
     return canvas.toDataURL("image/png");
   }
 
+  @computed.struct get events() {
+    return this.track?.events;
+  }
+
+  @computed get track() {
+    return this.props.app.tracks[this.props.idx];
+  }
+
   render() {
-    const { app, track, id } = this.props;
+    const { app } = this.props;
     return (
       <div className="tc track">
         <div className="header">
-          {id} {track.length} notes
+          {this.track.id}
         </div>
-        <img src={this.trackImage} />
+        <img draggable="false" src={this.trackImage}
+          onMouseDown={e => {
+            if (e.buttons === 1) {
+              app.player.hold();
+              app.player.seek(e.nativeEvent.offsetX / app.zoomX);
+            }
+          }}
+          onMouseUp={e => {
+            app.player.unhold();
+          }}
+          onMouseMove={e => {
+            if (e.buttons === 1) {
+              app.player.seek(e.nativeEvent.offsetX / app.zoomX)
+            }
+          }} />
       </div>
     )
   }
 }
 
 
-function drawNotes(ctx, track, { color, max, zoomX, zoomY }) {
-  ctx.fillStyle = color;
-  for (const e of track.events) {
-    const x = Math.floor(e.at * zoomX);
-    const y = Math.floor((max - e.note) * zoomY);
-    const w = Math.max(1, Math.floor(e.duration * zoomX - 2));
-    const h = zoomY;
-    ctx.fillRect(x, y, w, h);
+function drawNotes(ctx, events, { color, max, min, zoomX, zoomY, fixedY, gap = 2 }) {
+  for (const e of events) {
+    if (e.event === 'N') {
+      ctx.fillStyle = color;
+      let x = Math.floor(e.at * zoomX);
+      let y = (fixedY ?? (max - e.note)) * zoomY;
+      let w = Math.max(1, Math.floor(e.duration * zoomX - gap));
+      let h = zoomY;
+      ctx.fillRect(x, y, w, h);
+    } else if (e.event === 'B') {
+      ctx.fillStyle = "#000";
+      let x = Math.round(e.at * zoomX) - 2;
+      let y = 0;
+      let w = 1;
+      let h = zoomY * (max - min);
+      ctx.fillRect(x, y, w, h);
+    }
   }
 }

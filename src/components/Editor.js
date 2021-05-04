@@ -31,6 +31,7 @@ export class Editor extends React.Component {
           defaultLanguage="tunecraft"
           onChange={debounce(action(value=>app.source = value),300)}
           beforeMount={this.handleEditorWillMount}
+					options={{minimap:{enabled:false}}}
           />
     )
   }
