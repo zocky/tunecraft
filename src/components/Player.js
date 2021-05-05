@@ -41,7 +41,7 @@ class PlayerTime extends React.Component {
   }
   get totalTime() {
     const { app } = this.props;
-    return this.formatTime(app.parsed?.length);
+    return this.formatTime(app.tune?.length);
   }
   get playbackTime() {
     const { playbackTime } = this.props.app.player;

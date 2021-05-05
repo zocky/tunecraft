@@ -43,7 +43,7 @@ export class Output extends React.Component {
     case 'tracks':
       return <Tracks app={app}/>
     case 'result':
-      return <pre className="tc json">{JSON.stringify(app.parsed||"",null,2)}</pre>
+      return <pre className="tc json">{JSON.stringify([app.tune?.tempoTrack.tickOffsets,app.tune?.events],null,2)}</pre>
     }
   }
 }

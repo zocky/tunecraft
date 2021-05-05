@@ -45,10 +45,11 @@
   
   var macros = {};
   var soundfonts = {};
-  var instruments = {
+  var tracks = {
   	default:    {
+      "id": "default",
       "font": "default",
-      "id": "acoustic_grand_piano"
+      "instrument": "acoustic_grand_piano"
     }
   };
   
@@ -68,7 +69,8 @@
         transpose: 0,
         tempo: 120,
         velocity: 100,
-        instrument:"default"
+        track:"default",
+        scale: scale(60,1)
       }
     }
     switch(node.$) {
@@ -103,7 +105,7 @@
         length:state.length,
         measure:state.measure,
         sub: ret,
-        instrument:state.instrument
+        track:state.track
       };
     case 'repeat':
       var ret = [];
@@ -170,7 +172,7 @@
         note: note,
         length:state.length,
         tempo: state.tempo,
-        instrument: state.instrument,
+        track: state.track,
         velocity: state.velocity
       }
     case 'note':
@@ -181,13 +183,14 @@
         note: note,
         length:state.length,
         tempo: state.tempo,
-        instrument: state.instrument,
+        track: state.track,
         velocity: state.velocity
       }
     case 'pause':
       return {
       	$$: 'pause',
         length:state.length,
+        track:state.track,
         tempo: state.tempo
       }
     case 'skip': 
@@ -215,7 +218,8 @@
       state.tempo = node.tempo;
       return {
         $$: 'tempo',
-        tempo: node.tempo
+        tempo: node.tempo,
+        track: node.track
       }
       return;
     case 'signature': 
@@ -226,6 +230,7 @@
         $$: 'signature',
         nom: node.nom,
         denom: node.denom,
+        track: node.track
       }
       return;
     case 'velocity': 
@@ -249,24 +254,24 @@
     case 'def_soundfont': 
       soundfonts[node.name]=node.url;
       return;
-    case 'def_instrument':
-      instruments[node.name]={
+    case 'def_track':
+      tracks[node.id]={
       	...node
       }
-      delete instruments[node.name].$;
+      delete tracks[node.id].$;
       return
       
-    case 'instrument': 
-      state.instrument = node.instrument;
-      if (!instruments[node.instrument]) {
-        instruments[node.instrument]={
+    case 'track': 
+      state.track = node.track;
+      if (!tracks[node.track]) {
+        tracks[node.track]={
         	font: 'default',
-          id: node.instrument,
+          id: node.track,
+          instrument: node.track
         }
       }
       return;
     }
-    
   }
   function sched(node,state) {
     var old;
@@ -276,14 +281,13 @@
         nom: 4,
         denom: 4,
         bars:[],
-        ret:[],
+        tempo:[],
         tracks:{},
-        at: 0,
         factor: 1,
         bar: 0,
         tick:0
       }
-      for (const id in instruments) state.tracks[id]=[];
+      for (const id in tracks) state.tracks[id]=tracks[id].events=[];
     }
     switch(node.$$) {
     case 'bars':
@@ -296,13 +300,9 @@
       break;
     case 'bar':
       if (node.divisions>0) {
-        state.tick = state.bar * 384;
-        state.bar ++;
-        state.bars[state.bar]=Math.max(state.bars[state.bar]|0,node.ticks);
-        state.tracks[node.instrument].push({
+        state.tracks[node.track].push({
           event:"B",
-          at:state.at,
-          tick:state.tick
+          tick: Math.round(state.tick)
         });
         const {factor,measure} = state;
         state.factor *= node.divisions/node.length;
@@ -319,81 +319,83 @@
       state.factor = old;
       break;
     case 'poly':
-      var start = state.at, end=state.at;
-      var first = state.bar, last=state.bar;
       var firstTick = state.tick, lastTick = state.tick;
       node.sub.forEach(function(s) {
         sched(s,state);
-        if (state.at > end) end = state.at;
-        if (state.bar > last) last = state.bar;
         if (state.tick > lastTick) lastTick = state.tick;
-        state.at = start;
-        state.bar = first;
         state.tick = firstTick;
       })
-      state.at = +end.toFixed(4);
-      state.bar = last;
       state.tick = lastTick;
       break;
+    case 'tempo':
+      state.tempo.push({
+          event:"T",
+          tick:Math.round(state.tick),
+          tempo:node.tempo
+      });
+      break;
     case 'note':
-      var len = Math.round(state.measure*node.length/state.factor*384);
-      var t = +(state.measure* node.length / state.factor * 240 / node.tempo).toFixed(4);
-      if (!t) debugger;
-      if (state.at>=0) {
-        state.ret.push({
-          event:"ON",
-          at:  state.at,
-          bar: state.bar,
-          note:node.note,
-          duration:  +t,
-          instrument:node.instrument,
-          velocity:node.velocity
-        });
-        state.tracks[node.instrument].push({
-          event:"N",
-          at: state.at,
-          note:node.note,
-          duration: +t,
-          velocity:node.velocity,
-          ticks:len,
-          tick:state.tick
-        });
-        //state.ret.push({at:state.at,event:"OFF",note:node.note,instrument:node.instrument});
-      }
-      state.tick += len;
-      state.at = +(state.at +t).toFixed(4);
+      var ticks = state.measure*node.length/state.factor*TPQ*4;
+      if (!ticks) debugger;
+        
+      state.tracks[node.track].push({
+        event:"N",
+        note:node.note,
+        velocity:node.velocity,
+        ticks:Math.round(ticks),
+        tick:Math.round(state.tick)
+      });
+      state.tracks[node.track].push({
+        event:"ON",
+        velocity:node.velocity,
+        note:node.note,
+        ticks:Math.round(ticks),
+        tick:Math.round(state.tick)
+      });
+      state.tracks[node.track].push({
+        event:"OFF",
+        velocity:node.velocity,
+        note:node.note,
+        tick:Math.round(state.tick+ticks)
+      });
+    
+      state.tick += ticks;
       break;
     case 'pause':
-      var len = Math.round(state.measure*node.length/state.factor*384);
-      var t = state.measure*node.length / state.factor * 240 / node.tempo;
-      state.at = +(state.at +t).toFixed(4);
-      state.tick+=len;
+      var ticks = state.measure*node.length/state.factor*TPQ*4;
+      state.tracks[node.track].push({
+          event:"P",
+          ticks:Math.round(ticks),
+          tick:Math.round(state.tick)
+        });
+      state.tick+=ticks;
     }
     return state;
   }
   function compile(node) {
     const processed = process(node);
-    var {ret:events,tracks,tick,bars} = sched(processed);
-    events.sort(function(a,b) {
-      return a.at-b.at;
-    })
-    /*
-    for (const id in tracks) tracks[id].sort(function(a,b) {
-      return a.at-b.at;
-    })
-    */
-    const last = events[events.length-1];
+    var {tick,tempo,bars} = sched(processed);
+   
+    for (const id in tracks) {
+      if (tracks[id].events.length===0) {
+        delete tracks[id];
+        continue;
+      }
+      tracks[id].events.sort(function(a,b) {
+      return a.tick-b.tick;
+      })
+    }
+    
+    //const last = events[events.length-1];
     
     return {
-     bars,
-     length:  last ? last.at + last.duration: 0,
+     tempo,
      tracks,
      soundfonts,
-     instruments,
-     events,
      node,
      processed,
-     ticks:tick
+     ticks:tick,
+     TPQ
     };
   }
 }
@@ -404,7 +406,7 @@ process = b:composition { return process(b) }
 composition = _ h:statement t:_statement* _ { return {$:'composition',sub:[h].concat(t)} }
 
 _statement = cr e:statement { return e }
-statement = def_soundfont/def_instrument/scope/bars/assign
+statement = def_soundfont/def_track/scope/bars/assign
 
 def_soundfont = "@soundfont" __ name:ident _ "=" _ url:$([^ \n\t]+) {
   return {
@@ -414,12 +416,12 @@ def_soundfont = "@soundfont" __ name:ident _ "=" _ url:$([^ \n\t]+) {
   }
 }
 
-def_instrument = "@instrument" __ name:ident _ "=" _ font:ident _ "/" _ id:$([^ \n\t]+) adsr:instr_ADSR {
+def_track = "@track" __ id:ident _ "=" _ font:ident _ "/" _ instrument:$([^ \n\t]+) adsr:instr_ADSR {
   return {
-  	$: 'def_instrument',
-    name,
-    font,
+  	$: 'def_track',
     id,
+    font,
+    instrument,
     ...adsr
   }
 }
@@ -465,7 +467,7 @@ _seq2 = _ ";" _ e:seq2 { return e }
 seq2 = h:expr t:_expr* { return {$:'seq',sub:[h].concat(t)} }
 
 _expr = __ e:expr { return e }
-expr = instrument/signature/tempo/skip/velocity/key/modulation/repeat/poly
+expr = track/signature/tempo/skip/velocity/key/modulation/repeat/poly
 
 repeat
 = times:$([0-9]+) [x×] _ arg:poly {
@@ -488,9 +490,9 @@ skip
 }
 
 
-instrument
-= '"' instrument:$([^"]+) '"' {
-	return {$:"instrument",instrument}
+track
+= '"' track:$([^"]+) '"' {
+	return {$:"track",track}
 }
 
 key = o:octave k:$([A-G]) t:accidental m:keymode {

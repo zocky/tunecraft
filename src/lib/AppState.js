@@ -1,9 +1,9 @@
-import React from "react";
-import { render } from "react-dom";
 import { trace,observable, computed, makeObservable, reaction, action } from "mobx";
 import { parse } from "./tunecraft.pegjs";
 
+import Soundfont from "soundfont-player";
 import { PlayerState } from "./PlayerState";
+import { Tune } from "./Tune";
 
 export class AppState {
   context = new AudioContext();
@@ -19,6 +19,12 @@ export class AppState {
     if (this.zoomY<8) this.zoomY++;
   }
 
+  @observable
+  loopIn = 1;
+
+  @observable
+  loopOut = 5;
+
   @action 
   zoomOutY() {
     if (this.zoomY>1) this.zoomY--;
@@ -30,8 +36,6 @@ export class AppState {
 
 
   @computed get result() {
-    console.log('getting result')
-
     try {
       return { result: parse(this.source) };
     } catch (error) {
@@ -44,20 +48,10 @@ export class AppState {
     return this.result.error;
   }
 
-  @observable parsed = {};
+  @observable tune = null;
 
   @computed get tracks() {
-    const ret = [];
-    if (!this.parsed) return ret;
-    for (let id in this.parsed.tracks) {
-      const track=this.parsed.tracks[id];
-      if (track.length===0) continue;
-      ret.push({
-        id,
-        events: track
-      })
-    }
-    return ret;
+    return Object.values(this.tune?.tracks || []);
   }
 
   @computed.struct get trackKeys() {
@@ -66,36 +60,38 @@ export class AppState {
 
   @computed get soundfonts() {
     trace();
-    if (!this.parsed) return {};
-    return { default: "MusyngKite", ...this.parsed.soundfonts }
+    if (!this.tune) return {};
+    return { default: "MusyngKite", ...this.tune.soundfonts }
   }
 
   @computed get instruments() {
     trace();
-    const result = this.parsed;
+    const result = this.tune;
     if (!result) return {};
     const ret = {};
-    for (const name in result.instruments) {
-      const { font, id, ...rest } = result.instruments[name];
+    for (const track of result.tracks) {
+      const { font, instrument, id, ...rest } = track;
       const options = {}
       if (rest.attack) options.attack = rest.attack / 1000;
       if (rest.decay) options.decay = rest.decay / 1000;
       if (rest.sustain) options.sustain = rest.sustain / 100;
       if (rest.release) options.release = rest.release / 1000;
-      ret[name] = InstrumentState.create(this.context, this.soundfonts[font], id, options);
+      ret[id] = InstrumentState.create(this.context, this.soundfonts[font], instrument, options);
     }
     return ret;
   }
 
+  
   constructor() {
-    makeObservable(this);
+    top.app = this;
     let lastResult;
-    reaction(() => { this.instruments; return this.result} , ({ result, error }) => {
+    makeObservable(this);
+    reaction(() => { this.instruments; this.tune; return this.result} , ({ result, error }) => {
       if (result ===lastResult) return;
       lastResult = result;
       localStorage.tunecraft_save = this.source;
       if (result) {
-        this.parsed = result; 
+        this.tune = new Tune(result); 
       }
     })
     this.init();
@@ -150,4 +146,3 @@ class InstrumentState {
     this.instrument?.stop();
   }
 }
-

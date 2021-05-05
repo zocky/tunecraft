@@ -5,6 +5,23 @@ import Soundfont from "soundfont-player";
 export class PlayerState {
   @observable ready = true;
   @observable playbackTime = 0;
+
+  @computed get beginTime() {
+    return this.app.loopIn ?? 0;
+  }
+
+  @computed get endTime() {
+    return this.app.loopOut ?? this.totalTime;
+  }
+
+  @computed get loopTime() {
+    return this.endTime - this.beginTime;
+  }
+
+  @computed get totalTime() {
+    return this.app.tune?.length ?? 0;
+  }
+
   @observable playing = false;
 
   @observable looping = true;
@@ -20,40 +37,61 @@ export class PlayerState {
   timerID = null;
   queueTime = 0;
 
+  @computed get notes() {
+    const notes = this.app.tune.events.filter(e => {
+      if (e.event !== 'N') return false;
+      if (e.at + e.duration <= this.beginTime) return false;
+      if (e.at >= this.endTime) return false;
+      return true;
+    })
+    
+    .map(e => ({ ...e }));
+    for (const e of notes) {
+      if (e.at + e.duration > this.endTime) e.duration = this.endTime - e.at;
+    }
+    
+    for (const e of notes) {
+      if (e.at - this.beginTime < 1) notes.push({
+        ...e,
+        at: e.at + this.loopTime
+      })
+    }
+    return notes;
+  }
+
   @action.bound
   loop() {
-    const { events } = this.app.parsed;
+
     const now = this.currentTime;
     const time = now - this.offsetTime;
     const doneTime = time + 1;
-    const rest = events.filter(e => {
-      if (e.at < this.queueTime) return false;
-      if (e.at + e.duration < time) return false;
-      if (e.at < e.time) return true;
-      if (e.at > doneTime) return true;
-      const off = e.at - time;
+    for (const e of this.notes) {
+      const { event, at, duration, track, note, velocity } = e;
+      if (event !== 'N') continue;
+      if (at < this.beginTime) continue;
+      if (at > this.endTime) continue;
+      if (at < this.queueTime) continue;
+      if (at + duration < time) continue;
+      if (at < time) continue;
+      if (at > doneTime) continue;
+      const offset = at - time;
 
-      switch (e.event) {
-        case 'ON':
-          this.app.instruments[e.instrument].play(e.note, now + off, {
-            duration: e.duration,
-            gain: e.velocity / 100
-          })
-          break;
-        default: {
-        }
-      }
-      return false;
-    })
+      this.app.instruments[track].play(note, now + offset, {
+        duration: duration,
+        gain: velocity / 100
+      })
 
-    this.playbackTime = time;
-    this.queueTime = doneTime;
-    if (time>=this.app.parsed.length) {
+    }
+
+    this.queueTime = doneTime; //this.beginTime + (doneTime - this.beginTime) % this.loopTime;
+    if (time >= this.endTime) {
       if (this.looping) {
-        this.seek(0);
+        this.seek(this.beginTime + (time - this.beginTime) % this.loopTime);
       } else {
         this.stop(true);
       }
+    } else {
+      this.playbackTime = time;
     }
   }
 
@@ -80,20 +118,26 @@ export class PlayerState {
       console.log('not unholding');
     }
   }
-  
 
   @action.bound
-  async start() {
-    if (!this.ready) return;
-    if(this.playing) return;
-    if (this.timerID) return;
+  async play() {
     await this.app.context.resume();
+    this.start();
+  }
+
+
+  @action.bound
+  start() {
+    if (!this.ready) return;
+    if (this.playing) return;
     this.offsetTime = this.currentTime - this.playbackTime;
     this.queueTime = 0;
     this.playing = true;
     this.holding = false;
-    this.loop();
-    this.timerID = setInterval(this.loop, 50);
+    if (!this.timerID) {
+      this.loop();
+      this.timerID = setInterval(this.loop, 50);
+    }
   }
 
   @action.bound
@@ -104,8 +148,9 @@ export class PlayerState {
   @action.bound
   seek(time) {
     if (this.playing) {
-      this.stop(false);
+      this.silence();
       this.playbackTime = time;
+      this.playing = false;
       this.start();
     } else {
       this.playbackTime = time;
@@ -113,23 +158,25 @@ export class PlayerState {
   }
 
   @action.bound
-  stop(reset = true) {
-    if (this.timerID) {
-      clearInterval(this.timerID);
-      this.timerID = null;
-    }
+  silence() {
     for (const id in this.app.instruments) this.app.instruments[id].stop();
+  }
+
+  @action.bound
+  stop(reset = true) {
+    clearInterval(this.timerID);
+    this.timerID = null;
     this.playing = false;
-    //this.holding = false;
-    
+    this.silence();
+
     this.queueTime = 0;
-    if (reset) this.playbackTime = 0;
+    if (reset) this.playbackTime = this.beginTime;
   }
 
   @action.bound
   toggle() {
     if (this.playing) this.pause();
-    else this.start();
+    else this.play();
   }
 
   get currentTime() {

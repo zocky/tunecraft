@@ -56,7 +56,8 @@ export class Tracks extends React.Component {
               <Track key={idx} app={app} idx={idx} color={COLORS[idx % COLORS.length]} />
             )}
           </div>
-          <SeekCursor app={app} tracks={app.parsed?.tracks} />
+          <LoopRegion app={app}/>
+          <SeekCursor app={app}/>
         </div>
       </>
     )
@@ -78,7 +79,7 @@ export class Scroller extends React.Component {
 
 
     canvas.height = tracks.length * 4;
-    canvas.width = 32 * app.parsed.length;
+    canvas.width = 32 * app.tune.length;
     const ctx = canvas.getContext('2d');
     ctx.fillStyle = "#111";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -94,6 +95,7 @@ export class Scroller extends React.Component {
 
 
   render() {
+    if(!this.props.app.tune?.length) return null;
     return (
       <img style={{ imageRendering: "pixelated" }} className="tc scroller" src={this.scrollImage} />
     )
@@ -110,13 +112,32 @@ export class SeekCursor extends React.Component {
     const { app } = this.props;
     const { player } = app;
     if (!player) return 0;
-    const xZoom = 64;
-    return player.playbackTime * xZoom;
+    return player.playbackTime * app.zoomX;
 
   }
   render() {
     const { app } = this.props;
     return <div ref={ref => app.player.playing && ref?.scrollIntoView({ block: 'nearest', inline: app.player?.holding ? 'nearest' : 'center' })} className="tc seek-cursor" style={{ left: this.X }} />
+  }
+}
+
+@observer
+export class LoopRegion extends React.Component {
+  constructor(...args) {
+    super(...args);
+    makeObservable(this);
+  }
+  @computed get X() {
+    const { app } = this.props;
+    return app.loopIn * app.zoomX;
+  }
+  @computed get W() {
+    const { app } = this.props;
+    return (app.loopOut-app.loopIn) * app.zoomX;
+  }
+  render() {
+    const { app } = this.props;
+    return <div className="tc loop-region" style={{ left: this.X, width:this.W }} />
   }
 }
 
@@ -130,7 +151,7 @@ export class Track extends React.Component {
 
   @computed
   get trackImage() {
-    console.log('drawing', this.track.id)
+    //console.log('drawing', this.track.id)
     const canvas = document.createElement('canvas');
     const { app, color } = this.props;
 
@@ -143,7 +164,7 @@ export class Track extends React.Component {
     const max = Math.max(72, ...notes.map(e => e.note + 2));
 
     canvas.height = zoomY * (max - min);
-    canvas.width = zoomX * app.parsed.length;
+    canvas.width = zoomX * app.tune.length;
 
     const ctx = canvas.getContext('2d');
 
