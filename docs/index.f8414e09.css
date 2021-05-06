@@ -38,6 +38,27 @@
   overflow: auto;
 }
 
+.tc.player {
+  display: flex;
+  justify-content: space-between;
+  height: 50px;
+}
+.tc.player > .controls button {
+  border: none;
+  height: 40px;
+  width: 40px;
+  margin: 0 4px;
+  background: #333;
+  color: inherit;
+  font-size: 24px;
+  cursor: hover;
+}
+.tc.player > .time {
+  font-size: 18px;
+  line-height: 50px;
+  margin: 0 8px;
+}
+
 .tc.tracks {
   position: relative;
   height: 100%;
@@ -86,27 +107,6 @@
 }
 .tc.scroller {
   flex: 0 1 0;
-}
-
-.tc.player {
-  display: flex;
-  justify-content: space-between;
-  height: 50px;
-}
-.tc.player > .controls button {
-  border: none;
-  height: 40px;
-  width: 40px;
-  margin: 0 4px;
-  background: #333;
-  color: inherit;
-  font-size: 24px;
-  cursor: hover;
-}
-.tc.player > .time {
-  font-size: 18px;
-  line-height: 50px;
-  margin: 0 8px;
 }
 
 

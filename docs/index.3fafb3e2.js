@@ -1067,7 +1067,7 @@ try {
   window.$RefreshSig$ = prevRefreshSig;
 }
 
-},{"react":"3b2NM","react-dom":"2sg1U","../node_modules/@parcel/transformer-react-refresh-wrap/lib/helpers/helpers.js":"4Jj4f","./components/App":"2mBZE","./styles/index.less":"6d5qu","./lib/AppState":"2Kc7t"}],"3b2NM":[function(require,module,exports) {
+},{"react":"3b2NM","react-dom":"2sg1U","./components/App":"2mBZE","./styles/index.less":"6d5qu","./lib/AppState":"2Kc7t","../node_modules/@parcel/transformer-react-refresh-wrap/lib/helpers/helpers.js":"4Jj4f"}],"3b2NM":[function(require,module,exports) {
 "use strict";
 if ("development" === 'production') {
   module.exports = require('./cjs/react.production.min.js');
@@ -26260,164 +26260,7 @@ if ("development" !== "production") {
   })();
 }
 
-},{}],"4Jj4f":[function(require,module,exports) {
-"use strict";
-var Refresh = require('react-refresh/runtime');
-function debounce(func, delay) {
-  if ("development" === 'test') {
-    return function (args) {
-      func.call(null, args);
-    };
-  } else {
-    var timeout = undefined;
-    return function (args) {
-      clearTimeout(timeout);
-      timeout = setTimeout(function () {
-        timeout = undefined;
-        func.call(null, args);
-      }, delay);
-    };
-  }
-}
-var enqueueUpdate = debounce(function () {
-  Refresh.performReactRefresh();
-}, 30);
-// Everthing below is either adapted or copied from
-// https://github.com/facebook/metro/blob/61de16bd1edd7e738dd0311c89555a644023ab2d/packages/metro/src/lib/polyfills/require.js
-// MIT License - Copyright (c) Facebook, Inc. and its affiliates.
-module.exports.prelude = function (module) {
-  window.$RefreshReg$ = function (type, id) {
-    Refresh.register(type, module.id + ' ' + id);
-  };
-  window.$RefreshSig$ = Refresh.createSignatureFunctionForTransform;
-};
-module.exports.postlude = function (module) {
-  if (isReactRefreshBoundary(module.exports)) {
-    registerExportsForReactRefresh(module);
-    if (module.hot) {
-      module.hot.dispose(function (data) {
-        if (Refresh.hasUnrecoverableErrors()) {
-          window.location.reload();
-        }
-        data.prevExports = module.exports;
-      });
-      module.hot.accept(function (getParents) {
-        var prevExports = module.hot.data.prevExports;
-        var nextExports = module.exports;
-        // Since we just executed the code for it, it's possible
-        // that the new exports make it ineligible for being a boundary.
-        var isNoLongerABoundary = !isReactRefreshBoundary(nextExports);
-        // It can also become ineligible if its exports are incompatible
-        // with the previous exports.
-        // For example, if you add/remove/change exports, we'll want
-        // to re-execute the importing modules, and force those components
-        // to re-render. Similarly, if you convert a class component
-        // to a function, we want to invalidate the boundary.
-        var didInvalidate = shouldInvalidateReactRefreshBoundary(prevExports, nextExports);
-        if (isNoLongerABoundary || didInvalidate) {
-          // We'll be conservative. The only case in which we won't do a full
-          // reload is if all parent modules are also refresh boundaries.
-          // In that case we'll add them to the current queue.
-          var parents = getParents();
-          if (parents.length === 0) {
-            // Looks like we bubbled to the root. Can't recover from that.
-            window.location.reload();
-            return;
-          }
-          return parents;
-        }
-        enqueueUpdate();
-      });
-    }
-  }
-};
-function isReactRefreshBoundary(exports) {
-  if (Refresh.isLikelyComponentType(exports)) {
-    return true;
-  }
-  if (exports == null || typeof exports !== 'object') {
-    // Exit if we can't iterate over exports.
-    return false;
-  }
-  var hasExports = false;
-  var areAllExportsComponents = true;
-  let isESM = ('__esModule' in exports);
-  for (var key in exports) {
-    hasExports = true;
-    if (key === '__esModule') {
-      continue;
-    }
-    var desc = Object.getOwnPropertyDescriptor(exports, key);
-    if (desc && desc.get && !isESM) {
-      // Don't invoke getters for CJS as they may have side effects.
-      return false;
-    }
-    var exportValue = exports[key];
-    if (!Refresh.isLikelyComponentType(exportValue)) {
-      areAllExportsComponents = false;
-    }
-  }
-  return hasExports && areAllExportsComponents;
-}
-function shouldInvalidateReactRefreshBoundary(prevExports, nextExports) {
-  var prevSignature = getRefreshBoundarySignature(prevExports);
-  var nextSignature = getRefreshBoundarySignature(nextExports);
-  if (prevSignature.length !== nextSignature.length) {
-    return true;
-  }
-  for (var i = 0; i < nextSignature.length; i++) {
-    if (prevSignature[i] !== nextSignature[i]) {
-      return true;
-    }
-  }
-  return false;
-}
-// When this signature changes, it's unsafe to stop at this refresh boundary.
-function getRefreshBoundarySignature(exports) {
-  var signature = [];
-  signature.push(Refresh.getFamilyByType(exports));
-  if (exports == null || typeof exports !== 'object') {
-    // Exit if we can't iterate over exports.
-    // (This is important for legacy environments.)
-    return signature;
-  }
-  let isESM = ('__esModule' in exports);
-  for (var key in exports) {
-    if (key === '__esModule') {
-      continue;
-    }
-    var desc = Object.getOwnPropertyDescriptor(exports, key);
-    if (desc && desc.get && !isESM) {
-      // Don't invoke getters for CJS as they may have side effects.
-      continue;
-    }
-    var exportValue = exports[key];
-    signature.push(key);
-    signature.push(Refresh.getFamilyByType(exportValue));
-  }
-  return signature;
-}
-function registerExportsForReactRefresh(module) {
-  var exports = module.exports, id = module.id;
-  Refresh.register(exports, id + ' %exports%');
-  if (exports == null || typeof exports !== 'object') {
-    // Exit if we can't iterate over exports.
-    // (This is important for legacy environments.)
-    return;
-  }
-  let isESM = ('__esModule' in exports);
-  for (var key in exports) {
-    var desc = Object.getOwnPropertyDescriptor(exports, key);
-    if (desc && desc.get && !isESM) {
-      // Don't invoke getters for CJS as they may have side effects.
-      continue;
-    }
-    var exportValue = exports[key];
-    Refresh.register(exportValue, id + ' %exports% ' + key);
-  }
-}
-
-},{"react-refresh/runtime":"592mh"}],"2mBZE":[function(require,module,exports) {
+},{}],"2mBZE":[function(require,module,exports) {
 "use strict";
 var helpers = require("../../node_modules/@parcel/transformer-react-refresh-wrap/lib/helpers/helpers.js");
 var prevRefreshReg = window.$RefreshReg$;
@@ -26511,7 +26354,7 @@ try {
   window.$RefreshSig$ = prevRefreshSig;
 }
 
-},{"react":"3b2NM","../../node_modules/@parcel/transformer-react-refresh-wrap/lib/helpers/helpers.js":"4Jj4f","mobx-react":"27J27","./App.less":"2Ixld","mobx":"2yJsB","./Editor":"5Hwy4","./Tracks":"6eMdw","./Player":"2OcgD"}],"27J27":[function(require,module,exports) {
+},{"react":"3b2NM","mobx-react":"27J27","mobx":"2yJsB","./App.less":"2Ixld","./Editor":"5Hwy4","./Player":"2OcgD","./Tracks":"6eMdw","../../node_modules/@parcel/transformer-react-refresh-wrap/lib/helpers/helpers.js":"4Jj4f"}],"27J27":[function(require,module,exports) {
 "use strict";
 if ("development" === 'production') {
   module.exports = require('./mobxreact.cjs.production.min.js');
@@ -32971,7 +32814,7 @@ try {
   window.$RefreshSig$ = prevRefreshSig;
 }
 
-},{"react":"3b2NM","mobx-react":"27J27","mobx":"2yJsB","@monaco-editor/react":"6rQYb","../../node_modules/@parcel/transformer-react-refresh-wrap/lib/helpers/helpers.js":"4Jj4f","../lib/utils":"1XhVI"}],"6rQYb":[function(require,module,exports) {
+},{"react":"3b2NM","mobx-react":"27J27","mobx":"2yJsB","@monaco-editor/react":"6rQYb","../lib/utils":"1XhVI","../../node_modules/@parcel/transformer-react-refresh-wrap/lib/helpers/helpers.js":"4Jj4f"}],"6rQYb":[function(require,module,exports) {
 'use strict';
 
 Object.defineProperty(exports, '__esModule', { value: true });
@@ -35277,7 +35120,259 @@ http://jedwatson.github.io/classnames
   }
 })();
 
-},{}],"6eMdw":[function(require,module,exports) {
+},{}],"4Jj4f":[function(require,module,exports) {
+"use strict";
+var Refresh = require('react-refresh/runtime');
+function debounce(func, delay) {
+  if ("development" === 'test') {
+    return function (args) {
+      func.call(null, args);
+    };
+  } else {
+    var timeout = undefined;
+    return function (args) {
+      clearTimeout(timeout);
+      timeout = setTimeout(function () {
+        timeout = undefined;
+        func.call(null, args);
+      }, delay);
+    };
+  }
+}
+var enqueueUpdate = debounce(function () {
+  Refresh.performReactRefresh();
+}, 30);
+// Everthing below is either adapted or copied from
+// https://github.com/facebook/metro/blob/61de16bd1edd7e738dd0311c89555a644023ab2d/packages/metro/src/lib/polyfills/require.js
+// MIT License - Copyright (c) Facebook, Inc. and its affiliates.
+module.exports.prelude = function (module) {
+  window.$RefreshReg$ = function (type, id) {
+    Refresh.register(type, module.id + ' ' + id);
+  };
+  window.$RefreshSig$ = Refresh.createSignatureFunctionForTransform;
+};
+module.exports.postlude = function (module) {
+  if (isReactRefreshBoundary(module.exports)) {
+    registerExportsForReactRefresh(module);
+    if (module.hot) {
+      module.hot.dispose(function (data) {
+        if (Refresh.hasUnrecoverableErrors()) {
+          window.location.reload();
+        }
+        data.prevExports = module.exports;
+      });
+      module.hot.accept(function (getParents) {
+        var prevExports = module.hot.data.prevExports;
+        var nextExports = module.exports;
+        // Since we just executed the code for it, it's possible
+        // that the new exports make it ineligible for being a boundary.
+        var isNoLongerABoundary = !isReactRefreshBoundary(nextExports);
+        // It can also become ineligible if its exports are incompatible
+        // with the previous exports.
+        // For example, if you add/remove/change exports, we'll want
+        // to re-execute the importing modules, and force those components
+        // to re-render. Similarly, if you convert a class component
+        // to a function, we want to invalidate the boundary.
+        var didInvalidate = shouldInvalidateReactRefreshBoundary(prevExports, nextExports);
+        if (isNoLongerABoundary || didInvalidate) {
+          // We'll be conservative. The only case in which we won't do a full
+          // reload is if all parent modules are also refresh boundaries.
+          // In that case we'll add them to the current queue.
+          var parents = getParents();
+          if (parents.length === 0) {
+            // Looks like we bubbled to the root. Can't recover from that.
+            window.location.reload();
+            return;
+          }
+          return parents;
+        }
+        enqueueUpdate();
+      });
+    }
+  }
+};
+function isReactRefreshBoundary(exports) {
+  if (Refresh.isLikelyComponentType(exports)) {
+    return true;
+  }
+  if (exports == null || typeof exports !== 'object') {
+    // Exit if we can't iterate over exports.
+    return false;
+  }
+  var hasExports = false;
+  var areAllExportsComponents = true;
+  let isESM = ('__esModule' in exports);
+  for (var key in exports) {
+    hasExports = true;
+    if (key === '__esModule') {
+      continue;
+    }
+    var desc = Object.getOwnPropertyDescriptor(exports, key);
+    if (desc && desc.get && !isESM) {
+      // Don't invoke getters for CJS as they may have side effects.
+      return false;
+    }
+    var exportValue = exports[key];
+    if (!Refresh.isLikelyComponentType(exportValue)) {
+      areAllExportsComponents = false;
+    }
+  }
+  return hasExports && areAllExportsComponents;
+}
+function shouldInvalidateReactRefreshBoundary(prevExports, nextExports) {
+  var prevSignature = getRefreshBoundarySignature(prevExports);
+  var nextSignature = getRefreshBoundarySignature(nextExports);
+  if (prevSignature.length !== nextSignature.length) {
+    return true;
+  }
+  for (var i = 0; i < nextSignature.length; i++) {
+    if (prevSignature[i] !== nextSignature[i]) {
+      return true;
+    }
+  }
+  return false;
+}
+// When this signature changes, it's unsafe to stop at this refresh boundary.
+function getRefreshBoundarySignature(exports) {
+  var signature = [];
+  signature.push(Refresh.getFamilyByType(exports));
+  if (exports == null || typeof exports !== 'object') {
+    // Exit if we can't iterate over exports.
+    // (This is important for legacy environments.)
+    return signature;
+  }
+  let isESM = ('__esModule' in exports);
+  for (var key in exports) {
+    if (key === '__esModule') {
+      continue;
+    }
+    var desc = Object.getOwnPropertyDescriptor(exports, key);
+    if (desc && desc.get && !isESM) {
+      // Don't invoke getters for CJS as they may have side effects.
+      continue;
+    }
+    var exportValue = exports[key];
+    signature.push(key);
+    signature.push(Refresh.getFamilyByType(exportValue));
+  }
+  return signature;
+}
+function registerExportsForReactRefresh(module) {
+  var exports = module.exports, id = module.id;
+  Refresh.register(exports, id + ' %exports%');
+  if (exports == null || typeof exports !== 'object') {
+    // Exit if we can't iterate over exports.
+    // (This is important for legacy environments.)
+    return;
+  }
+  let isESM = ('__esModule' in exports);
+  for (var key in exports) {
+    var desc = Object.getOwnPropertyDescriptor(exports, key);
+    if (desc && desc.get && !isESM) {
+      // Don't invoke getters for CJS as they may have side effects.
+      continue;
+    }
+    var exportValue = exports[key];
+    Refresh.register(exportValue, id + ' %exports% ' + key);
+  }
+}
+
+},{"react-refresh/runtime":"592mh"}],"2OcgD":[function(require,module,exports) {
+"use strict";
+var helpers = require("../../node_modules/@parcel/transformer-react-refresh-wrap/lib/helpers/helpers.js");
+var prevRefreshReg = window.$RefreshReg$;
+var prevRefreshSig = window.$RefreshSig$;
+helpers.prelude(module);
+try {
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.RadioLinks = exports.Player = void 0;
+  var _react = _interopRequireDefault(require("react"));
+  var _mobxReact = require("mobx-react");
+  var _mobx = require("mobx");
+  require("./Player.less");
+  var _utils = require("../lib/utils");
+  var _class, _class2, _class3;
+  function _interopRequireDefault(obj) {
+    return obj && obj.__esModule ? obj : {
+      default: obj
+    };
+  }
+  let Player = (0, _mobxReact.observer)(_class = class Player extends _react.default.Component {
+    render() {
+      const {app} = this.props;
+      const {player} = app;
+      if (!player) return null;
+      return (
+        /*#__PURE__*/_react.default.createElement("div", {
+          className: "tc player"
+        }, /*#__PURE__*/_react.default.createElement("div", {
+          className: "controls"
+        }, /*#__PURE__*/_react.default.createElement("button", {
+          onClick: player.toggle
+        }, "⏯"), /*#__PURE__*/_react.default.createElement("button", {
+          onClick: player.stop
+        }, "⏹")), /*#__PURE__*/_react.default.createElement("div", {
+          className: "links"
+        }, "show:", /*#__PURE__*/_react.default.createElement(RadioLinks, {
+          obj: app,
+          prop: "viewerMode",
+          options: ["tracks", "result"]
+        })), /*#__PURE__*/_react.default.createElement("div", {
+          className: "time"
+        }, /*#__PURE__*/_react.default.createElement(PlayerTime, {
+          app: app
+        })))
+      );
+    }
+  }) || _class;
+  exports.Player = Player;
+  let PlayerTime = (0, _mobxReact.observer)(_class2 = class PlayerTime extends _react.default.Component {
+    formatTime(time) {
+      return `${0 | time / 60}:${(time % 60).toFixed(1).padStart(4, "0")}`;
+    }
+    get totalTime() {
+      var _app$tune;
+      const {app} = this.props;
+      return this.formatTime((_app$tune = app.tune) === null || _app$tune === void 0 ? void 0 : _app$tune.length);
+    }
+    get playbackTime() {
+      const {playbackTime} = this.props.app.player;
+      return this.formatTime(playbackTime || 0);
+    }
+    render() {
+      return (
+        /*#__PURE__*/_react.default.createElement(_react.default.Fragment, null, this.playbackTime, " /", this.totalTime)
+      );
+    }
+  }) || _class2;
+  let RadioLinks = (0, _mobxReact.observer)(_class3 = class RadioLinks extends _react.default.Component {
+    render() {
+      const {obj, prop, options} = this.props;
+      let list = [];
+      if (Array.isArray(options)) {
+        list = options.map(k => [k, k]);
+      } else {
+        list = Object.entries(options);
+      }
+      return list.map(([k, v]) => /*#__PURE__*/_react.default.createElement("span", {
+        key: k,
+        className: (0, _utils.classes)('tc link', {
+          active: obj[prop] === k
+        }),
+        onClick: (0, _mobx.action)(e => obj[prop] = k)
+      }, v));
+    }
+  }) || _class3;
+  exports.RadioLinks = RadioLinks;
+  helpers.postlude(module);
+} finally {
+  window.$RefreshReg$ = prevRefreshReg;
+  window.$RefreshSig$ = prevRefreshSig;
+}
+
+},{"react":"3b2NM","mobx-react":"27J27","mobx":"2yJsB","./Player.less":"6f9gU","../lib/utils":"1XhVI","../../node_modules/@parcel/transformer-react-refresh-wrap/lib/helpers/helpers.js":"4Jj4f"}],"6f9gU":[function() {},{}],"6eMdw":[function(require,module,exports) {
 "use strict";
 var helpers = require("../../node_modules/@parcel/transformer-react-refresh-wrap/lib/helpers/helpers.js");
 var prevRefreshReg = window.$RefreshReg$;
@@ -35587,102 +35682,7 @@ try {
   window.$RefreshSig$ = prevRefreshSig;
 }
 
-},{"react":"3b2NM","mobx-react":"27J27","mobx":"2yJsB","../../node_modules/@parcel/transformer-react-refresh-wrap/lib/helpers/helpers.js":"4Jj4f","./Tracks.less":"2LpkN"}],"2LpkN":[function() {},{}],"2OcgD":[function(require,module,exports) {
-"use strict";
-var helpers = require("../../node_modules/@parcel/transformer-react-refresh-wrap/lib/helpers/helpers.js");
-var prevRefreshReg = window.$RefreshReg$;
-var prevRefreshSig = window.$RefreshSig$;
-helpers.prelude(module);
-try {
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
-  exports.RadioLinks = exports.Player = void 0;
-  var _react = _interopRequireDefault(require("react"));
-  var _mobxReact = require("mobx-react");
-  var _mobx = require("mobx");
-  require("./Player.less");
-  var _utils = require("../lib/utils");
-  var _class, _class2, _class3;
-  function _interopRequireDefault(obj) {
-    return obj && obj.__esModule ? obj : {
-      default: obj
-    };
-  }
-  let Player = (0, _mobxReact.observer)(_class = class Player extends _react.default.Component {
-    render() {
-      const {app} = this.props;
-      const {player} = app;
-      if (!player) return null;
-      return (
-        /*#__PURE__*/_react.default.createElement("div", {
-          className: "tc player"
-        }, /*#__PURE__*/_react.default.createElement("div", {
-          className: "controls"
-        }, /*#__PURE__*/_react.default.createElement("button", {
-          onClick: player.toggle
-        }, "⏯"), /*#__PURE__*/_react.default.createElement("button", {
-          onClick: player.stop
-        }, "⏹")), /*#__PURE__*/_react.default.createElement("div", {
-          className: "links"
-        }, "show:", /*#__PURE__*/_react.default.createElement(RadioLinks, {
-          obj: app,
-          prop: "viewerMode",
-          options: ["tracks", "result"]
-        })), /*#__PURE__*/_react.default.createElement("div", {
-          className: "time"
-        }, /*#__PURE__*/_react.default.createElement(PlayerTime, {
-          app: app
-        })))
-      );
-    }
-  }) || _class;
-  exports.Player = Player;
-  let PlayerTime = (0, _mobxReact.observer)(_class2 = class PlayerTime extends _react.default.Component {
-    formatTime(time) {
-      return `${0 | time / 60}:${(time % 60).toFixed(1).padStart(4, "0")}`;
-    }
-    get totalTime() {
-      var _app$tune;
-      const {app} = this.props;
-      return this.formatTime((_app$tune = app.tune) === null || _app$tune === void 0 ? void 0 : _app$tune.length);
-    }
-    get playbackTime() {
-      const {playbackTime} = this.props.app.player;
-      return this.formatTime(playbackTime || 0);
-    }
-    render() {
-      return (
-        /*#__PURE__*/_react.default.createElement(_react.default.Fragment, null, this.playbackTime, " /", this.totalTime)
-      );
-    }
-  }) || _class2;
-  let RadioLinks = (0, _mobxReact.observer)(_class3 = class RadioLinks extends _react.default.Component {
-    render() {
-      const {obj, prop, options} = this.props;
-      let list = [];
-      if (Array.isArray(options)) {
-        list = options.map(k => [k, k]);
-      } else {
-        list = Object.entries(options);
-      }
-      return list.map(([k, v]) => /*#__PURE__*/_react.default.createElement("span", {
-        key: k,
-        className: (0, _utils.classes)('tc link', {
-          active: obj[prop] === k
-        }),
-        onClick: (0, _mobx.action)(e => obj[prop] = k)
-      }, v));
-    }
-  }) || _class3;
-  exports.RadioLinks = RadioLinks;
-  helpers.postlude(module);
-} finally {
-  window.$RefreshReg$ = prevRefreshReg;
-  window.$RefreshSig$ = prevRefreshSig;
-}
-
-},{"react":"3b2NM","mobx-react":"27J27","mobx":"2yJsB","./Player.less":"6f9gU","../../node_modules/@parcel/transformer-react-refresh-wrap/lib/helpers/helpers.js":"4Jj4f","../lib/utils":"1XhVI"}],"6f9gU":[function() {},{}],"6d5qu":[function() {},{}],"2Kc7t":[function(require,module,exports) {
+},{"react":"3b2NM","mobx-react":"27J27","mobx":"2yJsB","./Tracks.less":"2LpkN","../../node_modules/@parcel/transformer-react-refresh-wrap/lib/helpers/helpers.js":"4Jj4f"}],"2LpkN":[function() {},{}],"6d5qu":[function() {},{}],"2Kc7t":[function(require,module,exports) {
 "use strict";
 Object.defineProperty(exports, "__esModule", {
   value: true
@@ -35929,7 +35929,7 @@ class InstrumentState {
 }
 _defineProperty(InstrumentState, "_instruments", {});
 
-},{"mobx":"2yJsB","./tunecraft.pegjs":"6SzjD","./Tune":"55noZ","soundfont-player":"7IOtV","./PlayerState":"2iluj"}],"6SzjD":[function(require,module,exports) {
+},{"mobx":"2yJsB","./tunecraft.pegjs":"5zOcv","soundfont-player":"7IOtV","./PlayerState":"2iluj","./Tune":"55noZ"}],"5zOcv":[function(require,module,exports) {
 /*
 * Generated by PEG.js 0.10.0.
 *
@@ -39999,1134 +39999,6 @@ module.exports = {
   parse: peg$parse
 };
 
-},{}],"55noZ":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.Tune = void 0;
-var _mobx = require("mobx");
-var _TempoTrack = require("./TempoTrack");
-var _Track = require("./Track");
-var _jsmidgen = _interopRequireDefault(require("jsmidgen"));
-var _class, _descriptor, _descriptor2;
-function _interopRequireDefault(obj) {
-  return obj && obj.__esModule ? obj : {
-    default: obj
-  };
-}
-function _initializerDefineProperty(target, property, descriptor, context) {
-  if (!descriptor) return;
-  Object.defineProperty(target, property, {
-    enumerable: descriptor.enumerable,
-    configurable: descriptor.configurable,
-    writable: descriptor.writable,
-    value: descriptor.initializer ? descriptor.initializer.call(context) : void 0
-  });
-}
-function _defineProperty(obj, key, value) {
-  if ((key in obj)) {
-    Object.defineProperty(obj, key, {
-      value: value,
-      enumerable: true,
-      configurable: true,
-      writable: true
-    });
-  } else {
-    obj[key] = value;
-  }
-  return obj;
-}
-function _applyDecoratedDescriptor(target, property, decorators, descriptor, context) {
-  var desc = {};
-  Object.keys(descriptor).forEach(function (key) {
-    desc[key] = descriptor[key];
-  });
-  desc.enumerable = !!desc.enumerable;
-  desc.configurable = !!desc.configurable;
-  if (('value' in desc) || desc.initializer) {
-    desc.writable = true;
-  }
-  desc = decorators.slice().reverse().reduce(function (desc, decorator) {
-    return decorator(target, property, desc) || desc;
-  }, desc);
-  if (context && desc.initializer !== void 0) {
-    desc.value = desc.initializer ? desc.initializer.call(context) : void 0;
-    desc.initializer = undefined;
-  }
-  if (desc.initializer === void 0) {
-    Object.defineProperty(target, property, desc);
-    desc = null;
-  }
-  return desc;
-}
-function _initializerWarningHelper(descriptor, context) {
-  throw new Error('Decorating class property failed. Please ensure that ' + 'proposal-class-properties is enabled and runs after the decorators transform.');
-}
-let Tune = (_class = class Tune {
-  get tracks() {
-    return Object.values(this.tracksById);
-  }
-  timeAtTick(tick) {
-    return this.tempoTrack.timeAtTick(tick);
-  }
-  get events() {
-    let events = this.tracks.flatMap(t => t.events).sort((a, b) => a.tick - b.tick);
-    return events;
-  }
-  get ticks() {
-    var _this$events;
-    let ticks = ((_this$events = this.events[this.events.length - 1]) === null || _this$events === void 0 ? void 0 : _this$events.tick) ?? 0;
-    return ticks;
-  }
-  get toMidi() {
-    const midi = new _jsmidgen.default.File({
-      ticks: this.TPQ
-    });
-    midi.addTrack(this.tempoTrack.toMidi);
-    for (const track of this.tracks) {
-      midi.addTrack(track.toMidi);
-    }
-    return midi;
-  }
-  get toMidiBuffer() {
-    const midi = this.toMidi.toBytes();
-    const bytes = new Uint8Array(midi.length);
-    for (var i = 0; i < midi.length; i++) {
-      bytes[i] = midi.charCodeAt(i);
-    }
-    return bytes;
-  }
-  downloadMidiFile() {
-    var blob = new Blob([this.toMidiBuffer], {
-      type: "audio/midi"
-    });
-    var link = document.createElement('a');
-    const url = URL.createObjectURL(blob);
-    link.href = url;
-    link.download = 'tune.mid';
-    link.click();
-    URL.revokeObjectURL(url);
-  }
-  get length() {
-    return this.tempoTrack.timeAtTick(this.ticks);
-  }
-  constructor({tracks, tempo, length, soundfonts, TPQ}) {
-    _initializerDefineProperty(this, "tracksById", _descriptor, this);
-    _initializerDefineProperty(this, "tempoTrack", _descriptor2, this);
-    top.tune = this;
-    this.soundfonts = {
-      default: "MusyngKite",
-      ...soundfonts
-    };
-    this.TPQ = TPQ;
-    this.tempoTrack = new _TempoTrack.TempoTrack(this, {
-      events: tempo,
-      TPQ
-    });
-    for (const id in tracks) {
-      this.tracksById[id] = new _Track.Track(this, tracks[id]);
-    }
-    (0, _mobx.makeObservable)(this);
-  }
-}, (_descriptor = _applyDecoratedDescriptor(_class.prototype, "tracksById", [_mobx.observable], {
-  configurable: true,
-  enumerable: true,
-  writable: true,
-  initializer: function () {
-    return {};
-  }
-}), _applyDecoratedDescriptor(_class.prototype, "tracks", [_mobx.computed], Object.getOwnPropertyDescriptor(_class.prototype, "tracks"), _class.prototype), _descriptor2 = _applyDecoratedDescriptor(_class.prototype, "tempoTrack", [_mobx.observable], {
-  configurable: true,
-  enumerable: true,
-  writable: true,
-  initializer: function () {
-    return null;
-  }
-}), _applyDecoratedDescriptor(_class.prototype, "events", [_mobx.computed], Object.getOwnPropertyDescriptor(_class.prototype, "events"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "ticks", [_mobx.computed], Object.getOwnPropertyDescriptor(_class.prototype, "ticks"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "toMidi", [_mobx.computed], Object.getOwnPropertyDescriptor(_class.prototype, "toMidi"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "toMidiBuffer", [_mobx.computed], Object.getOwnPropertyDescriptor(_class.prototype, "toMidiBuffer"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "length", [_mobx.computed], Object.getOwnPropertyDescriptor(_class.prototype, "length"), _class.prototype)), _class);
-exports.Tune = Tune;
-
-},{"mobx":"2yJsB","./TempoTrack":"3Vt9t","./Track":"3AQM8","jsmidgen":"7AWdF"}],"3Vt9t":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.TempoTrack = void 0;
-var _mobx = require("mobx");
-var _Track = require("./Track");
-var _jsmidgen = _interopRequireDefault(require("jsmidgen"));
-var _class;
-function _interopRequireDefault(obj) {
-  return obj && obj.__esModule ? obj : {
-    default: obj
-  };
-}
-function _defineProperty(obj, key, value) {
-  if ((key in obj)) {
-    Object.defineProperty(obj, key, {
-      value: value,
-      enumerable: true,
-      configurable: true,
-      writable: true
-    });
-  } else {
-    obj[key] = value;
-  }
-  return obj;
-}
-function _applyDecoratedDescriptor(target, property, decorators, descriptor, context) {
-  var desc = {};
-  Object.keys(descriptor).forEach(function (key) {
-    desc[key] = descriptor[key];
-  });
-  desc.enumerable = !!desc.enumerable;
-  desc.configurable = !!desc.configurable;
-  if (('value' in desc) || desc.initializer) {
-    desc.writable = true;
-  }
-  desc = decorators.slice().reverse().reduce(function (desc, decorator) {
-    return decorator(target, property, desc) || desc;
-  }, desc);
-  if (context && desc.initializer !== void 0) {
-    desc.value = desc.initializer ? desc.initializer.call(context) : void 0;
-    desc.initializer = undefined;
-  }
-  if (desc.initializer === void 0) {
-    Object.defineProperty(target, property, desc);
-    desc = null;
-  }
-  return desc;
-}
-let TempoTrack = (_class = class TempoTrack extends _Track.BaseTrack {
-  get events() {
-    return [{
-      event: 'T',
-      tick: 0,
-      tempo: 120
-    }, ...this._events].sort((a, b) => a.tick - b.tick);
-  }
-  ticksPerSecond(tempo) {
-    return tempo * this.TPQ / 60;
-  }
-  ticksToSeconds(tempo, ticks) {
-    return ticks / this.ticksPerSecond(tempo);
-  }
-  get tickOffsets() {
-    const ret = [{
-      tick: 0,
-      time: 0,
-      tempo: 120,
-      TPS: this.ticksPerSecond(120)
-    }];
-    let lastTick = 0;
-    let lastTime = 0;
-    let lastTempo = 120;
-    for (const {event, tick, tempo} of this.events) {
-      if (event !== 'T') continue;
-      const ticks = tick - lastTick;
-      const time = this.ticksToSeconds(lastTempo, ticks);
-      if (time === 0) ret.shift();
-      lastTick = tick;
-      lastTime += time;
-      lastTempo = tempo;
-      ret.unshift({
-        tick,
-        time: lastTime,
-        tempo,
-        TPS: this.ticksPerSecond(tempo)
-      });
-    }
-    return ret;
-  }
-  constructor(tune, {events, TPQ}) {
-    super(tune, {
-      events
-    });
-    _defineProperty(this, "timeAtTick", tick => {
-      // return this.ticksToSeconds(120,tick)
-      const offsets = this.tickOffsets;
-      for (const {tick: t, time, TPS} of offsets) {
-        if (tick >= t) {
-          return time + (tick - t) / TPS;
-        }
-        ;
-      }
-      return 0;
-    });
-    _defineProperty(this, "isMidiEvent", event => {
-      return ({
-        'T': true
-      })[event.event] || false;
-    });
-    this.TPQ = TPQ;
-    this._events = events;
-    (0, _mobx.makeObservable)(this);
-  }
-}, (_applyDecoratedDescriptor(_class.prototype, "events", [_mobx.computed], Object.getOwnPropertyDescriptor(_class.prototype, "events"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "tickOffsets", [_mobx.computed], Object.getOwnPropertyDescriptor(_class.prototype, "tickOffsets"), _class.prototype)), _class);
-exports.TempoTrack = TempoTrack;
-
-},{"mobx":"2yJsB","./Track":"3AQM8","jsmidgen":"7AWdF"}],"3AQM8":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.Track = exports.BaseTrack = void 0;
-var _mobx = require("mobx");
-var _instruments = _interopRequireDefault(require("./instruments.json"));
-var _jsmidgen = _interopRequireDefault(require("jsmidgen"));
-var _class, _descriptor, _class2, _temp, _class3;
-function _interopRequireDefault(obj) {
-  return obj && obj.__esModule ? obj : {
-    default: obj
-  };
-}
-function _initializerDefineProperty(target, property, descriptor, context) {
-  if (!descriptor) return;
-  Object.defineProperty(target, property, {
-    enumerable: descriptor.enumerable,
-    configurable: descriptor.configurable,
-    writable: descriptor.writable,
-    value: descriptor.initializer ? descriptor.initializer.call(context) : void 0
-  });
-}
-function _defineProperty(obj, key, value) {
-  if ((key in obj)) {
-    Object.defineProperty(obj, key, {
-      value: value,
-      enumerable: true,
-      configurable: true,
-      writable: true
-    });
-  } else {
-    obj[key] = value;
-  }
-  return obj;
-}
-function _applyDecoratedDescriptor(target, property, decorators, descriptor, context) {
-  var desc = {};
-  Object.keys(descriptor).forEach(function (key) {
-    desc[key] = descriptor[key];
-  });
-  desc.enumerable = !!desc.enumerable;
-  desc.configurable = !!desc.configurable;
-  if (('value' in desc) || desc.initializer) {
-    desc.writable = true;
-  }
-  desc = decorators.slice().reverse().reduce(function (desc, decorator) {
-    return decorator(target, property, desc) || desc;
-  }, desc);
-  if (context && desc.initializer !== void 0) {
-    desc.value = desc.initializer ? desc.initializer.call(context) : void 0;
-    desc.initializer = undefined;
-  }
-  if (desc.initializer === void 0) {
-    Object.defineProperty(target, property, desc);
-    desc = null;
-  }
-  return desc;
-}
-function _initializerWarningHelper(descriptor, context) {
-  throw new Error('Decorating class property failed. Please ensure that ' + 'proposal-class-properties is enabled and runs after the decorators transform.');
-}
-let BaseTrack = (_class = (_temp = _class2 = class BaseTrack {
-  get events() {
-    return this._events;
-  }
-  get isMidiTrack() {
-    return false;
-  }
-  constructor(tune, {events}) {
-    _initializerDefineProperty(this, "_events", _descriptor, this);
-    _defineProperty(this, "isMidiEvent", event => false);
-    this._events = events;
-    (0, _mobx.makeObservable)(this);
-  }
-  diffEvents(events) {
-    let lastTick = 0;
-    for (const event of events) {
-      event.wait = event.tick - lastTick;
-      lastTick = event.tick;
-    }
-    return events;
-  }
-  get eventsForMidi() {
-    let events = this.events.filter(this.isMidiEvent);
-    return this.diffEvents(events);
-  }
-  get toMidi() {
-    const midi = new _jsmidgen.default.Track();
-    for (const event of this.eventsForMidi) {
-      switch (event.event) {
-        case 'ON':
-          midi.addNoteOn(0, event.note, event.wait | 0, event.velocity);
-          break;
-        case 'OFF':
-          midi.addNoteOff(0, event.note, event.wait | 0, event.velocity);
-          break;
-        case 'I':
-          midi.setInstrument(0, event.instrument, event.wait | 0);
-          break;
-        case 'T':
-          midi.setTempo(event.tempo, event.wait | 0);
-          break;
-        case 'ID':
-          midi.addEvent(new _jsmidgen.default.MetaEvent({
-            type: _jsmidgen.default.MetaEvent.TRACK_NAME,
-            time: event.wait | 0,
-            data: event.id
-          }));
-          break;
-        default:
-      }
-    }
-    return midi;
-  }
-}, _defineProperty(_class2, "midiEvents", new Set('ON', 'OFF')), _temp), (_descriptor = _applyDecoratedDescriptor(_class.prototype, "_events", [_mobx.observable], {
-  configurable: true,
-  enumerable: true,
-  writable: true,
-  initializer: null
-}), _applyDecoratedDescriptor(_class.prototype, "eventsForMidi", [_mobx.computed], Object.getOwnPropertyDescriptor(_class.prototype, "eventsForMidi"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "toMidi", [_mobx.computed], Object.getOwnPropertyDescriptor(_class.prototype, "toMidi"), _class.prototype)), _class);
-exports.BaseTrack = BaseTrack;
-let Track = (_class3 = class Track extends BaseTrack {
-  get events() {
-    return [{
-      event: 'ID',
-      tick: 0,
-      data: this.id
-    }, {
-      event: 'I',
-      tick: 0,
-      instrument: this.midiInstrument || 0
-    }, ...this.tune.tempoTrack.events, ...this._events].map(event => {
-      const ret = {
-        ...event
-      };
-      const {tick, ticks = 0} = event;
-      ret.track = this.id;
-      ret.at = this.tune.timeAtTick(tick);
-      if (ticks > 0) {
-        ret.duration = this.tune.timeAtTick(tick + ticks) - ret.at;
-      }
-      return ret;
-    }).sort((a, b) => a.tick - b.tick);
-  }
-  get midiInstrument() {
-    return Math.max(0, _instruments.default.indexOf(this.instrument));
-  }
-  get isMidiCompatible() {
-    return this.midiInstrument >= 0;
-  }
-  constructor(tune, {id, events, instrument, font}) {
-    super(tune, {
-      events
-    });
-    _defineProperty(this, "isMidiEvent", event => {
-      return ({
-        'I': true,
-        'ID': true,
-        'T': true,
-        'ON': true,
-        'OFF': true
-      })[event.event] || false;
-    });
-    this.tune = tune;
-    this.id = id;
-    this.font = font;
-    this.instrument = instrument;
-    (0, _mobx.makeObservable)(this);
-  }
-}, (_applyDecoratedDescriptor(_class3.prototype, "events", [_mobx.computed], Object.getOwnPropertyDescriptor(_class3.prototype, "events"), _class3.prototype), _applyDecoratedDescriptor(_class3.prototype, "midiInstrument", [_mobx.computed], Object.getOwnPropertyDescriptor(_class3.prototype, "midiInstrument"), _class3.prototype), _applyDecoratedDescriptor(_class3.prototype, "isMidiCompatible", [_mobx.computed], Object.getOwnPropertyDescriptor(_class3.prototype, "isMidiCompatible"), _class3.prototype)), _class3);
-exports.Track = Track;
-
-},{"mobx":"2yJsB","./instruments.json":"11adB","jsmidgen":"7AWdF"}],"11adB":[function(require,module,exports) {
-"use strict";
-module.exports = JSON.parse("[\"acoustic_grand_piano\",\"bright_acoustic_piano\",\"electric_grand_piano\",\"honkytonk_piano\",\"electric_piano_1\",\"electric_piano_2\",\"harpsichord\",\"clavinet\",\"celesta\",\"glockenspiel\",\"music_box\",\"vibraphone\",\"marimba\",\"xylophone\",\"tubular_bells\",\"dulcimer\",\"drawbar_organ\",\"percussive_organ\",\"rock_organ\",\"church_organ\",\"reed_organ\",\"accordion\",\"harmonica\",\"tango_accordion\",\"acoustic_guitar_nylon\",\"acoustic_guitar_steel\",\"electric_guitar_jazz\",\"electric_guitar_clean\",\"electric_guitar_muted\",\"overdriven_guitar\",\"distortion_guitar\",\"guitar_harmonics\",\"acoustic_bass\",\"electric_bass_finger\",\"electric_bass_pick\",\"fretless_bass\",\"slap_bass_1\",\"slap_bass_2\",\"synth_bass_1\",\"synth_bass_2\",\"violin\",\"viola\",\"cello\",\"contrabass\",\"tremolo_strings\",\"pizzicato_strings\",\"orchestral_harp\",\"timpani\",\"string_ensemble_1\",\"string_ensemble_2\",\"synth_strings_1\",\"synth_strings_2\",\"choir_aahs\",\"voice_oohs\",\"synth_choir\",\"orchestra_hit\",\"trumpet\",\"trombone\",\"tuba\",\"muted_trumpet\",\"french_horn\",\"brass_section\",\"synth_brass_1\",\"synth_brass_2\",\"soprano_sax\",\"alto_sax\",\"tenor_sax\",\"baritone_sax\",\"oboe\",\"english_horn\",\"bassoon\",\"clarinet\",\"piccolo\",\"flute\",\"recorder\",\"pan_flute\",\"blown_bottle\",\"shakuhachi\",\"whistle\",\"ocarina\",\"lead_1_square\",\"lead_2_sawtooth\",\"lead_3_calliope\",\"lead_4_chiff\",\"lead_5_charang\",\"lead_6_voice\",\"lead_7_fifths\",\"lead_8_bass__lead\",\"pad_1_new_age\",\"pad_2_warm\",\"pad_3_polysynth\",\"pad_4_choir\",\"pad_5_bowed\",\"pad_6_metallic\",\"pad_7_halo\",\"pad_8_sweep\",\"fx_1_rain\",\"fx_2_soundtrack\",\"fx_3_crystal\",\"fx_4_atmosphere\",\"fx_5_brightness\",\"fx_6_goblins\",\"fx_7_echoes\",\"fx_8_scifi\",\"sitar\",\"banjo\",\"shamisen\",\"koto\",\"kalimba\",\"bagpipe\",\"fiddle\",\"shanai\",\"tinkle_bell\",\"agogo\",\"steel_drums\",\"woodblock\",\"taiko_drum\",\"melodic_tom\",\"synth_drum\",\"reverse_cymbal\",\"guitar_fret_noise\",\"breath_noise\",\"seashore\",\"bird_tweet\",\"telephone_ring\",\"helicopter\",\"applause\",\"gunshot\"]");
-
-},{}],"7AWdF":[function(require,module,exports) {
-var Midi = {};
-
-(function(exported) {
-
-	var DEFAULT_VOLUME   = exported.DEFAULT_VOLUME   = 90;
-	var DEFAULT_DURATION = exported.DEFAULT_DURATION = 128;
-	var DEFAULT_CHANNEL  = exported.DEFAULT_CHANNEL  = 0;
-
-	/* ******************************************************************
-	 * Utility functions
-	 ****************************************************************** */
-
-	var Util = {
-
-		midi_letter_pitches: { a:21, b:23, c:12, d:14, e:16, f:17, g:19 },
-
-		/**
-		 * Convert a symbolic note name (e.g. "c4") to a numeric MIDI pitch (e.g.
-		 * 60, middle C).
-		 *
-		 * @param {string} n - The symbolic note name to parse.
-		 * @returns {number} The MIDI pitch that corresponds to the symbolic note
-		 * name.
-		 */
-		midiPitchFromNote: function(n) {
-			var matches = /([a-g])(#+|b+)?([0-9]+)$/i.exec(n);
-			var note = matches[1].toLowerCase(), accidental = matches[2] || '', octave = parseInt(matches[3], 10);
-			return (12 * octave) + Util.midi_letter_pitches[note] + (accidental.substr(0,1)=='#'?1:-1) * accidental.length;
-		},
-
-		/**
-		 * Ensure that the given argument is converted to a MIDI pitch. Note that
-		 * it may already be one (including a purely numeric string).
-		 *
-		 * @param {string|number} p - The pitch to convert.
-		 * @returns {number} The resulting numeric MIDI pitch.
-		 */
-		ensureMidiPitch: function(p) {
-			if (typeof p == 'number' || !/[^0-9]/.test(p)) {
-				// numeric pitch
-				return parseInt(p, 10);
-			} else {
-				// assume it's a note name
-				return Util.midiPitchFromNote(p);
-			}
-		},
-
-		midi_pitches_letter: { '12':'c', '13':'c#', '14':'d', '15':'d#', '16':'e', '17':'f', '18':'f#', '19':'g', '20':'g#', '21':'a', '22':'a#', '23':'b' },
-		midi_flattened_notes: { 'a#':'bb', 'c#':'db', 'd#':'eb', 'f#':'gb', 'g#':'ab' },
-
-		/**
-		 * Convert a numeric MIDI pitch value (e.g. 60) to a symbolic note name
-		 * (e.g. "c4").
-		 *
-		 * @param {number} n - The numeric MIDI pitch value to convert.
-		 * @param {boolean} [returnFlattened=false] - Whether to prefer flattened
-		 * notes to sharpened ones. Optional, default false.
-		 * @returns {string} The resulting symbolic note name.
-		 */
-		noteFromMidiPitch: function(n, returnFlattened) {
-			var octave = 0, noteNum = n, noteName, returnFlattened = returnFlattened || false;
-			if (n > 23) {
-				// noteNum is on octave 1 or more
-				octave = Math.floor(n/12) - 1;
-				// subtract number of octaves from noteNum
-				noteNum = n - octave * 12;
-			}
-
-			// get note name (c#, d, f# etc)
-			noteName = Util.midi_pitches_letter[noteNum];
-			// Use flattened notes if requested (e.g. f# should be output as gb)
-			if (returnFlattened && noteName.indexOf('#') > 0) {
-				noteName = Util.midi_flattened_notes[noteName];
-			}
-			return noteName + octave;
-		},
-
-		/**
-		 * Convert beats per minute (BPM) to microseconds per quarter note (MPQN).
-		 *
-		 * @param {number} bpm - A number in beats per minute.
-		 * @returns {number} The number of microseconds per quarter note.
-		 */
-		mpqnFromBpm: function(bpm) {
-			var mpqn = Math.floor(60000000 / bpm);
-			var ret=[];
-			do {
-				ret.unshift(mpqn & 0xFF);
-				mpqn >>= 8;
-			} while (mpqn);
-			while (ret.length < 3) {
-				ret.push(0);
-			}
-			return ret;
-		},
-
-		/**
-		 * Convert microseconds per quarter note (MPQN) to beats per minute (BPM).
-		 *
-		 * @param {number} mpqn - The number of microseconds per quarter note.
-		 * @returns {number} A number in beats per minute.
-		 */
-		bpmFromMpqn: function(mpqn) {
-			var m = mpqn;
-			if (typeof mpqn[0] != 'undefined') {
-				m = 0;
-				for (var i=0, l=mpqn.length-1; l >= 0; ++i, --l) {
-					m |= mpqn[i] << l;
-				}
-			}
-			return Math.floor(60000000 / mpqn);
-		},
-
-		/**
-		 * Converts an array of bytes to a string of hexadecimal characters. Prepares
-		 * it to be converted into a base64 string.
-		 *
-		 * @param {Array} byteArray - Array of bytes to be converted.
-		 * @returns {string} Hexadecimal string, e.g. "097B8A".
-		 */
-		codes2Str: function(byteArray) {
-			return String.fromCharCode.apply(null, byteArray);
-		},
-
-		/**
-		 * Converts a string of hexadecimal values to an array of bytes. It can also
-		 * add remaining "0" nibbles in order to have enough bytes in the array as the
-		 * `finalBytes` parameter.
-		 *
-		 * @param {string} str - string of hexadecimal values e.g. "097B8A"
-		 * @param {number} [finalBytes] - Optional. The desired number of bytes
-		 * (not nibbles) that the returned array should contain.
-		 * @returns {Array} An array of nibbles.
-		 */
-		str2Bytes: function (str, finalBytes) {
-			if (finalBytes) {
-				while ((str.length / 2) < finalBytes) { str = "0" + str; }
-			}
-
-			var bytes = [];
-			for (var i=str.length-1; i>=0; i = i-2) {
-				var chars = i === 0 ? str[i] : str[i-1] + str[i];
-				bytes.unshift(parseInt(chars, 16));
-			}
-
-			return bytes;
-		},
-
-		/**
-		 * Translates number of ticks to MIDI timestamp format, returning an array
-		 * of bytes with the time values. MIDI has a very particular way to express
-		 * time; take a good look at the spec before ever touching this function.
-		 *
-		 * @param {number} ticks - Number of ticks to be translated.
-		 * @returns {number} Array of bytes that form the MIDI time value.
-		 */
-		translateTickTime: function(ticks) {
-			var buffer = ticks & 0x7F;
-
-			while (ticks = ticks >> 7) {
-				buffer <<= 8;
-				buffer |= ((ticks & 0x7F) | 0x80);
-			}
-
-			var bList = [];
-			while (true) {
-				bList.push(buffer & 0xff);
-
-				if (buffer & 0x80) { buffer >>= 8; }
-				else { break; }
-			}
-			return bList;
-		},
-
-	};
-
-	/* ******************************************************************
-	 * Event class
-	 ****************************************************************** */
-
-	/**
-	 * Construct a MIDI event.
-	 *
-	 * Parameters include:
-	 *  - time [optional number] - Ticks since previous event.
-	 *  - type [required number] - Type of event.
-	 *  - channel [required number] - Channel for the event.
-	 *  - param1 [required number] - First event parameter.
-	 *  - param2 [optional number] - Second event parameter.
-	 */
-	var MidiEvent = function(params) {
-		if (!this) return new MidiEvent(params);
-		if (params &&
-				(params.type    !== null || params.type    !== undefined) &&
-				(params.channel !== null || params.channel !== undefined) &&
-				(params.param1  !== null || params.param1  !== undefined)) {
-			this.setTime(params.time);
-			this.setType(params.type);
-			this.setChannel(params.channel);
-			this.setParam1(params.param1);
-			this.setParam2(params.param2);
-		}
-	};
-
-	// event codes
-	MidiEvent.NOTE_OFF           = 0x80;
-	MidiEvent.NOTE_ON            = 0x90;
-	MidiEvent.AFTER_TOUCH        = 0xA0;
-	MidiEvent.CONTROLLER         = 0xB0;
-	MidiEvent.PROGRAM_CHANGE     = 0xC0;
-	MidiEvent.CHANNEL_AFTERTOUCH = 0xD0;
-	MidiEvent.PITCH_BEND         = 0xE0;
-
-
-	/**
-	 * Set the time for the event in ticks since the previous event.
-	 *
-	 * @param {number} ticks - The number of ticks since the previous event. May
-	 * be zero.
-	 */
-	MidiEvent.prototype.setTime = function(ticks) {
-		this.time = Util.translateTickTime(ticks || 0);
-	};
-
-	/**
-	 * Set the type of the event. Must be one of the event codes on MidiEvent.
-	 *
-	 * @param {number} type - Event type.
-	 */
-	MidiEvent.prototype.setType = function(type) {
-		if (type < MidiEvent.NOTE_OFF || type > MidiEvent.PITCH_BEND) {
-			throw new Error("Trying to set an unknown event: " + type);
-		}
-
-		this.type = type;
-	};
-
-	/**
-	 * Set the channel for the event. Must be between 0 and 15, inclusive.
-	 *
-	 * @param {number} channel - The event channel.
-	 */
-	MidiEvent.prototype.setChannel = function(channel) {
-		if (channel < 0 || channel > 15) {
-			throw new Error("Channel is out of bounds.");
-		}
-
-		this.channel = channel;
-	};
-
-	/**
-	 * Set the first parameter for the event. Must be between 0 and 255,
-	 * inclusive.
-	 *
-	 * @param {number} p - The first event parameter value.
-	 */
-	MidiEvent.prototype.setParam1 = function(p) {
-		this.param1 = p;
-	};
-
-	/**
-	 * Set the second parameter for the event. Must be between 0 and 255,
-	 * inclusive.
-	 *
-	 * @param {number} p - The second event parameter value.
-	 */
-	MidiEvent.prototype.setParam2 = function(p) {
-		this.param2 = p;
-	};
-
-	/**
-	 * Serialize the event to an array of bytes.
-	 *
-	 * @returns {Array} The array of serialized bytes.
-	 */
-	MidiEvent.prototype.toBytes = function() {
-		var byteArray = [];
-
-		var typeChannelByte = this.type | (this.channel & 0xF);
-
-		byteArray.push.apply(byteArray, this.time);
-		byteArray.push(typeChannelByte);
-		byteArray.push(this.param1);
-
-		// Some events don't have a second parameter
-		if (this.param2 !== undefined && this.param2 !== null) {
-			byteArray.push(this.param2);
-		}
-		return byteArray;
-	};
-
-	/* ******************************************************************
-	 * MetaEvent class
-	 ****************************************************************** */
-
-	/**
-	 * Construct a meta event.
-	 *
-	 * Parameters include:
-	 *  - time [optional number] - Ticks since previous event.
-	 *  - type [required number] - Type of event.
-	 *  - data [optional array|string] - Event data.
-	 */
-	var MetaEvent = function(params) {
-		if (!this) return new MetaEvent(params);
-		var p = params || {};
-		this.setTime(params.time);
-		this.setType(params.type);
-		this.setData(params.data);
-	};
-
-	MetaEvent.SEQUENCE   = 0x00;
-	MetaEvent.TEXT       = 0x01;
-	MetaEvent.COPYRIGHT  = 0x02;
-	MetaEvent.TRACK_NAME = 0x03;
-	MetaEvent.INSTRUMENT = 0x04;
-	MetaEvent.LYRIC      = 0x05;
-	MetaEvent.MARKER     = 0x06;
-	MetaEvent.CUE_POINT  = 0x07;
-	MetaEvent.CHANNEL_PREFIX = 0x20;
-	MetaEvent.END_OF_TRACK   = 0x2f;
-	MetaEvent.TEMPO      = 0x51;
-	MetaEvent.SMPTE      = 0x54;
-	MetaEvent.TIME_SIG   = 0x58;
-	MetaEvent.KEY_SIG    = 0x59;
-	MetaEvent.SEQ_EVENT  = 0x7f;
-
-	/**
-	 * Set the time for the event in ticks since the previous event.
-	 *
-	 * @param {number} ticks - The number of ticks since the previous event. May
-	 * be zero.
-	 */
-	MetaEvent.prototype.setTime = function(ticks) {
-		this.time = Util.translateTickTime(ticks || 0);
-	};
-
-	/**
-	 * Set the type of the event. Must be one of the event codes on MetaEvent.
-	 *
-	 * @param {number} t - Event type.
-	 */
-	MetaEvent.prototype.setType = function(t) {
-		this.type = t;
-	};
-
-	/**
-	 * Set the data associated with the event. May be a string or array of byte
-	 * values.
-	 *
-	 * @param {string|Array} d - Event data.
-	 */
-	MetaEvent.prototype.setData = function(d) {
-		this.data = d;
-	};
-
-	/**
-	 * Serialize the event to an array of bytes.
-	 *
-	 * @returns {Array} The array of serialized bytes.
-	 */
-	MetaEvent.prototype.toBytes = function() {
-		if (!this.type) {
-			throw new Error("Type for meta-event not specified.");
-		}
-
-		var byteArray = [];
-		byteArray.push.apply(byteArray, this.time);
-		byteArray.push(0xFF, this.type);
-
-		// If data is an array, we assume that it contains several bytes. We
-		// apend them to byteArray.
-		if (Array.isArray(this.data)) {
-			byteArray.push(this.data.length);
-			byteArray.push.apply(byteArray, this.data);
-		} else if (typeof this.data == 'number') {
-			byteArray.push(1, this.data);
-		} else if (this.data !== null && this.data !== undefined) {
-			// assume string; may be a bad assumption
-			byteArray.push(this.data.length);
-			var dataBytes = this.data.split('').map(function(x){ return x.charCodeAt(0) });
-			byteArray.push.apply(byteArray, dataBytes);
-		} else {
-			byteArray.push(0);
-		}
-
-		return byteArray;
-	};
-
-	/* ******************************************************************
-	 * Track class
-	 ****************************************************************** */
-
-	/**
-	 * Construct a MIDI track.
-	 *
-	 * Parameters include:
-	 *  - events [optional array] - Array of events for the track.
-	 */
-	var Track = function(config) {
-		if (!this) return new Track(config);
-		var c = config || {};
-		this.events = c.events || [];
-	};
-
-	Track.START_BYTES = [0x4d, 0x54, 0x72, 0x6b];
-	Track.END_BYTES   = [0x00, 0xFF, 0x2F, 0x00];
-
-	/**
-	 * Add an event to the track.
-	 *
-	 * @param {MidiEvent|MetaEvent} event - The event to add.
-	 * @returns {Track} The current track.
-	 */
-	Track.prototype.addEvent = function(event) {
-		this.events.push(event);
-		return this;
-	};
-
-	/**
-	 * Add a note-on event to the track.
-	 *
-	 * @param {number} channel - The channel to add the event to.
-	 * @param {number|string} pitch - The pitch of the note, either numeric or
-	 * symbolic.
-	 * @param {number} [time=0] - The number of ticks since the previous event,
-	 * defaults to 0.
-	 * @param {number} [velocity=90] - The volume for the note, defaults to
-	 * DEFAULT_VOLUME.
-	 * @returns {Track} The current track.
-	 */
-	Track.prototype.addNoteOn = Track.prototype.noteOn = function(channel, pitch, time, velocity) {
-		this.events.push(new MidiEvent({
-			type: MidiEvent.NOTE_ON,
-			channel: channel,
-			param1: Util.ensureMidiPitch(pitch),
-			param2: velocity || DEFAULT_VOLUME,
-			time: time || 0,
-		}));
-		return this;
-	};
-
-	/**
-	 * Add a note-off event to the track.
-	 *
-	 * @param {number} channel - The channel to add the event to.
-	 * @param {number|string} pitch - The pitch of the note, either numeric or
-	 * symbolic.
-	 * @param {number} [time=0] - The number of ticks since the previous event,
-	 * defaults to 0.
-	 * @param {number} [velocity=90] - The velocity the note was released,
-	 * defaults to DEFAULT_VOLUME.
-	 * @returns {Track} The current track.
-	 */
-	Track.prototype.addNoteOff = Track.prototype.noteOff = function(channel, pitch, time, velocity) {
-		this.events.push(new MidiEvent({
-			type: MidiEvent.NOTE_OFF,
-			channel: channel,
-			param1: Util.ensureMidiPitch(pitch),
-			param2: velocity || DEFAULT_VOLUME,
-			time: time || 0,
-		}));
-		return this;
-	};
-
-	/**
-	 * Add a note-on and -off event to the track.
-	 *
-	 * @param {number} channel - The channel to add the event to.
-	 * @param {number|string} pitch - The pitch of the note, either numeric or
-	 * symbolic.
-	 * @param {number} dur - The duration of the note, in ticks.
-	 * @param {number} [time=0] - The number of ticks since the previous event,
-	 * defaults to 0.
-	 * @param {number} [velocity=90] - The velocity the note was released,
-	 * defaults to DEFAULT_VOLUME.
-	 * @returns {Track} The current track.
-	 */
-	Track.prototype.addNote = Track.prototype.note = function(channel, pitch, dur, time, velocity) {
-		this.noteOn(channel, pitch, time, velocity);
-		if (dur) {
-			this.noteOff(channel, pitch, dur, velocity);
-		}
-		return this;
-	};
-
-	/**
-	 * Add a note-on and -off event to the track for each pitch in an array of pitches.
-	 *
-	 * @param {number} channel - The channel to add the event to.
-	 * @param {array} chord - An array of pitches, either numeric or
-	 * symbolic.
-	 * @param {number} dur - The duration of the chord, in ticks.
-	 * @param {number} [velocity=90] - The velocity of the chord,
-	 * defaults to DEFAULT_VOLUME.
-	 * @returns {Track} The current track.
-	 */
-	Track.prototype.addChord = Track.prototype.chord = function(channel, chord, dur, velocity) {
-		if (!Array.isArray(chord) && !chord.length) {
-			throw new Error('Chord must be an array of pitches');
-		}
-		chord.forEach(function(note) {
-			this.noteOn(channel, note, 0, velocity);
-		}, this);
-		chord.forEach(function(note, index) {
-			if (index === 0) {
-				this.noteOff(channel, note, dur);
-			} else {
-				this.noteOff(channel, note);
-			}
-		}, this);
-		return this;
-	};
-
-	/**
-	 * Set instrument for the track.
-	 *
-	 * @param {number} channel - The channel to set the instrument on.
-	 * @param {number} instrument - The instrument to set it to.
-	 * @param {number} [time=0] - The number of ticks since the previous event,
-	 * defaults to 0.
-	 * @returns {Track} The current track.
-	 */
-	Track.prototype.setInstrument = Track.prototype.instrument = function(channel, instrument, time) {
-		this.events.push(new MidiEvent({
-			type: MidiEvent.PROGRAM_CHANGE,
-			channel: channel,
-			param1: instrument,
-			time: time || 0,
-		}));
-		return this;
-	};
-
-	/**
-	 * Set the tempo for the track.
-	 *
-	 * @param {number} bpm - The new number of beats per minute.
-	 * @param {number} [time=0] - The number of ticks since the previous event,
-	 * defaults to 0.
-	 * @returns {Track} The current track.
-	 */
-	Track.prototype.setTempo = Track.prototype.tempo = function(bpm, time) {
-		this.events.push(new MetaEvent({
-			type: MetaEvent.TEMPO,
-			data: Util.mpqnFromBpm(bpm),
-			time: time || 0,
-		}));
-		return this;
-	};
-
-	/**
-	 * Serialize the track to an array of bytes.
-	 *
-	 * @returns {Array} The array of serialized bytes.
-	 */
-	Track.prototype.toBytes = function() {
-		var trackLength = 0;
-		var eventBytes = [];
-		var startBytes = Track.START_BYTES;
-		var endBytes   = Track.END_BYTES;
-
-		var addEventBytes = function(event) {
-			var bytes = event.toBytes();
-			trackLength += bytes.length;
-			eventBytes.push.apply(eventBytes, bytes);
-		};
-
-		this.events.forEach(addEventBytes);
-
-		// Add the end-of-track bytes to the sum of bytes for the track, since
-		// they are counted (unlike the start-of-track ones).
-		trackLength += endBytes.length;
-
-		// Makes sure that track length will fill up 4 bytes with 0s in case
-		// the length is less than that (the usual case).
-		var lengthBytes = Util.str2Bytes(trackLength.toString(16), 4);
-
-		return startBytes.concat(lengthBytes, eventBytes, endBytes);
-	};
-
-	/* ******************************************************************
-	 * File class
-	 ****************************************************************** */
-
-	/**
-	 * Construct a file object.
-	 *
-	 * Parameters include:
-	 *  - ticks [optional number] - Number of ticks per beat, defaults to 128.
-	 *    Must be 1-32767.
-	 *  - tracks [optional array] - Track data.
-	 */
-	var File = function(config){
-		if (!this) return new File(config);
-
-		var c = config || {};
-		if (c.ticks) {
-			if (typeof c.ticks !== 'number') {
-				throw new Error('Ticks per beat must be a number!');
-				return;
-			}
-			if (c.ticks <= 0 || c.ticks >= (1 << 15) || c.ticks % 1 !== 0) {
-				throw new Error('Ticks per beat must be an integer between 1 and 32767!');
-				return;
-			}
-		}
-
-		this.ticks = c.ticks || 128;
-		this.tracks = c.tracks || [];
-	};
-
-	File.HDR_CHUNKID     = "MThd";             // File magic cookie
-	File.HDR_CHUNK_SIZE  = "\x00\x00\x00\x06"; // Header length for SMF
-	File.HDR_TYPE0       = "\x00\x00";         // Midi Type 0 id
-	File.HDR_TYPE1       = "\x00\x01";         // Midi Type 1 id
-
-	/**
-	 * Add a track to the file.
-	 *
-	 * @param {Track} track - The track to add.
-	 */
-	File.prototype.addTrack = function(track) {
-		if (track) {
-			this.tracks.push(track);
-			return this;
-		} else {
-			track = new Track();
-			this.tracks.push(track);
-			return track;
-		}
-	};
-
-	/**
-	 * Serialize the MIDI file to an array of bytes.
-	 *
-	 * @returns {Array} The array of serialized bytes.
-	 */
-	File.prototype.toBytes = function() {
-		var trackCount = this.tracks.length.toString(16);
-
-		// prepare the file header
-		var bytes = File.HDR_CHUNKID + File.HDR_CHUNK_SIZE;
-
-		// set Midi type based on number of tracks
-		if (parseInt(trackCount, 16) > 1) {
-			bytes += File.HDR_TYPE1;
-		} else {
-			bytes += File.HDR_TYPE0;
-		}
-
-		// add the number of tracks (2 bytes)
-		bytes += Util.codes2Str(Util.str2Bytes(trackCount, 2));
-		// add the number of ticks per beat (currently hardcoded)
-		bytes += String.fromCharCode((this.ticks/256),  this.ticks%256);;
-
-		// iterate over the tracks, converting to bytes too
-		this.tracks.forEach(function(track) {
-			bytes += Util.codes2Str(track.toBytes());
-		});
-
-		return bytes;
-	};
-
-	/* ******************************************************************
-	 * Exports
-	 ****************************************************************** */
-
-	exported.Util = Util;
-	exported.File = File;
-	exported.Track = Track;
-	exported.Event = MidiEvent;
-	exported.MetaEvent = MetaEvent;
-
-})( Midi );
-
-if (typeof module != 'undefined' && module !== null) {
-	module.exports = Midi;
-} else if (typeof exports != 'undefined' && exports !== null) {
-	exports = Midi;
-} else {
-	this.Midi = Midi;
-}
-
 },{}],"7IOtV":[function(require,module,exports) {
 'use strict'
 
@@ -42743,6 +41615,1134 @@ let PlayerState = (_dec = _mobx.action.bound, _dec2 = _mobx.action.bound, _dec3 
 }), _applyDecoratedDescriptor(_class.prototype, "hold", [_dec2], Object.getOwnPropertyDescriptor(_class.prototype, "hold"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "unhold", [_dec3], Object.getOwnPropertyDescriptor(_class.prototype, "unhold"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "play", [_dec4], Object.getOwnPropertyDescriptor(_class.prototype, "play"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "start", [_dec5], Object.getOwnPropertyDescriptor(_class.prototype, "start"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "pause", [_dec6], Object.getOwnPropertyDescriptor(_class.prototype, "pause"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "seek", [_dec7], Object.getOwnPropertyDescriptor(_class.prototype, "seek"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "silence", [_dec8], Object.getOwnPropertyDescriptor(_class.prototype, "silence"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "stop", [_dec9], Object.getOwnPropertyDescriptor(_class.prototype, "stop"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "toggle", [_dec10], Object.getOwnPropertyDescriptor(_class.prototype, "toggle"), _class.prototype)), _class));
 exports.PlayerState = PlayerState;
 
-},{"mobx":"2yJsB","soundfont-player":"7IOtV"}]},["1j6wU","3Imd1","5rkFb"], "5rkFb", "parcelRequire86a3")
+},{"mobx":"2yJsB","soundfont-player":"7IOtV"}],"55noZ":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.Tune = void 0;
+var _mobx = require("mobx");
+var _TempoTrack = require("./TempoTrack");
+var _Track = require("./Track");
+var _jsmidgen = _interopRequireDefault(require("jsmidgen"));
+var _class, _descriptor, _descriptor2;
+function _interopRequireDefault(obj) {
+  return obj && obj.__esModule ? obj : {
+    default: obj
+  };
+}
+function _initializerDefineProperty(target, property, descriptor, context) {
+  if (!descriptor) return;
+  Object.defineProperty(target, property, {
+    enumerable: descriptor.enumerable,
+    configurable: descriptor.configurable,
+    writable: descriptor.writable,
+    value: descriptor.initializer ? descriptor.initializer.call(context) : void 0
+  });
+}
+function _defineProperty(obj, key, value) {
+  if ((key in obj)) {
+    Object.defineProperty(obj, key, {
+      value: value,
+      enumerable: true,
+      configurable: true,
+      writable: true
+    });
+  } else {
+    obj[key] = value;
+  }
+  return obj;
+}
+function _applyDecoratedDescriptor(target, property, decorators, descriptor, context) {
+  var desc = {};
+  Object.keys(descriptor).forEach(function (key) {
+    desc[key] = descriptor[key];
+  });
+  desc.enumerable = !!desc.enumerable;
+  desc.configurable = !!desc.configurable;
+  if (('value' in desc) || desc.initializer) {
+    desc.writable = true;
+  }
+  desc = decorators.slice().reverse().reduce(function (desc, decorator) {
+    return decorator(target, property, desc) || desc;
+  }, desc);
+  if (context && desc.initializer !== void 0) {
+    desc.value = desc.initializer ? desc.initializer.call(context) : void 0;
+    desc.initializer = undefined;
+  }
+  if (desc.initializer === void 0) {
+    Object.defineProperty(target, property, desc);
+    desc = null;
+  }
+  return desc;
+}
+function _initializerWarningHelper(descriptor, context) {
+  throw new Error('Decorating class property failed. Please ensure that ' + 'proposal-class-properties is enabled and runs after the decorators transform.');
+}
+let Tune = (_class = class Tune {
+  get tracks() {
+    return Object.values(this.tracksById);
+  }
+  timeAtTick(tick) {
+    return this.tempoTrack.timeAtTick(tick);
+  }
+  get events() {
+    let events = this.tracks.flatMap(t => t.events).sort((a, b) => a.tick - b.tick);
+    return events;
+  }
+  get ticks() {
+    var _this$events;
+    let ticks = ((_this$events = this.events[this.events.length - 1]) === null || _this$events === void 0 ? void 0 : _this$events.tick) ?? 0;
+    return ticks;
+  }
+  get toMidi() {
+    const midi = new _jsmidgen.default.File({
+      ticks: this.TPQ
+    });
+    midi.addTrack(this.tempoTrack.toMidi);
+    for (const track of this.tracks) {
+      midi.addTrack(track.toMidi);
+    }
+    return midi;
+  }
+  get toMidiBuffer() {
+    const midi = this.toMidi.toBytes();
+    const bytes = new Uint8Array(midi.length);
+    for (var i = 0; i < midi.length; i++) {
+      bytes[i] = midi.charCodeAt(i);
+    }
+    return bytes;
+  }
+  downloadMidiFile() {
+    var blob = new Blob([this.toMidiBuffer], {
+      type: "audio/midi"
+    });
+    var link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.href = url;
+    link.download = 'tune.mid';
+    link.click();
+    URL.revokeObjectURL(url);
+  }
+  get length() {
+    return this.tempoTrack.timeAtTick(this.ticks);
+  }
+  constructor({tracks, tempo, length, soundfonts, TPQ}) {
+    _initializerDefineProperty(this, "tracksById", _descriptor, this);
+    _initializerDefineProperty(this, "tempoTrack", _descriptor2, this);
+    top.tune = this;
+    this.soundfonts = {
+      default: "MusyngKite",
+      ...soundfonts
+    };
+    this.TPQ = TPQ;
+    this.tempoTrack = new _TempoTrack.TempoTrack(this, {
+      events: tempo,
+      TPQ
+    });
+    for (const id in tracks) {
+      this.tracksById[id] = new _Track.Track(this, tracks[id]);
+    }
+    (0, _mobx.makeObservable)(this);
+  }
+}, (_descriptor = _applyDecoratedDescriptor(_class.prototype, "tracksById", [_mobx.observable], {
+  configurable: true,
+  enumerable: true,
+  writable: true,
+  initializer: function () {
+    return {};
+  }
+}), _applyDecoratedDescriptor(_class.prototype, "tracks", [_mobx.computed], Object.getOwnPropertyDescriptor(_class.prototype, "tracks"), _class.prototype), _descriptor2 = _applyDecoratedDescriptor(_class.prototype, "tempoTrack", [_mobx.observable], {
+  configurable: true,
+  enumerable: true,
+  writable: true,
+  initializer: function () {
+    return null;
+  }
+}), _applyDecoratedDescriptor(_class.prototype, "events", [_mobx.computed], Object.getOwnPropertyDescriptor(_class.prototype, "events"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "ticks", [_mobx.computed], Object.getOwnPropertyDescriptor(_class.prototype, "ticks"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "toMidi", [_mobx.computed], Object.getOwnPropertyDescriptor(_class.prototype, "toMidi"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "toMidiBuffer", [_mobx.computed], Object.getOwnPropertyDescriptor(_class.prototype, "toMidiBuffer"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "length", [_mobx.computed], Object.getOwnPropertyDescriptor(_class.prototype, "length"), _class.prototype)), _class);
+exports.Tune = Tune;
+
+},{"mobx":"2yJsB","./TempoTrack":"3Vt9t","./Track":"3AQM8","jsmidgen":"7AWdF"}],"3Vt9t":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.TempoTrack = void 0;
+var _mobx = require("mobx");
+var _Track = require("./Track");
+var _jsmidgen = _interopRequireDefault(require("jsmidgen"));
+var _class;
+function _interopRequireDefault(obj) {
+  return obj && obj.__esModule ? obj : {
+    default: obj
+  };
+}
+function _defineProperty(obj, key, value) {
+  if ((key in obj)) {
+    Object.defineProperty(obj, key, {
+      value: value,
+      enumerable: true,
+      configurable: true,
+      writable: true
+    });
+  } else {
+    obj[key] = value;
+  }
+  return obj;
+}
+function _applyDecoratedDescriptor(target, property, decorators, descriptor, context) {
+  var desc = {};
+  Object.keys(descriptor).forEach(function (key) {
+    desc[key] = descriptor[key];
+  });
+  desc.enumerable = !!desc.enumerable;
+  desc.configurable = !!desc.configurable;
+  if (('value' in desc) || desc.initializer) {
+    desc.writable = true;
+  }
+  desc = decorators.slice().reverse().reduce(function (desc, decorator) {
+    return decorator(target, property, desc) || desc;
+  }, desc);
+  if (context && desc.initializer !== void 0) {
+    desc.value = desc.initializer ? desc.initializer.call(context) : void 0;
+    desc.initializer = undefined;
+  }
+  if (desc.initializer === void 0) {
+    Object.defineProperty(target, property, desc);
+    desc = null;
+  }
+  return desc;
+}
+let TempoTrack = (_class = class TempoTrack extends _Track.BaseTrack {
+  get events() {
+    return [{
+      event: 'T',
+      tick: 0,
+      tempo: 120
+    }, ...this._events].sort((a, b) => a.tick - b.tick);
+  }
+  ticksPerSecond(tempo) {
+    return tempo * this.TPQ / 60;
+  }
+  ticksToSeconds(tempo, ticks) {
+    return ticks / this.ticksPerSecond(tempo);
+  }
+  get tickOffsets() {
+    const ret = [{
+      tick: 0,
+      time: 0,
+      tempo: 120,
+      TPS: this.ticksPerSecond(120)
+    }];
+    let lastTick = 0;
+    let lastTime = 0;
+    let lastTempo = 120;
+    for (const {event, tick, tempo} of this.events) {
+      if (event !== 'T') continue;
+      const ticks = tick - lastTick;
+      const time = this.ticksToSeconds(lastTempo, ticks);
+      if (time === 0) ret.shift();
+      lastTick = tick;
+      lastTime += time;
+      lastTempo = tempo;
+      ret.unshift({
+        tick,
+        time: lastTime,
+        tempo,
+        TPS: this.ticksPerSecond(tempo)
+      });
+    }
+    return ret;
+  }
+  constructor(tune, {events, TPQ}) {
+    super(tune, {
+      events
+    });
+    _defineProperty(this, "timeAtTick", tick => {
+      // return this.ticksToSeconds(120,tick)
+      const offsets = this.tickOffsets;
+      for (const {tick: t, time, TPS} of offsets) {
+        if (tick >= t) {
+          return time + (tick - t) / TPS;
+        }
+        ;
+      }
+      return 0;
+    });
+    _defineProperty(this, "isMidiEvent", event => {
+      return ({
+        'T': true
+      })[event.event] || false;
+    });
+    this.TPQ = TPQ;
+    this._events = events;
+    (0, _mobx.makeObservable)(this);
+  }
+}, (_applyDecoratedDescriptor(_class.prototype, "events", [_mobx.computed], Object.getOwnPropertyDescriptor(_class.prototype, "events"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "tickOffsets", [_mobx.computed], Object.getOwnPropertyDescriptor(_class.prototype, "tickOffsets"), _class.prototype)), _class);
+exports.TempoTrack = TempoTrack;
+
+},{"mobx":"2yJsB","./Track":"3AQM8","jsmidgen":"7AWdF"}],"3AQM8":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.Track = exports.BaseTrack = void 0;
+var _mobx = require("mobx");
+var _instruments = _interopRequireDefault(require("./instruments.json"));
+var _jsmidgen = _interopRequireDefault(require("jsmidgen"));
+var _class, _descriptor, _class2, _temp, _class3;
+function _interopRequireDefault(obj) {
+  return obj && obj.__esModule ? obj : {
+    default: obj
+  };
+}
+function _initializerDefineProperty(target, property, descriptor, context) {
+  if (!descriptor) return;
+  Object.defineProperty(target, property, {
+    enumerable: descriptor.enumerable,
+    configurable: descriptor.configurable,
+    writable: descriptor.writable,
+    value: descriptor.initializer ? descriptor.initializer.call(context) : void 0
+  });
+}
+function _defineProperty(obj, key, value) {
+  if ((key in obj)) {
+    Object.defineProperty(obj, key, {
+      value: value,
+      enumerable: true,
+      configurable: true,
+      writable: true
+    });
+  } else {
+    obj[key] = value;
+  }
+  return obj;
+}
+function _applyDecoratedDescriptor(target, property, decorators, descriptor, context) {
+  var desc = {};
+  Object.keys(descriptor).forEach(function (key) {
+    desc[key] = descriptor[key];
+  });
+  desc.enumerable = !!desc.enumerable;
+  desc.configurable = !!desc.configurable;
+  if (('value' in desc) || desc.initializer) {
+    desc.writable = true;
+  }
+  desc = decorators.slice().reverse().reduce(function (desc, decorator) {
+    return decorator(target, property, desc) || desc;
+  }, desc);
+  if (context && desc.initializer !== void 0) {
+    desc.value = desc.initializer ? desc.initializer.call(context) : void 0;
+    desc.initializer = undefined;
+  }
+  if (desc.initializer === void 0) {
+    Object.defineProperty(target, property, desc);
+    desc = null;
+  }
+  return desc;
+}
+function _initializerWarningHelper(descriptor, context) {
+  throw new Error('Decorating class property failed. Please ensure that ' + 'proposal-class-properties is enabled and runs after the decorators transform.');
+}
+let BaseTrack = (_class = (_temp = _class2 = class BaseTrack {
+  get events() {
+    return this._events;
+  }
+  get isMidiTrack() {
+    return false;
+  }
+  constructor(tune, {events}) {
+    _initializerDefineProperty(this, "_events", _descriptor, this);
+    _defineProperty(this, "isMidiEvent", event => false);
+    this._events = events;
+    (0, _mobx.makeObservable)(this);
+  }
+  diffEvents(events) {
+    let lastTick = 0;
+    for (const event of events) {
+      event.wait = event.tick - lastTick;
+      lastTick = event.tick;
+    }
+    return events;
+  }
+  get eventsForMidi() {
+    let events = this.events.filter(this.isMidiEvent);
+    return this.diffEvents(events);
+  }
+  get toMidi() {
+    const midi = new _jsmidgen.default.Track();
+    for (const event of this.eventsForMidi) {
+      switch (event.event) {
+        case 'ON':
+          midi.addNoteOn(0, event.note, event.wait | 0, event.velocity);
+          break;
+        case 'OFF':
+          midi.addNoteOff(0, event.note, event.wait | 0, event.velocity);
+          break;
+        case 'I':
+          midi.setInstrument(0, event.instrument, event.wait | 0);
+          break;
+        case 'T':
+          midi.setTempo(event.tempo, event.wait | 0);
+          break;
+        case 'ID':
+          midi.addEvent(new _jsmidgen.default.MetaEvent({
+            type: _jsmidgen.default.MetaEvent.TRACK_NAME,
+            time: event.wait | 0,
+            data: event.id
+          }));
+          break;
+        default:
+      }
+    }
+    return midi;
+  }
+}, _defineProperty(_class2, "midiEvents", new Set('ON', 'OFF')), _temp), (_descriptor = _applyDecoratedDescriptor(_class.prototype, "_events", [_mobx.observable], {
+  configurable: true,
+  enumerable: true,
+  writable: true,
+  initializer: null
+}), _applyDecoratedDescriptor(_class.prototype, "eventsForMidi", [_mobx.computed], Object.getOwnPropertyDescriptor(_class.prototype, "eventsForMidi"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "toMidi", [_mobx.computed], Object.getOwnPropertyDescriptor(_class.prototype, "toMidi"), _class.prototype)), _class);
+exports.BaseTrack = BaseTrack;
+let Track = (_class3 = class Track extends BaseTrack {
+  get events() {
+    return [{
+      event: 'ID',
+      tick: 0,
+      data: this.id
+    }, {
+      event: 'I',
+      tick: 0,
+      instrument: this.midiInstrument || 0
+    }, ...this.tune.tempoTrack.events, ...this._events].map(event => {
+      const ret = {
+        ...event
+      };
+      const {tick, ticks = 0} = event;
+      ret.track = this.id;
+      ret.at = this.tune.timeAtTick(tick);
+      if (ticks > 0) {
+        ret.duration = this.tune.timeAtTick(tick + ticks) - ret.at;
+      }
+      return ret;
+    }).sort((a, b) => a.tick - b.tick);
+  }
+  get midiInstrument() {
+    return Math.max(0, _instruments.default.indexOf(this.instrument));
+  }
+  get isMidiCompatible() {
+    return this.midiInstrument >= 0;
+  }
+  constructor(tune, {id, events, instrument, font}) {
+    super(tune, {
+      events
+    });
+    _defineProperty(this, "isMidiEvent", event => {
+      return ({
+        'I': true,
+        'ID': true,
+        'T': true,
+        'ON': true,
+        'OFF': true
+      })[event.event] || false;
+    });
+    this.tune = tune;
+    this.id = id;
+    this.font = font;
+    this.instrument = instrument;
+    (0, _mobx.makeObservable)(this);
+  }
+}, (_applyDecoratedDescriptor(_class3.prototype, "events", [_mobx.computed], Object.getOwnPropertyDescriptor(_class3.prototype, "events"), _class3.prototype), _applyDecoratedDescriptor(_class3.prototype, "midiInstrument", [_mobx.computed], Object.getOwnPropertyDescriptor(_class3.prototype, "midiInstrument"), _class3.prototype), _applyDecoratedDescriptor(_class3.prototype, "isMidiCompatible", [_mobx.computed], Object.getOwnPropertyDescriptor(_class3.prototype, "isMidiCompatible"), _class3.prototype)), _class3);
+exports.Track = Track;
+
+},{"mobx":"2yJsB","./instruments.json":"11adB","jsmidgen":"7AWdF"}],"11adB":[function(require,module,exports) {
+"use strict";
+module.exports = JSON.parse("[\"acoustic_grand_piano\",\"bright_acoustic_piano\",\"electric_grand_piano\",\"honkytonk_piano\",\"electric_piano_1\",\"electric_piano_2\",\"harpsichord\",\"clavinet\",\"celesta\",\"glockenspiel\",\"music_box\",\"vibraphone\",\"marimba\",\"xylophone\",\"tubular_bells\",\"dulcimer\",\"drawbar_organ\",\"percussive_organ\",\"rock_organ\",\"church_organ\",\"reed_organ\",\"accordion\",\"harmonica\",\"tango_accordion\",\"acoustic_guitar_nylon\",\"acoustic_guitar_steel\",\"electric_guitar_jazz\",\"electric_guitar_clean\",\"electric_guitar_muted\",\"overdriven_guitar\",\"distortion_guitar\",\"guitar_harmonics\",\"acoustic_bass\",\"electric_bass_finger\",\"electric_bass_pick\",\"fretless_bass\",\"slap_bass_1\",\"slap_bass_2\",\"synth_bass_1\",\"synth_bass_2\",\"violin\",\"viola\",\"cello\",\"contrabass\",\"tremolo_strings\",\"pizzicato_strings\",\"orchestral_harp\",\"timpani\",\"string_ensemble_1\",\"string_ensemble_2\",\"synth_strings_1\",\"synth_strings_2\",\"choir_aahs\",\"voice_oohs\",\"synth_choir\",\"orchestra_hit\",\"trumpet\",\"trombone\",\"tuba\",\"muted_trumpet\",\"french_horn\",\"brass_section\",\"synth_brass_1\",\"synth_brass_2\",\"soprano_sax\",\"alto_sax\",\"tenor_sax\",\"baritone_sax\",\"oboe\",\"english_horn\",\"bassoon\",\"clarinet\",\"piccolo\",\"flute\",\"recorder\",\"pan_flute\",\"blown_bottle\",\"shakuhachi\",\"whistle\",\"ocarina\",\"lead_1_square\",\"lead_2_sawtooth\",\"lead_3_calliope\",\"lead_4_chiff\",\"lead_5_charang\",\"lead_6_voice\",\"lead_7_fifths\",\"lead_8_bass__lead\",\"pad_1_new_age\",\"pad_2_warm\",\"pad_3_polysynth\",\"pad_4_choir\",\"pad_5_bowed\",\"pad_6_metallic\",\"pad_7_halo\",\"pad_8_sweep\",\"fx_1_rain\",\"fx_2_soundtrack\",\"fx_3_crystal\",\"fx_4_atmosphere\",\"fx_5_brightness\",\"fx_6_goblins\",\"fx_7_echoes\",\"fx_8_scifi\",\"sitar\",\"banjo\",\"shamisen\",\"koto\",\"kalimba\",\"bagpipe\",\"fiddle\",\"shanai\",\"tinkle_bell\",\"agogo\",\"steel_drums\",\"woodblock\",\"taiko_drum\",\"melodic_tom\",\"synth_drum\",\"reverse_cymbal\",\"guitar_fret_noise\",\"breath_noise\",\"seashore\",\"bird_tweet\",\"telephone_ring\",\"helicopter\",\"applause\",\"gunshot\"]");
+
+},{}],"7AWdF":[function(require,module,exports) {
+var Midi = {};
+
+(function(exported) {
+
+	var DEFAULT_VOLUME   = exported.DEFAULT_VOLUME   = 90;
+	var DEFAULT_DURATION = exported.DEFAULT_DURATION = 128;
+	var DEFAULT_CHANNEL  = exported.DEFAULT_CHANNEL  = 0;
+
+	/* ******************************************************************
+	 * Utility functions
+	 ****************************************************************** */
+
+	var Util = {
+
+		midi_letter_pitches: { a:21, b:23, c:12, d:14, e:16, f:17, g:19 },
+
+		/**
+		 * Convert a symbolic note name (e.g. "c4") to a numeric MIDI pitch (e.g.
+		 * 60, middle C).
+		 *
+		 * @param {string} n - The symbolic note name to parse.
+		 * @returns {number} The MIDI pitch that corresponds to the symbolic note
+		 * name.
+		 */
+		midiPitchFromNote: function(n) {
+			var matches = /([a-g])(#+|b+)?([0-9]+)$/i.exec(n);
+			var note = matches[1].toLowerCase(), accidental = matches[2] || '', octave = parseInt(matches[3], 10);
+			return (12 * octave) + Util.midi_letter_pitches[note] + (accidental.substr(0,1)=='#'?1:-1) * accidental.length;
+		},
+
+		/**
+		 * Ensure that the given argument is converted to a MIDI pitch. Note that
+		 * it may already be one (including a purely numeric string).
+		 *
+		 * @param {string|number} p - The pitch to convert.
+		 * @returns {number} The resulting numeric MIDI pitch.
+		 */
+		ensureMidiPitch: function(p) {
+			if (typeof p == 'number' || !/[^0-9]/.test(p)) {
+				// numeric pitch
+				return parseInt(p, 10);
+			} else {
+				// assume it's a note name
+				return Util.midiPitchFromNote(p);
+			}
+		},
+
+		midi_pitches_letter: { '12':'c', '13':'c#', '14':'d', '15':'d#', '16':'e', '17':'f', '18':'f#', '19':'g', '20':'g#', '21':'a', '22':'a#', '23':'b' },
+		midi_flattened_notes: { 'a#':'bb', 'c#':'db', 'd#':'eb', 'f#':'gb', 'g#':'ab' },
+
+		/**
+		 * Convert a numeric MIDI pitch value (e.g. 60) to a symbolic note name
+		 * (e.g. "c4").
+		 *
+		 * @param {number} n - The numeric MIDI pitch value to convert.
+		 * @param {boolean} [returnFlattened=false] - Whether to prefer flattened
+		 * notes to sharpened ones. Optional, default false.
+		 * @returns {string} The resulting symbolic note name.
+		 */
+		noteFromMidiPitch: function(n, returnFlattened) {
+			var octave = 0, noteNum = n, noteName, returnFlattened = returnFlattened || false;
+			if (n > 23) {
+				// noteNum is on octave 1 or more
+				octave = Math.floor(n/12) - 1;
+				// subtract number of octaves from noteNum
+				noteNum = n - octave * 12;
+			}
+
+			// get note name (c#, d, f# etc)
+			noteName = Util.midi_pitches_letter[noteNum];
+			// Use flattened notes if requested (e.g. f# should be output as gb)
+			if (returnFlattened && noteName.indexOf('#') > 0) {
+				noteName = Util.midi_flattened_notes[noteName];
+			}
+			return noteName + octave;
+		},
+
+		/**
+		 * Convert beats per minute (BPM) to microseconds per quarter note (MPQN).
+		 *
+		 * @param {number} bpm - A number in beats per minute.
+		 * @returns {number} The number of microseconds per quarter note.
+		 */
+		mpqnFromBpm: function(bpm) {
+			var mpqn = Math.floor(60000000 / bpm);
+			var ret=[];
+			do {
+				ret.unshift(mpqn & 0xFF);
+				mpqn >>= 8;
+			} while (mpqn);
+			while (ret.length < 3) {
+				ret.push(0);
+			}
+			return ret;
+		},
+
+		/**
+		 * Convert microseconds per quarter note (MPQN) to beats per minute (BPM).
+		 *
+		 * @param {number} mpqn - The number of microseconds per quarter note.
+		 * @returns {number} A number in beats per minute.
+		 */
+		bpmFromMpqn: function(mpqn) {
+			var m = mpqn;
+			if (typeof mpqn[0] != 'undefined') {
+				m = 0;
+				for (var i=0, l=mpqn.length-1; l >= 0; ++i, --l) {
+					m |= mpqn[i] << l;
+				}
+			}
+			return Math.floor(60000000 / mpqn);
+		},
+
+		/**
+		 * Converts an array of bytes to a string of hexadecimal characters. Prepares
+		 * it to be converted into a base64 string.
+		 *
+		 * @param {Array} byteArray - Array of bytes to be converted.
+		 * @returns {string} Hexadecimal string, e.g. "097B8A".
+		 */
+		codes2Str: function(byteArray) {
+			return String.fromCharCode.apply(null, byteArray);
+		},
+
+		/**
+		 * Converts a string of hexadecimal values to an array of bytes. It can also
+		 * add remaining "0" nibbles in order to have enough bytes in the array as the
+		 * `finalBytes` parameter.
+		 *
+		 * @param {string} str - string of hexadecimal values e.g. "097B8A"
+		 * @param {number} [finalBytes] - Optional. The desired number of bytes
+		 * (not nibbles) that the returned array should contain.
+		 * @returns {Array} An array of nibbles.
+		 */
+		str2Bytes: function (str, finalBytes) {
+			if (finalBytes) {
+				while ((str.length / 2) < finalBytes) { str = "0" + str; }
+			}
+
+			var bytes = [];
+			for (var i=str.length-1; i>=0; i = i-2) {
+				var chars = i === 0 ? str[i] : str[i-1] + str[i];
+				bytes.unshift(parseInt(chars, 16));
+			}
+
+			return bytes;
+		},
+
+		/**
+		 * Translates number of ticks to MIDI timestamp format, returning an array
+		 * of bytes with the time values. MIDI has a very particular way to express
+		 * time; take a good look at the spec before ever touching this function.
+		 *
+		 * @param {number} ticks - Number of ticks to be translated.
+		 * @returns {number} Array of bytes that form the MIDI time value.
+		 */
+		translateTickTime: function(ticks) {
+			var buffer = ticks & 0x7F;
+
+			while (ticks = ticks >> 7) {
+				buffer <<= 8;
+				buffer |= ((ticks & 0x7F) | 0x80);
+			}
+
+			var bList = [];
+			while (true) {
+				bList.push(buffer & 0xff);
+
+				if (buffer & 0x80) { buffer >>= 8; }
+				else { break; }
+			}
+			return bList;
+		},
+
+	};
+
+	/* ******************************************************************
+	 * Event class
+	 ****************************************************************** */
+
+	/**
+	 * Construct a MIDI event.
+	 *
+	 * Parameters include:
+	 *  - time [optional number] - Ticks since previous event.
+	 *  - type [required number] - Type of event.
+	 *  - channel [required number] - Channel for the event.
+	 *  - param1 [required number] - First event parameter.
+	 *  - param2 [optional number] - Second event parameter.
+	 */
+	var MidiEvent = function(params) {
+		if (!this) return new MidiEvent(params);
+		if (params &&
+				(params.type    !== null || params.type    !== undefined) &&
+				(params.channel !== null || params.channel !== undefined) &&
+				(params.param1  !== null || params.param1  !== undefined)) {
+			this.setTime(params.time);
+			this.setType(params.type);
+			this.setChannel(params.channel);
+			this.setParam1(params.param1);
+			this.setParam2(params.param2);
+		}
+	};
+
+	// event codes
+	MidiEvent.NOTE_OFF           = 0x80;
+	MidiEvent.NOTE_ON            = 0x90;
+	MidiEvent.AFTER_TOUCH        = 0xA0;
+	MidiEvent.CONTROLLER         = 0xB0;
+	MidiEvent.PROGRAM_CHANGE     = 0xC0;
+	MidiEvent.CHANNEL_AFTERTOUCH = 0xD0;
+	MidiEvent.PITCH_BEND         = 0xE0;
+
+
+	/**
+	 * Set the time for the event in ticks since the previous event.
+	 *
+	 * @param {number} ticks - The number of ticks since the previous event. May
+	 * be zero.
+	 */
+	MidiEvent.prototype.setTime = function(ticks) {
+		this.time = Util.translateTickTime(ticks || 0);
+	};
+
+	/**
+	 * Set the type of the event. Must be one of the event codes on MidiEvent.
+	 *
+	 * @param {number} type - Event type.
+	 */
+	MidiEvent.prototype.setType = function(type) {
+		if (type < MidiEvent.NOTE_OFF || type > MidiEvent.PITCH_BEND) {
+			throw new Error("Trying to set an unknown event: " + type);
+		}
+
+		this.type = type;
+	};
+
+	/**
+	 * Set the channel for the event. Must be between 0 and 15, inclusive.
+	 *
+	 * @param {number} channel - The event channel.
+	 */
+	MidiEvent.prototype.setChannel = function(channel) {
+		if (channel < 0 || channel > 15) {
+			throw new Error("Channel is out of bounds.");
+		}
+
+		this.channel = channel;
+	};
+
+	/**
+	 * Set the first parameter for the event. Must be between 0 and 255,
+	 * inclusive.
+	 *
+	 * @param {number} p - The first event parameter value.
+	 */
+	MidiEvent.prototype.setParam1 = function(p) {
+		this.param1 = p;
+	};
+
+	/**
+	 * Set the second parameter for the event. Must be between 0 and 255,
+	 * inclusive.
+	 *
+	 * @param {number} p - The second event parameter value.
+	 */
+	MidiEvent.prototype.setParam2 = function(p) {
+		this.param2 = p;
+	};
+
+	/**
+	 * Serialize the event to an array of bytes.
+	 *
+	 * @returns {Array} The array of serialized bytes.
+	 */
+	MidiEvent.prototype.toBytes = function() {
+		var byteArray = [];
+
+		var typeChannelByte = this.type | (this.channel & 0xF);
+
+		byteArray.push.apply(byteArray, this.time);
+		byteArray.push(typeChannelByte);
+		byteArray.push(this.param1);
+
+		// Some events don't have a second parameter
+		if (this.param2 !== undefined && this.param2 !== null) {
+			byteArray.push(this.param2);
+		}
+		return byteArray;
+	};
+
+	/* ******************************************************************
+	 * MetaEvent class
+	 ****************************************************************** */
+
+	/**
+	 * Construct a meta event.
+	 *
+	 * Parameters include:
+	 *  - time [optional number] - Ticks since previous event.
+	 *  - type [required number] - Type of event.
+	 *  - data [optional array|string] - Event data.
+	 */
+	var MetaEvent = function(params) {
+		if (!this) return new MetaEvent(params);
+		var p = params || {};
+		this.setTime(params.time);
+		this.setType(params.type);
+		this.setData(params.data);
+	};
+
+	MetaEvent.SEQUENCE   = 0x00;
+	MetaEvent.TEXT       = 0x01;
+	MetaEvent.COPYRIGHT  = 0x02;
+	MetaEvent.TRACK_NAME = 0x03;
+	MetaEvent.INSTRUMENT = 0x04;
+	MetaEvent.LYRIC      = 0x05;
+	MetaEvent.MARKER     = 0x06;
+	MetaEvent.CUE_POINT  = 0x07;
+	MetaEvent.CHANNEL_PREFIX = 0x20;
+	MetaEvent.END_OF_TRACK   = 0x2f;
+	MetaEvent.TEMPO      = 0x51;
+	MetaEvent.SMPTE      = 0x54;
+	MetaEvent.TIME_SIG   = 0x58;
+	MetaEvent.KEY_SIG    = 0x59;
+	MetaEvent.SEQ_EVENT  = 0x7f;
+
+	/**
+	 * Set the time for the event in ticks since the previous event.
+	 *
+	 * @param {number} ticks - The number of ticks since the previous event. May
+	 * be zero.
+	 */
+	MetaEvent.prototype.setTime = function(ticks) {
+		this.time = Util.translateTickTime(ticks || 0);
+	};
+
+	/**
+	 * Set the type of the event. Must be one of the event codes on MetaEvent.
+	 *
+	 * @param {number} t - Event type.
+	 */
+	MetaEvent.prototype.setType = function(t) {
+		this.type = t;
+	};
+
+	/**
+	 * Set the data associated with the event. May be a string or array of byte
+	 * values.
+	 *
+	 * @param {string|Array} d - Event data.
+	 */
+	MetaEvent.prototype.setData = function(d) {
+		this.data = d;
+	};
+
+	/**
+	 * Serialize the event to an array of bytes.
+	 *
+	 * @returns {Array} The array of serialized bytes.
+	 */
+	MetaEvent.prototype.toBytes = function() {
+		if (!this.type) {
+			throw new Error("Type for meta-event not specified.");
+		}
+
+		var byteArray = [];
+		byteArray.push.apply(byteArray, this.time);
+		byteArray.push(0xFF, this.type);
+
+		// If data is an array, we assume that it contains several bytes. We
+		// apend them to byteArray.
+		if (Array.isArray(this.data)) {
+			byteArray.push(this.data.length);
+			byteArray.push.apply(byteArray, this.data);
+		} else if (typeof this.data == 'number') {
+			byteArray.push(1, this.data);
+		} else if (this.data !== null && this.data !== undefined) {
+			// assume string; may be a bad assumption
+			byteArray.push(this.data.length);
+			var dataBytes = this.data.split('').map(function(x){ return x.charCodeAt(0) });
+			byteArray.push.apply(byteArray, dataBytes);
+		} else {
+			byteArray.push(0);
+		}
+
+		return byteArray;
+	};
+
+	/* ******************************************************************
+	 * Track class
+	 ****************************************************************** */
+
+	/**
+	 * Construct a MIDI track.
+	 *
+	 * Parameters include:
+	 *  - events [optional array] - Array of events for the track.
+	 */
+	var Track = function(config) {
+		if (!this) return new Track(config);
+		var c = config || {};
+		this.events = c.events || [];
+	};
+
+	Track.START_BYTES = [0x4d, 0x54, 0x72, 0x6b];
+	Track.END_BYTES   = [0x00, 0xFF, 0x2F, 0x00];
+
+	/**
+	 * Add an event to the track.
+	 *
+	 * @param {MidiEvent|MetaEvent} event - The event to add.
+	 * @returns {Track} The current track.
+	 */
+	Track.prototype.addEvent = function(event) {
+		this.events.push(event);
+		return this;
+	};
+
+	/**
+	 * Add a note-on event to the track.
+	 *
+	 * @param {number} channel - The channel to add the event to.
+	 * @param {number|string} pitch - The pitch of the note, either numeric or
+	 * symbolic.
+	 * @param {number} [time=0] - The number of ticks since the previous event,
+	 * defaults to 0.
+	 * @param {number} [velocity=90] - The volume for the note, defaults to
+	 * DEFAULT_VOLUME.
+	 * @returns {Track} The current track.
+	 */
+	Track.prototype.addNoteOn = Track.prototype.noteOn = function(channel, pitch, time, velocity) {
+		this.events.push(new MidiEvent({
+			type: MidiEvent.NOTE_ON,
+			channel: channel,
+			param1: Util.ensureMidiPitch(pitch),
+			param2: velocity || DEFAULT_VOLUME,
+			time: time || 0,
+		}));
+		return this;
+	};
+
+	/**
+	 * Add a note-off event to the track.
+	 *
+	 * @param {number} channel - The channel to add the event to.
+	 * @param {number|string} pitch - The pitch of the note, either numeric or
+	 * symbolic.
+	 * @param {number} [time=0] - The number of ticks since the previous event,
+	 * defaults to 0.
+	 * @param {number} [velocity=90] - The velocity the note was released,
+	 * defaults to DEFAULT_VOLUME.
+	 * @returns {Track} The current track.
+	 */
+	Track.prototype.addNoteOff = Track.prototype.noteOff = function(channel, pitch, time, velocity) {
+		this.events.push(new MidiEvent({
+			type: MidiEvent.NOTE_OFF,
+			channel: channel,
+			param1: Util.ensureMidiPitch(pitch),
+			param2: velocity || DEFAULT_VOLUME,
+			time: time || 0,
+		}));
+		return this;
+	};
+
+	/**
+	 * Add a note-on and -off event to the track.
+	 *
+	 * @param {number} channel - The channel to add the event to.
+	 * @param {number|string} pitch - The pitch of the note, either numeric or
+	 * symbolic.
+	 * @param {number} dur - The duration of the note, in ticks.
+	 * @param {number} [time=0] - The number of ticks since the previous event,
+	 * defaults to 0.
+	 * @param {number} [velocity=90] - The velocity the note was released,
+	 * defaults to DEFAULT_VOLUME.
+	 * @returns {Track} The current track.
+	 */
+	Track.prototype.addNote = Track.prototype.note = function(channel, pitch, dur, time, velocity) {
+		this.noteOn(channel, pitch, time, velocity);
+		if (dur) {
+			this.noteOff(channel, pitch, dur, velocity);
+		}
+		return this;
+	};
+
+	/**
+	 * Add a note-on and -off event to the track for each pitch in an array of pitches.
+	 *
+	 * @param {number} channel - The channel to add the event to.
+	 * @param {array} chord - An array of pitches, either numeric or
+	 * symbolic.
+	 * @param {number} dur - The duration of the chord, in ticks.
+	 * @param {number} [velocity=90] - The velocity of the chord,
+	 * defaults to DEFAULT_VOLUME.
+	 * @returns {Track} The current track.
+	 */
+	Track.prototype.addChord = Track.prototype.chord = function(channel, chord, dur, velocity) {
+		if (!Array.isArray(chord) && !chord.length) {
+			throw new Error('Chord must be an array of pitches');
+		}
+		chord.forEach(function(note) {
+			this.noteOn(channel, note, 0, velocity);
+		}, this);
+		chord.forEach(function(note, index) {
+			if (index === 0) {
+				this.noteOff(channel, note, dur);
+			} else {
+				this.noteOff(channel, note);
+			}
+		}, this);
+		return this;
+	};
+
+	/**
+	 * Set instrument for the track.
+	 *
+	 * @param {number} channel - The channel to set the instrument on.
+	 * @param {number} instrument - The instrument to set it to.
+	 * @param {number} [time=0] - The number of ticks since the previous event,
+	 * defaults to 0.
+	 * @returns {Track} The current track.
+	 */
+	Track.prototype.setInstrument = Track.prototype.instrument = function(channel, instrument, time) {
+		this.events.push(new MidiEvent({
+			type: MidiEvent.PROGRAM_CHANGE,
+			channel: channel,
+			param1: instrument,
+			time: time || 0,
+		}));
+		return this;
+	};
+
+	/**
+	 * Set the tempo for the track.
+	 *
+	 * @param {number} bpm - The new number of beats per minute.
+	 * @param {number} [time=0] - The number of ticks since the previous event,
+	 * defaults to 0.
+	 * @returns {Track} The current track.
+	 */
+	Track.prototype.setTempo = Track.prototype.tempo = function(bpm, time) {
+		this.events.push(new MetaEvent({
+			type: MetaEvent.TEMPO,
+			data: Util.mpqnFromBpm(bpm),
+			time: time || 0,
+		}));
+		return this;
+	};
+
+	/**
+	 * Serialize the track to an array of bytes.
+	 *
+	 * @returns {Array} The array of serialized bytes.
+	 */
+	Track.prototype.toBytes = function() {
+		var trackLength = 0;
+		var eventBytes = [];
+		var startBytes = Track.START_BYTES;
+		var endBytes   = Track.END_BYTES;
+
+		var addEventBytes = function(event) {
+			var bytes = event.toBytes();
+			trackLength += bytes.length;
+			eventBytes.push.apply(eventBytes, bytes);
+		};
+
+		this.events.forEach(addEventBytes);
+
+		// Add the end-of-track bytes to the sum of bytes for the track, since
+		// they are counted (unlike the start-of-track ones).
+		trackLength += endBytes.length;
+
+		// Makes sure that track length will fill up 4 bytes with 0s in case
+		// the length is less than that (the usual case).
+		var lengthBytes = Util.str2Bytes(trackLength.toString(16), 4);
+
+		return startBytes.concat(lengthBytes, eventBytes, endBytes);
+	};
+
+	/* ******************************************************************
+	 * File class
+	 ****************************************************************** */
+
+	/**
+	 * Construct a file object.
+	 *
+	 * Parameters include:
+	 *  - ticks [optional number] - Number of ticks per beat, defaults to 128.
+	 *    Must be 1-32767.
+	 *  - tracks [optional array] - Track data.
+	 */
+	var File = function(config){
+		if (!this) return new File(config);
+
+		var c = config || {};
+		if (c.ticks) {
+			if (typeof c.ticks !== 'number') {
+				throw new Error('Ticks per beat must be a number!');
+				return;
+			}
+			if (c.ticks <= 0 || c.ticks >= (1 << 15) || c.ticks % 1 !== 0) {
+				throw new Error('Ticks per beat must be an integer between 1 and 32767!');
+				return;
+			}
+		}
+
+		this.ticks = c.ticks || 128;
+		this.tracks = c.tracks || [];
+	};
+
+	File.HDR_CHUNKID     = "MThd";             // File magic cookie
+	File.HDR_CHUNK_SIZE  = "\x00\x00\x00\x06"; // Header length for SMF
+	File.HDR_TYPE0       = "\x00\x00";         // Midi Type 0 id
+	File.HDR_TYPE1       = "\x00\x01";         // Midi Type 1 id
+
+	/**
+	 * Add a track to the file.
+	 *
+	 * @param {Track} track - The track to add.
+	 */
+	File.prototype.addTrack = function(track) {
+		if (track) {
+			this.tracks.push(track);
+			return this;
+		} else {
+			track = new Track();
+			this.tracks.push(track);
+			return track;
+		}
+	};
+
+	/**
+	 * Serialize the MIDI file to an array of bytes.
+	 *
+	 * @returns {Array} The array of serialized bytes.
+	 */
+	File.prototype.toBytes = function() {
+		var trackCount = this.tracks.length.toString(16);
+
+		// prepare the file header
+		var bytes = File.HDR_CHUNKID + File.HDR_CHUNK_SIZE;
+
+		// set Midi type based on number of tracks
+		if (parseInt(trackCount, 16) > 1) {
+			bytes += File.HDR_TYPE1;
+		} else {
+			bytes += File.HDR_TYPE0;
+		}
+
+		// add the number of tracks (2 bytes)
+		bytes += Util.codes2Str(Util.str2Bytes(trackCount, 2));
+		// add the number of ticks per beat (currently hardcoded)
+		bytes += String.fromCharCode((this.ticks/256),  this.ticks%256);;
+
+		// iterate over the tracks, converting to bytes too
+		this.tracks.forEach(function(track) {
+			bytes += Util.codes2Str(track.toBytes());
+		});
+
+		return bytes;
+	};
+
+	/* ******************************************************************
+	 * Exports
+	 ****************************************************************** */
+
+	exported.Util = Util;
+	exported.File = File;
+	exported.Track = Track;
+	exported.Event = MidiEvent;
+	exported.MetaEvent = MetaEvent;
+
+})( Midi );
+
+if (typeof module != 'undefined' && module !== null) {
+	module.exports = Midi;
+} else if (typeof exports != 'undefined' && exports !== null) {
+	exports = Midi;
+} else {
+	this.Midi = Midi;
+}
+
+},{}]},["1j6wU","3Imd1","5rkFb"], "5rkFb", "parcelRequire86a3")
 
 //# sourceMappingURL=index.3fafb3e2.js.map
