@@ -2,7 +2,7 @@
   "name": "tunecraft",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "index.html",
   "scripts": {
     "start": "(cd $INIT_CWD; parcel serve ./src/index.html)",
     "build": "(cd $INIT_CWD; parcel build ./src/index.html)"
