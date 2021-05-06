@@ -148,7 +148,7 @@ export class PlayerState {
   @action.bound
   seek(time) {
     if (this.playing) {
-      this.silence();
+      //this.silence();
       this.playbackTime = time;
       this.playing = false;
       this.start();

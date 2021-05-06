@@ -20,10 +20,10 @@ export class AppState {
   }
 
   @observable
-  loopIn = 1;
+  loopIn = null;
 
   @observable
-  loopOut = 5;
+  loopOut = null;
 
   @action 
   zoomOutY() {

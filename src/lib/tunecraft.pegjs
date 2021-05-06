@@ -449,7 +449,7 @@ scope = "{" _ sub:composition _ "}" {
 
 bars = "[" _ h:bar t:_bar* _ "]" { return {$:'bars',sub:[h].concat(t)} }
 
-bar = bars/repeat_bars/seq_bar
+bar = bars/repeat_bars/seq_bar/"" { return {$:'bar',sub:[]}}
 
 seq_bar = seq:seq {
   return {...seq,$:'bar'}
