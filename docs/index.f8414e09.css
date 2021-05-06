@@ -1,0 +1,113 @@
+* {
+  box-sizing: border-box;
+}
+.tc.app {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  display: flex;
+  flex-flow: row;
+  background: #000;
+  color: white;
+  font-family: Roboto, sans-serif;
+  user-select: none;
+}
+.tc.app > .left {
+  flex: 1 1;
+  display: flex;
+  flex-flow: column;
+  overflow: hidden;
+}
+.tc.app > .right {
+  flex: 0 0 640px;
+  display: flex;
+  flex-flow: column;
+  overflow: hidden;
+}
+.tc.link {
+  margin: 0 4px;
+  cursor: pointer;
+}
+.tc.link.active,
+.tc.link:hover {
+  text-decoration: underline;
+}
+.tc.json {
+  overflow: auto;
+}
+
+.tc.player {
+  display: flex;
+  justify-content: space-between;
+  height: 50px;
+}
+.tc.player > .controls button {
+  border: none;
+  height: 40px;
+  width: 40px;
+  margin: 0 4px;
+  background: #333;
+  color: inherit;
+  font-size: 24px;
+  cursor: hover;
+}
+.tc.player > .time {
+  font-size: 18px;
+  line-height: 50px;
+  margin: 0 8px;
+}
+
+.tc.tracks {
+  position: relative;
+  height: 100%;
+  width: 100%;
+  overflow: auto;
+}
+.tc.tracks > .tracks {
+  width: auto;
+  display: inline-block;
+}
+.tc.track {
+  background: #333;
+  display: flex;
+  flex-flow: row;
+  margin-top: 1px;
+}
+.tc.track > .header {
+  flex: 0 0 100px;
+  width: 100px;
+  background: #222;
+  padding: 2px 4px;
+  display: block;
+  position: sticky;
+  font-weight: 400;
+  font-size: 13px;
+  left: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.tc.seek-cursor {
+  pointer-events: none;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 0;
+  margin-left: 100px;
+  border-left: solid 1px white;
+}
+.tc.loop-region {
+  pointer-events: none;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  margin-left: 100px;
+  background: #fff2;
+}
+.tc.scroller {
+  flex: 0 1 0;
+}
+
+
+/*# sourceMappingURL=index.f8414e09.css.map */
