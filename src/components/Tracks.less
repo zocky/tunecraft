@@ -1,53 +1,114 @@
 .tc.tracks {
-  position:relative;
-  height:100%;
-  width:100%;
-  overflow:auto;
-  >.tracks {
-    width:auto;
+  position: relative;
+  height  : 100%;
+  width   : 100%;
+  overflow: auto;
+  > .view {
+    min-height:100%;
+    position:relative;
     display:inline-block;
+    overflow:visible;
+    >.tracks {
+      width  : auto;
+      display: inline-block;
+      border-top:solid 1px white;
+      min-height:100%;
+      position:relative;
+    }
+  }
+  .overlay {
+    position:absolute;
+    top:0;
+    left:100px;
+    bottom:0;
+    right:0;
+    z-index:1;
   }
 }
+
 .tc.track {
-  background:#333;
-  display:flex;
-  flex-flow:row;
-  margin-top:1px;
-  > .header {
-    flex:0 0 100px;
-    width:100px;
-    overflow:hidden;
-    background:#222;
-    padding:2px 4px;
-    display: block;
-    position:sticky; 
-    font-weight:400;
-    font-size:13px;
-    left:0;
-    overflow:hidden;
+  background: #333;
+  display   : flex;
+  flex-flow : row;
+  border-bottom:solid 1px white;
+
+  >.header {
+    flex         : 0 0 100px;
+    width        : 100px;
+    overflow     : hidden;
+    background   : #222;
+    padding      : 2px 4px;
+    display      : block;
+    position     : sticky;
+    font-weight  : 400;
+    font-size    : 13px;
+    left         : 0;
+    top: 0;
+    overflow     : hidden;
     text-overflow: ellipsis;
+    z-index: 2;
   }
+ 
 }
 
 .tc.seek-cursor {
-  pointer-events:none;
-  position:absolute;
-  top:0;
-  bottom:0;
-  width:0;
-  margin-left:100px;
-  border-left:solid 1px white;
+  pointer-events: none;
+  position      : absolute;
+  top           : 0;
+  height:100%;
+  width         : 0;
+  //margin-left   : 100px;
+  border-left   : solid 1px white;
 }
 
 .tc.loop-region {
-  pointer-events:none;
-  position:absolute;
-  top:0;
-  bottom:0;
-  margin-left:100px;
-  background:#fff2;
+  pointer-events: none;
+  position      : absolute;
+  top           : 0;
+  bottom        : 0;
+  //margin-left   : 100px;
+  background    : #fff2;
+
+  >.splitter {
+    pointer-events: all;
+    position      : absolute;
+    top           : 0;
+    bottom        : 0;
+    width         : 12px;
+    cursor        : col-resize;
+
+    &.in {
+      left: -6px;
+    }
+
+    &.out {
+      right: -6px;
+    }
+    &.dragging {
+      background:#ff02;
+    }
+    &:hover {
+      &::after {
+        content    : "";
+        position   : absolute;
+        top        : 0;
+        bottom     : 0;
+        left       : 6px;
+        border-left: solid 1px yellow;
+        
+        }
+
+
+    }
+  }
+
 }
 
 .tc.scroller {
-  flex: 0 1 0;
+  flex: 1;
+  display:flex;
+  position:relative;
+  .track {
+    flex: 1;
+  }
 }

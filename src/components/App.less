@@ -15,13 +15,13 @@
   user-select: none;
   
   >.left {
-    flex:1 1;
+    flex:1;
     display:flex;
     flex-flow:column;
     overflow:hidden;
   }
   >.right {
-    flex:0 0 640px;
+    max-width:80%;
     display:flex;
     flex-flow:column;
     overflow:hidden;
@@ -38,4 +38,10 @@
 
 .tc.json {
   overflow:auto;
+}
+
+
+.tc.splitter {
+  width:12px;
+  cursor:col-resize;
 }

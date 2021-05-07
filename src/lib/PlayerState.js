@@ -45,17 +45,19 @@ export class PlayerState {
       return true;
     })
     
-    .map(e => ({ ...e }));
+      .map(e => ({ ...e }));
     for (const e of notes) {
       if (e.at + e.duration > this.endTime) e.duration = this.endTime - e.at;
     }
-    
+    /*
     for (const e of notes) {
-      if (e.at - this.beginTime < 1) notes.push({
+      
+      if (e.at > this.beginTime + 1) break;
+      notes.push({
         ...e,
         at: e.at + this.loopTime
       })
-    }
+    }*/
     return notes;
   }
 
@@ -86,7 +88,7 @@ export class PlayerState {
     this.queueTime = doneTime; //this.beginTime + (doneTime - this.beginTime) % this.loopTime;
     if (time >= this.endTime) {
       if (this.looping) {
-        this.seek(this.beginTime + (time - this.beginTime) % this.loopTime);
+        this.seek(this.beginTime);
       } else {
         this.stop(true);
       }
@@ -134,8 +136,8 @@ export class PlayerState {
     this.queueTime = 0;
     this.playing = true;
     this.holding = false;
+    this.loop();
     if (!this.timerID) {
-      this.loop();
       this.timerID = setInterval(this.loop, 50);
     }
   }

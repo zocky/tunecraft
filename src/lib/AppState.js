@@ -1,22 +1,55 @@
-import { trace,observable, computed, makeObservable, reaction, action } from "mobx";
+import { trace, observable, computed, makeObservable, reaction, action } from "mobx";
 import { parse } from "./tunecraft.pegjs";
 
 import Soundfont from "soundfont-player";
 import { PlayerState } from "./PlayerState";
 import { Tune } from "./Tune";
+import { clamp } from "./utils";
 
 export class AppState {
   context = new AudioContext();
   player = new PlayerState(this);
 
-  @observable 
-  zoomX = 64;
-  @observable 
-  zoomY = 2;
+  @observable
+  editorWidth = 500;
 
-  @action 
+  @observable
+  settings = {
+    zoomX: 12,
+    zoomY: 2,
+    loopIn: null,
+    loopOut: null,
+    looping: false
+  }
+
+  @computed get
+    zoomX() {
+    return 2 ** (this.settings.zoomX / 2)
+  }
+
+  @computed get
+    zoomY() {
+    return this.settings.zoomY;
+  }
+
+  @action
   zoomInY() {
-    if (this.zoomY<8) this.zoomY++;
+    if (this.settings.zoomY < 8) this.settings.zoomY++;
+  }
+
+  @action
+  zoomOutY() {
+    if (this.settings.zoomY > 1) this.settings.zoomY--;
+  }
+
+  @action
+  zoomInX() {
+    if (this.settings.zoomX < 16) this.settings.zoomX++;
+  }
+
+  @action
+  zoomOutX() {
+    if (this.settings.zoomX > 1) this.settings.zoomX--;
   }
 
   @observable
@@ -25,10 +58,6 @@ export class AppState {
   @observable
   loopOut = null;
 
-  @action 
-  zoomOutY() {
-    if (this.zoomY>1) this.zoomY--;
-  }
 
   @observable viewerMode = "tracks";
 
@@ -61,15 +90,18 @@ export class AppState {
   @computed get soundfonts() {
     trace();
     if (!this.tune) return {};
-    return { default: "MusyngKite", ...this.tune.soundfonts }
+    return { 
+      default: "FatBoy", 
+      ...this.tune.soundfonts
+    }
   }
 
   @computed get instruments() {
     trace();
-    const result = this.tune;
-    if (!result) return {};
+    const tune = this.tune;
     const ret = {};
-    for (const track of result.tracks) {
+    if (!tune) return {};
+    for (const track of tune.tracks) {
       const { font, instrument, id, ...rest } = track;
       const options = {}
       if (rest.attack) options.attack = rest.attack / 1000;
@@ -81,17 +113,17 @@ export class AppState {
     return ret;
   }
 
-  
+
   constructor() {
     top.app = this;
     let lastResult;
     makeObservable(this);
-    reaction(() => { this.instruments; this.tune; return this.result} , ({ result, error }) => {
-      if (result ===lastResult) return;
+    reaction(() => { this.instruments; this.tune; return this.result }, ({ result, error }) => {
+      if (result === lastResult) return;
       lastResult = result;
       localStorage.tunecraft_save = this.source;
       if (result) {
-        this.tune = new Tune(result); 
+        this.tune = new Tune(result);
       }
     })
     this.init();
@@ -108,14 +140,18 @@ class InstrumentState {
   }
 
   static async loadInstrument(context, font, name) {
-    const id = font + "\n" + name;
+    const id = font+'\n'+name
     if (!this._instruments[id]) {
       try {
         this._instruments[id] = await Soundfont.instrument(context, name, {
           soundfont: font,
           nameToUrl: (name, sf, format = 'mp3') => {
             if (!sf.match(/^https?:/)) {
-              sf = "https://gleitz.github.io/midi-js-soundfonts/" + sf;
+              if (name==='percussion') {
+                sf = "https://cdn.jsdelivr.net/gh/dave4mpls/midi-js-soundfonts-with-drums/FluidR3_GM"
+              } else {
+                sf = "https://gleitz.github.io/midi-js-soundfonts/" + sf;
+              }
             }
             return sf + '/' + name + '-' + format + '.js'
           }
@@ -135,7 +171,7 @@ class InstrumentState {
     this.load();
   }
   async load() {
-    this.instrument = await this.constructor.loadInstrument(this.context,this.font, this.name);
+    this.instrument = await this.constructor.loadInstrument(this.context, this.font, this.name);
   }
 
   play(note, at, options = {}) {

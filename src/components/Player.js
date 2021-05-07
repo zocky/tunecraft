@@ -15,19 +15,29 @@ export class Player extends React.Component {
     return (
       <div className="tc player">
         <div className="controls">
-          <button onClick={player.toggle}>
-          ⏯
-        </button>
+          <button onClick={player.toggle} className={classes({
+            active: player.playing
+          })}>
+            ⏯
+          </button>
           <button onClick={player.stop}>
-          ⏹
-        </button>
+            ⏹
+          </button>
+          <button onClick={()=>player.looping =! player.looping} 
+          
+          className={classes({
+            active: player.looping
+          })}
+          >
+          🔁&#xFE0E;
+          </button>
         </div>
         <div className="links">
           show:
-          <RadioLinks obj={app} prop="viewerMode" options={["tracks","result"]}/>
+          <RadioLinks obj={app} prop="viewerMode" options={["tracks", "result"]} />
         </div>
         <div className="time">
-          <PlayerTime app={app}/>
+          <PlayerTime app={app} />
         </div>
       </div>
     )
@@ -37,7 +47,7 @@ export class Player extends React.Component {
 @observer
 class PlayerTime extends React.Component {
   formatTime(time) {
-    return `${0 | (time / 60)}:${(time % 60).toFixed(1).padStart(4,"0")}`;
+    return `${0 | (time / 60)}:${(time % 60).toFixed(1).padStart(4, "0")}`;
   }
   get totalTime() {
     const { app } = this.props;
@@ -45,7 +55,7 @@ class PlayerTime extends React.Component {
   }
   get playbackTime() {
     const { playbackTime } = this.props.app.player;
-    return this.formatTime(playbackTime||0);
+    return this.formatTime(playbackTime || 0);
   }
   render() {
     return (<>
@@ -58,20 +68,20 @@ class PlayerTime extends React.Component {
 @observer
 export class RadioLinks extends React.Component {
   render() {
-    const {obj,prop,options} = this.props;
+    const { obj, prop, options } = this.props;
     let list = [];
     if (Array.isArray(options)) {
-      list=options.map(k=>[k,k])
+      list = options.map(k => [k, k])
     } else {
       list = Object.entries(options);
     }
-    
-    return list.map(([k,v])=><span
+
+    return list.map(([k, v]) => <span
       key={k}
-      className={classes('tc link',{
+      className={classes('tc link', {
         active: obj[prop] === k
       })}
-      onClick={action(e=>obj[prop]=k)}
+      onClick={action(e => obj[prop] = k)}
     >
       {v}
     </span>)

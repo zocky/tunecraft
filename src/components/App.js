@@ -1,33 +1,38 @@
 
 import React from "react";
-import {observer} from "mobx-react";
-import {action, computed, makeObservable} from "mobx";
+import { observer } from "mobx-react";
+import { action, computed, makeObservable } from "mobx";
 import "./App.less";
 
-import {Editor} from "./Editor";
-import {Player} from "./Player";
-import {Tracks} from "./Tracks";
+import { Editor } from "./Editor";
+import { Player } from "./Player";
+import { Tracks } from "./Tracks";
 
+import {Draggable} from "./Utils";
 
 
 @observer
 export class App extends React.Component {
   componentDidMount() {
-    window.addEventListener('wheel',e => e.ctrlKey && e.preventDefault(),{passive:false});
+    window.addEventListener('wheel', e => e.ctrlKey && e.preventDefault(), { passive: false });
   }
-
   render() {
     const { app } = this.props;
-		
+
     return (
       <div className="tc app">
         <div className="left">
-          <Player app={app}/>
-          <Output app={app}/>
+          <Player app={app} />
+          <Output app={app} />
         </div>
-        <div className="right">
-          <Editor app={app}/>
-					<Status app={app}/>
+        <Draggable
+          className="tc splitter"
+          onDrag={e => {
+            app.editorWidth -= e.movementX
+          }} />
+        <div className="right" style={{ width: app.editorWidth }}>
+          <Editor app={app} />
+          <Status app={app} />
         </div>
       </div>
     )
@@ -38,12 +43,12 @@ export class App extends React.Component {
 @observer
 export class Output extends React.Component {
   render() {
-    const {app} = this.props;
+    const { app } = this.props;
     switch (app.viewerMode) {
-    case 'tracks':
-      return <Tracks app={app}/>
-    case 'result':
-      return <pre className="tc json">{JSON.stringify([app.tune?.tempoTrack.tickOffsets,app.tune?.events],null,2)}</pre>
+      case 'tracks':
+        return <Tracks app={app} />
+      case 'result':
+        return <pre className="tc json">{JSON.stringify([app.tune?.tempoTrack.tickOffsets, app.tune?.events], null, 2)}</pre>
     }
   }
 }
@@ -52,7 +57,7 @@ export class Output extends React.Component {
 @observer
 export class Status extends React.Component {
   render() {
-    const {app} = this.props;
+    const { app } = this.props;
 
     if (app.error) {
       return <code>
@@ -62,7 +67,7 @@ export class Status extends React.Component {
       </code>
     }
     return (
-      	<code>Parsed {app.source.length} chars. OK.</code>
+      <code>Parsed {app.source.length} chars. OK.</code>
     )
   }
 }
