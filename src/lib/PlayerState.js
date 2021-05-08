@@ -1,11 +1,11 @@
 
-import { action, observable, computed, makeObservable, flow } from "mobx";
+import { action, observable, computed, makeObservable, flow, reaction, when, autorun } from "mobx";
 import Soundfont from "soundfont-player";
 
 export class PlayerState {
   @observable ready = true;
   @observable playbackTime = 0;
-
+  @observable app = null;
   @computed get beginTime() {
     return this.app.loopIn ?? 0;
   }
@@ -26,12 +26,20 @@ export class PlayerState {
 
   @observable looping = true;
 
+  @observable
   offsetTime = 0;
 
+  @computed get tune() {
+    console.log('tune');
+    return this.app.tune;
+  }
+
   constructor(app) {
-    makeObservable(this);
     this.ac = app.context;
     this.app = app;
+    makeObservable(this);
+    reaction(() => {this.tune;this.instruments;this.soundfonts}, x=>{
+    }) ;
   }
 
   timerID = null;
@@ -77,8 +85,8 @@ export class PlayerState {
       if (at < time) continue;
       if (at > doneTime) continue;
       const offset = at - time;
-
-      this.app.instruments[track].play(note, now + offset, {
+      //console.log(this.instruments,track)
+      this.instruments[track].play(note, now + offset, {
         duration: duration,
         gain: velocity / 100
       })
@@ -161,7 +169,7 @@ export class PlayerState {
 
   @action.bound
   silence() {
-    for (const id in this.app.instruments) this.app.instruments[id].stop();
+    for (const id in this.instruments) this.instruments[id].stop();
   }
 
   @action.bound
@@ -185,4 +193,81 @@ export class PlayerState {
     return this.ac.currentTime;
   }
 
+
+  @computed get soundfonts() {
+    if (!this.app.tune) return {};
+    return {
+      default: "FatBoy",
+      ...this.app.tune.soundfonts
+    }
+  }
+
+  @computed get instruments() {
+    console.log('instruments');
+    const tune = this.app.tune;
+    const ret = {};
+    if (!tune) return {};
+    for (const track of tune.tracks) {
+      const { font, instrument, id, ...rest } = track;
+      const options = {}
+      if (rest.attack) options.attack = rest.attack / 1000;
+      if (rest.decay) options.decay = rest.decay / 1000;
+      if (rest.sustain) options.sustain = rest.sustain / 100;
+      if (rest.release) options.release = rest.release / 1000;
+      ret[id] = InstrumentState.create(this.app.context, this.soundfonts[font], instrument, options);
+    }
+    return ret;
+  }
+
+
+}
+
+class InstrumentState {
+  static _instruments = {};
+  static create(context, font, name, options) {
+    return new InstrumentState(context, font, name, options);
+  }
+
+  static async loadInstrument(context, font, name) {
+    const id = font + '\n' + name
+    if (!this._instruments[id]) {
+      try {
+        this._instruments[id] = await Soundfont.instrument(context, name, {
+          soundfont: font,
+          nameToUrl: (name, sf, format = 'mp3') => {
+            if (!sf.match(/^https?:/)) {
+              if (name === 'percussion') {
+                sf = "https://cdn.jsdelivr.net/gh/dave4mpls/midi-js-soundfonts-with-drums/FluidR3_GM"
+              } else {
+                sf = "https://gleitz.github.io/midi-js-soundfonts/" + sf;
+              }
+            }
+            return sf + '/' + name + '-' + format + '.js'
+          }
+        });
+      } catch (error) {
+        console.log(error);
+      }
+    }
+    return this._instruments[id];
+  }
+  instrument = null;
+  constructor(context, font, name, options) {
+    this.context = context;
+    this.font = font;
+    this.name = name;
+    this.options = options;
+    this.load();
+  }
+  async load() {
+    this.instrument = await this.constructor.loadInstrument(this.context, this.font, this.name);
+  }
+
+  play(note, at, options = {}) {
+    this.instrument?.play(note, at, { ...this.options, ...options });
+  }
+
+  stop() {
+    this.instrument?.stop();
+  }
 }

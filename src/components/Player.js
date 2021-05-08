@@ -23,13 +23,21 @@ export class Player extends React.Component {
           <button onClick={player.stop}>
             ⏹
           </button>
-          <button onClick={()=>player.looping =! player.looping} 
-          
-          className={classes({
-            active: player.looping
-          })}
+          <button
+            onClick={action(() => player.looping = !player.looping)}
+            className={classes({
+              active: player.looping
+            })}
           >
-          🔁&#xFE0E;
+            🔁&#xFE0E;
+          </button>
+          <button
+            onClick={() => app.toggleLoop()}
+            className={classes({
+              active: app.hasLoop
+            })}
+          >
+            L
           </button>
         </div>
         <div className="links">

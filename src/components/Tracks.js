@@ -55,37 +55,95 @@ export class Tracks extends React.Component {
   }
   render() {
     const { app } = this.props;
+    console.log('render',this.constructor.name)
     //const tracks = app.tracks.filter(({ events }) => events.length);
     return (
       <>
         <Scroller app={app} />
         <div className="tc tracks" ref={el => el?.addEventListener('wheel', this.onWheel, { passive: false })}>
           <div className="view"   >
+            <Ruler app={app} />
             <div className="tracks" >
               {app.trackKeys.map((idx) =>
                 <Track key={idx} app={app} idx={idx} color={COLORS[idx % COLORS.length]} />
               )}
             </div>
-          <div className="overlay"  onMouseDown={e => {
-            if (e.buttons === 1) {
-              app.player.hold();
-              app.player.seek(e.nativeEvent.offsetX / app.zoomX);
-            }
-          }}
-          onMouseUp={e => {
-            app.player.unhold();
-          }}
-          onMouseMove={e => {
-            if (e.buttons === 1) {
-              app.player.seek(e.nativeEvent.offsetX / app.zoomX)
-            }
-          }}>
-            <LoopRegion app={app} />
-            <SeekCursor app={app} />
+            <div className="overlay"
+              onMouseDown={e => {
+                if (e.buttons === 1) {
+                  app.player.hold();
+                  app.player.seek(e.nativeEvent.offsetX / app.zoomX);
+                }
+              }}
+              onMouseUp={e => {
+                app.player.unhold();
+              }}
+              onMouseMove={action(e => {
+                const time = e.nativeEvent.offsetX / app.zoomX;
+                let mt = 0;
+                const {events} = this.props.app.tune;
+                let lower = 0;
+                let upper =events.length;
+                let counter = 100;
+                while (lower!==upper) {
+                  if (counter-- < 1) break;
+                  let mid = Math.floor((lower+upper)/2);
+                  mt= events[mid].at;
+                  if (mt > time) {
+                    upper=mid;
+                    continue;
+                  } else if (mt<time) {
+                    lower= mid;
+                    continue;
+                  }
+                  break;
+                }
+                app.mouseTime = mt;
+
+                if (e.buttons === 1) {
+                  app.player.seek(app.mouseTime)
+                }
+              })}
+              onMouseEnter={action(e => {
+                
+              })}
+              onMouseLeave={action(e => {
+                app.mouseTime = null;
+              })}
+            >
+              <LoopRegion app={app} />
+              <MouseCursor app={app} />
+              <SeekCursor app={app} />
             </div>
           </div>
         </div>
       </>
+    )
+  }
+}
+
+
+@observer
+export class Ruler extends React.Component {
+  constructor(...args) {
+    super(...args);
+    makeObservable(this);
+  }
+
+  @computed get seconds() {
+    return this.props.app.tune?.length | 0;
+  }
+  render() {
+    const { app } = this.props;
+    //if (!app.tune) return null;
+    const seconds = [];
+    for (let i = 0; i <= this.seconds; i++) {
+      seconds.push(<div key={i} className="second" style={{ width: app.zoomX }}>{i}</div>)
+    }
+    return (
+      <div className="tc ruler">
+        {seconds}
+      </div>
     )
   }
 }
@@ -125,27 +183,10 @@ export class Scroller extends React.Component {
     return (
       <div className="tc scroller">
         <img style={{ imageRendering: "pixelated" }} className="track" src={this.scrollImage} />
-        <SeekCursor app={this.props.app}/>
+        <LoopRegion app={app} />
+        <SeekCursor app={app} />
       </div>
     )
-  }
-}
-
-@observer
-export class ScrollerCursor extends React.Component {
-  constructor(...args) {
-    super(...args);
-    makeObservable(this);
-  }
-  @computed get X() {
-    const { app } = this.props;
-    const { player } = app;
-    if (!player) return 0;
-    return (player.playbackTime / this.player.totalTime*100)*toFixed(2)+'%';
-  }
-  render() {
-    const { app } = this.props;
-    return <div className="tc seek-cursor" style={{ left: this.X }} />
   }
 }
 
@@ -160,7 +201,7 @@ export class SeekCursor extends React.Component {
     const { app } = this.props;
     const { player } = app;
     if (!player) return 0;
-    return (player.playbackTime / player.totalTime*100).toFixed(4)+'%';
+    return (player.playbackTime / player.totalTime * 100).toFixed(4) + '%';
   }
 
   @computed get X2() {
@@ -176,6 +217,25 @@ export class SeekCursor extends React.Component {
   }
 }
 
+
+@observer
+export class MouseCursor extends React.Component {
+  constructor(...args) {
+    super(...args);
+    makeObservable(this);
+  }
+  @computed get X() {
+    const { app } = this.props;
+    return Math.round(app.mouseTime*app.zoomX);
+  }
+  render() {
+    return null;
+    if(isNaN(this.props.app.mouseTime)) return null;
+    return <div ref={ref => ref?.scrollIntoView({ block: 'nearest', inline: 'nearest' })} className="tc mouse-cursor" style={{ left: this.X }} />
+  }
+}
+
+
 @observer
 export class LoopRegion extends React.Component {
   constructor(...args) {
@@ -185,19 +245,19 @@ export class LoopRegion extends React.Component {
 
   @computed get X() {
     const { app } = this.props;
-    return app.player.beginTime * app.zoomX;
+    return (app.loopIn / app.player.totalTime * 100).toFixed(4) + '%';
   }
   @computed get W() {
     const { app } = this.props;
-    return (app.player.loopTime) * app.zoomX;
+    return ((app.loopOut-app.loopIn) / app.player.totalTime * 100).toFixed(4) + '%';
   }
   render() {
     const { app } = this.props;
-    if (!app.player.looping) return null;
+    if (!app.hasLoop) return null;
     return (
       <div className="tc loop-region" style={{ left: this.X, width: this.W }}>
-        <Draggable className="in splitter" onDrag={e => app.loopIn += e.movementX / app.zoomX} />
-        <Draggable className="out splitter" onDrag={e => app.loopOut += e.movementX / app.zoomX} />
+        <Draggable className="in splitter" onDrag={e => app.moveLoopIn(e.movementX / app.zoomX)} />
+        <Draggable className="out splitter" onDrag={e => app.moveLoopOut(e.movementX / app.zoomX)} />
       </div>
     )
   }
@@ -220,8 +280,7 @@ export class Track extends React.Component {
     const zoomX = app.zoomX;
     const zoomY = app.zoomY;
 
-    const notes = this.events.filter(e => 'note' in e);
-
+    const notes = this.events.filter(e => e.event === 'ON');
     const min = Math.min(48, ...notes.map(e => e.note - 4));
     const max = Math.max(72, ...notes.map(e => e.note + 2));
 
@@ -273,7 +332,7 @@ export class Track extends React.Component {
           {this.track.id}
         </div>
         <img draggable="false" src={this.trackImage}
-         />
+        />
       </div>
     )
   }

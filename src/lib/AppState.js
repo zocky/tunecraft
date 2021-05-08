@@ -1,5 +1,5 @@
 import { trace, observable, computed, makeObservable, reaction, action } from "mobx";
-import { parse } from "./tunecraft.pegjs";
+import { compile } from "./tunecraft";
 
 import Soundfont from "soundfont-player";
 import { PlayerState } from "./PlayerState";
@@ -8,7 +8,6 @@ import { clamp } from "./utils";
 
 export class AppState {
   context = new AudioContext();
-  player = new PlayerState(this);
 
   @observable
   editorWidth = 500;
@@ -17,10 +16,13 @@ export class AppState {
   settings = {
     zoomX: 12,
     zoomY: 2,
-    loopIn: null,
-    loopOut: null,
+    loopIn: 0,
+    loopOut: 1,
+    hasLoop: false,
     looping: false
   }
+
+  @observable mouseTime = 0;
 
   @computed get
     zoomX() {
@@ -52,12 +54,42 @@ export class AppState {
     if (this.settings.zoomX > 1) this.settings.zoomX--;
   }
 
-  @observable
-  loopIn = null;
+  @computed
+  get loopIn() { 
+    return this.settings.hasLoop ? this.tune?.snapTime(this.settings.loopIn): null;
+  };
+  set loopIn(value) {
+    this.settings.loopIn = clamp(value,0,this.settings.loopOut-0.25);
+  }
+  @action
+  moveLoopIn(value) {
+    this.settings.loopIn = clamp(this.settings.loopIn+value,0,this.settings.loopOut-0.25);
+  }
 
-  @observable
-  loopOut = null;
+  @computed
+  get loopOut() { 
+    return this.settings.hasLoop ? this.tune?.snapTime(this.settings.loopOut) : null;
+  };
+  set loopOut(value) {
+    this.settings.loopOut = clamp(value,this.settings.loopIn+0.25,Infinity);
+  }
 
+  @action
+  moveLoopOut = value => {
+    this.settings.loopOut = clamp(this.settings.loopOut+value,this.settings.loopIn+0.25,Infinity);
+  }
+  @computed get hasLoop() {
+    return this.settings.hasLoop;
+  }
+  @action showLoop() {
+    this.settings.hasLoop = true;
+  }
+  @action hideLoop() {
+    this.settings.hasLoop = false;
+  }
+  @action toggleLoop() {
+    this.settings.hasLoop = !this.settings.hasLoop;
+  }
 
   @observable viewerMode = "tracks";
 
@@ -66,7 +98,7 @@ export class AppState {
 
   @computed get result() {
     try {
-      return { result: parse(this.source) };
+      return { result: compile(this.source) };
     } catch (error) {
       console.error(error);
       return { error: error }
@@ -90,34 +122,18 @@ export class AppState {
   @computed get soundfonts() {
     trace();
     if (!this.tune) return {};
-    return { 
-      default: "FatBoy", 
+    return {
+      default: "FatBoy",
       ...this.tune.soundfonts
     }
   }
-
-  @computed get instruments() {
-    trace();
-    const tune = this.tune;
-    const ret = {};
-    if (!tune) return {};
-    for (const track of tune.tracks) {
-      const { font, instrument, id, ...rest } = track;
-      const options = {}
-      if (rest.attack) options.attack = rest.attack / 1000;
-      if (rest.decay) options.decay = rest.decay / 1000;
-      if (rest.sustain) options.sustain = rest.sustain / 100;
-      if (rest.release) options.release = rest.release / 1000;
-      ret[id] = InstrumentState.create(this.context, this.soundfonts[font], instrument, options);
-    }
-    return ret;
-  }
-
 
   constructor() {
     top.app = this;
     let lastResult;
     makeObservable(this);
+    this.player = new PlayerState(this);
+
     reaction(() => { this.instruments; this.tune; return this.result }, ({ result, error }) => {
       if (result === lastResult) return;
       lastResult = result;
@@ -130,55 +146,5 @@ export class AppState {
   }
   @action init() {
     this.source = localStorage.tunecraft_save || ""
-  }
-}
-
-class InstrumentState {
-  static _instruments = {};
-  static create(context, font, name, options) {
-    return new InstrumentState(context, font, name, options);
-  }
-
-  static async loadInstrument(context, font, name) {
-    const id = font+'\n'+name
-    if (!this._instruments[id]) {
-      try {
-        this._instruments[id] = await Soundfont.instrument(context, name, {
-          soundfont: font,
-          nameToUrl: (name, sf, format = 'mp3') => {
-            if (!sf.match(/^https?:/)) {
-              if (name==='percussion') {
-                sf = "https://cdn.jsdelivr.net/gh/dave4mpls/midi-js-soundfonts-with-drums/FluidR3_GM"
-              } else {
-                sf = "https://gleitz.github.io/midi-js-soundfonts/" + sf;
-              }
-            }
-            return sf + '/' + name + '-' + format + '.js'
-          }
-        });
-      } catch (error) {
-        console.log(error);
-      }
-    }
-    return this._instruments[id];
-  }
-  instrument = null;
-  constructor(context, font, name, options) {
-    this.context = context;
-    this.font = font;
-    this.name = name;
-    this.options = options;
-    this.load();
-  }
-  async load() {
-    this.instrument = await this.constructor.loadInstrument(this.context, this.font, this.name);
-  }
-
-  play(note, at, options = {}) {
-    this.instrument?.play(note, at, { ...this.options, ...options });
-  }
-
-  stop() {
-    this.instrument?.stop();
   }
 }

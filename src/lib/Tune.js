@@ -26,9 +26,28 @@ export class Tune {
     return events;
   }
 
-  @computed get ticks() {
-    let ticks = this.events[this.events.length - 1]?.tick ?? 0;
-    return ticks;
+  @observable ticks = 0;
+
+  snapTime(time) {
+    let mt = 0;
+    const {events} = this;
+    let lower = 0;
+    let upper =events.length;
+    let counter = 100;
+    while (lower!==upper) {
+      if (counter-- < 1) break;
+      let mid = Math.floor((lower+upper)/2);
+      mt= events[mid].at;
+      if (mt > time) {
+        upper=mid;
+        continue;
+      } else if (mt<time) {
+        lower= mid;
+        continue;
+      }
+      break;
+    }
+    return mt;
   }
 
   @computed get toMidi() {
@@ -63,15 +82,15 @@ export class Tune {
     return this.tempoTrack.timeAtTick(this.ticks);
   }
 
-  constructor({ tracks, tempo, length, soundfonts, TPQ }) {
+  constructor({ tracks, tempo, length, soundfonts, ticks, TPQ }) {
+    makeObservable(this);
     top.tune = this;
+    this.ticks = ticks;
     this.soundfonts = { default: "MusyngKite", ...soundfonts };
     this.TPQ = TPQ;
     this.tempoTrack = new TempoTrack(this, { events: tempo, TPQ });
     for (const id in tracks) {
       this.tracksById[id] = new Track(this, tracks[id]);
     }
-
-    makeObservable(this);
   }
 }

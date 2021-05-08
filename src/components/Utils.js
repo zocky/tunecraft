@@ -20,18 +20,23 @@ export class Draggable extends React.Component {
 
     const { draggable } = this.ref;
     const dd = { draggable, nativeEvent: e.nativeEvent };
-    const onMove = action(e => onDrag(e, dd));
+    const onMove = action(e => {
+      onDrag(e, dd);
+      e.stopPropagation();
+    });
 
     const onUp = action(e => {
       window.removeEventListener('mousemove', onMove, true)
       window.removeEventListener('mouseup', onUp, true)
       draggingClass && this.ref.classList.remove(draggingClass);
       action(onEndDrag)(e,dd);
+      e.stopPropagation();
     })
     window.addEventListener('mousemove', onMove, true);
     window.addEventListener('mouseup', onUp, true);
     draggingClass && this.ref.classList.add(draggingClass);
     action(onBeginDrag)(e,dd);
+    e.stopPropagation();
   }
   render() {
     const { children, as: As = 'div', buttons, ctrl, shift, onBeginDrag, onEndDrag, onDrag, draggingClass, ...attr } = this.props;
