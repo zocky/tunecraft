@@ -41,7 +41,11 @@ export function scheduleTree({tree,tracks,soundfonts}) {
 
   for (const id in state.tracks) {
     state.tracks[id].events.sort(function(a,b) {
-    return a.tick-b.tick;
+      return a.tick-b.tick;
+    })
+    state.tracks[id].events.push({
+      event:'EOT',
+      tick: state.tracks[id].ticks
     })
   }
   return {

@@ -29,13 +29,13 @@ export class Draggable extends React.Component {
       window.removeEventListener('mousemove', onMove, true)
       window.removeEventListener('mouseup', onUp, true)
       draggingClass && this.ref.classList.remove(draggingClass);
-      action(onEndDrag)(e,dd);
+      action(onEndDrag)(e, dd);
       e.stopPropagation();
     })
     window.addEventListener('mousemove', onMove, true);
     window.addEventListener('mouseup', onUp, true);
     draggingClass && this.ref.classList.add(draggingClass);
-    action(onBeginDrag)(e,dd);
+    action(onBeginDrag)(e, dd);
     e.stopPropagation();
   }
   render() {
@@ -43,6 +43,33 @@ export class Draggable extends React.Component {
     return (<As ref={ref => this.ref = ref} {...attr} onMouseDown={this.onMouseDown}>
       {children}
     </As>
+    )
+  }
+}
+
+
+@observer
+export class Wheelable extends React.Component {
+  onWheel = e => {
+    const {
+      ctrl,
+      shift,
+      onWheel = e => { },
+    } = this.props;
+    if (ctrl !== undefined && e.ctrlKey != ctrl) return;
+    if (shift !== undefined && e.shiftKey != shift) return;
+
+    const wheelable = this.ref;
+    action(onWheel)(e);
+  }
+  render() {
+    const { children, as: As = 'div', ctrl, shift, onWheel, ...attr } = this.props;
+    return (
+      <As {...attr}
+        ref={el => el?.addEventListener('wheel', this.onWheel, { passive: false })}
+      >
+        {children}
+      </As>
     )
   }
 }

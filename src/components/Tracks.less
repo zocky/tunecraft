@@ -1,85 +1,91 @@
 .tc.tracks {
-  position: relative;
-  height  : 100%;
-  width   : 100%;
-  overflow: auto;
+  position       : relative;
+  height         : 100%;
+  width          : 100%;
+  overflow-y     : auto;
+  overflow-x     : hidden;
   //padding-right:100px;
-  
-  > .view {
-    min-height:100%;
-    position:relative;
-    display:inline-block;
-    overflow:visible;
+
+  >.view {
+    min-height: 100%;
+    position  : relative;
+    display   : inline-block;
+    overflow  : visible;
+
     >.tracks {
-      width  : auto;
-      display: inline-block;
-      border-top:solid 1px white;
-      min-height:100%;
-      position:relative;
+      width     : auto;
+      display   : inline-block;
+      border-top: solid 1px white;
+      min-height: 100%;
+      position  : relative;
     }
   }
+
   .overlay {
-    position:absolute;
-    top:0;
-    left:100px;
-    bottom:0;
-    right:0;
-    z-index:1;
+    position: absolute;
+    top     : 0;
+    left    : 100px;
+    bottom  : 0;
+    right   : 0;
+    z-index : 1;
   }
 }
 
 .tc.track {
-  background: #333;
-  display   : flex;
-  flex-flow : row;
-  border-bottom:solid 1px white;
+  background   : #333;
+  display      : flex;
+  flex-flow    : row;
+  border-bottom: solid 1px white;
 
   >.header {
-    flex         : 0 0 100px;
-    width        : 100px;
-    overflow     : hidden;
-    background   : #222;
-    padding      : 2px 4px;
-    display      : block;
-    position     : sticky;
-    font-weight  : 400;
-    font-size    : 13px;
-    left         : 0;
-    top: 0;
-    overflow     : hidden;
-    text-overflow: ellipsis;
-    z-index: 2;
+    pointer-events: all;
+    flex          : 0 0 100px;
+    width         : 100px;
+    overflow      : hidden;
+    background    : #222;
+    padding       : 2px 4px;
+    display       : block;
+    position      : sticky;
+    font-weight   : 400;
+    font-size     : 13px;
+    left          : 0;
+    top           : 0;
+    overflow      : hidden;
+    text-overflow : ellipsis;
+    z-index       : 2;
   }
- 
+
 }
 
 .tc.seek-cursor {
-  pointer-events: none;
-  position      : absolute;
-  top           : 0;
-  height:100%;
-  width         : 0;
+  pointer-events  : none;
+  position        : absolute;
+  top             : 0;
+  height          : 100%;
+  width           : 0;
+  margin-left     : -1.5px;
   //margin-left   : 100px;
-  border-left   : solid 1px white;
+  border-left     : solid 1px white;
 }
 
 .tc.mouse-cursor {
-  pointer-events: none;
-  position      : absolute;
-  top           : 0;
-  height:100%;
-  width         : 0;
+  pointer-events  : none;
+  position        : absolute;
+  top             : 0;
+  height          : 100%;
+  width           : 0;
   //margin-left   : 100px;
-  border-left   : solid 1px #6cc;
+  margin-left     : -1.5px;
+  border-left     : solid 1px #6cc;
 }
 
 .tc.loop-region {
-  pointer-events: none;
-  position      : absolute;
-  top           : 0;
-  bottom        : 0;
+  pointer-events  : none;
+  position        : absolute;
+  top             : 0;
+  bottom          : 0;
   //margin-left   : 100px;
-  background    : #fff2;
+  background      : #fff2;
 
   >.splitter {
     pointer-events: all;
@@ -96,9 +102,11 @@
     &.out {
       right: -6px;
     }
+
     &.dragging {
-      background:#ff02;
+      background: #ff02;
     }
+
     &:hover {
       &::after {
         content    : "";
@@ -107,8 +115,8 @@
         bottom     : 0;
         left       : 6px;
         border-left: solid 1px yellow;
-        
-        }
+
+      }
 
 
     }
@@ -117,31 +125,47 @@
 }
 
 .tc.scroller {
-  flex: 1;
-  display:flex;
-  position:relative;
-  margin:8px 16px;
+  flex    : 1;
+  display : flex;
+  position: relative;
+  background:#333;
+  margin:6px 12px;
+  height:44px;
   .track {
     flex: 1;
+    opacity:0.5;
   }
+
   .tc.loop-region {
-    background:#fff8;
+    background: #fff4;
+  }
+
+  .tc.view-region {
+    pointer-events  : none;
+    position        : absolute;
+    top             : 0px;
+    bottom          : 0px;
+    border:solid 1px #ccc;
+    //margin-left   : 100px;
+
   }
 }
 
 .tc.ruler {
-  background:#333;
-  padding-top:6px;
-  margin-left:100px;
-  margin-right:-100px;
-  display:block;
-  overflow:visible;
-  border-bottom:solid 2px white;
+  background   : #333;
+  padding-top  : 6px;
+  margin-left  : 100px;
+  display      : block;
+  white-space  : nowrap;
+  overflow     : visible;
+  border-bottom: solid 2px white;
+
   .second {
-    display:inline-block;
-    font-size:10px;
-    line-height:10px;
-    border-left:solid 1px white;
-    padding:2px 4px;
+    display    : inline-block;
+    font-size  : 10px;
+    line-height: 10px;
+    border-left: solid 1px white;
+    padding    : 2px 4px;
   }
 }
+

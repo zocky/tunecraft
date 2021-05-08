@@ -2,28 +2,47 @@
   display:flex;
   justify-content:space-between;
   height:50px;
+  line-height:50px;
+  button {
+    border:none;
+    background:#333;
+    color:#999;
+    cursor:hover;
+    border-radius:6px;
+    line-height:1;
+    &:hover {
+      color:white;
+      background:#444;
+    }
+    &:active {
+      color:#ccc;
+    }
+    &.active {
+      color:yellow;
+      background:#444;
+      box-shadow:0 0 4px 1px #ddd inset;
+    }
+  }
   > .controls {
     button {
-      border:none;
       height:40px;
       width:40px;
       margin:4px;
-      background:#333;
-      color:#999;
       font-size:24px;
-      cursor:hover;
-      border-radius:6px;
-      &:hover {
-        color:white;
-        background:#444;
-      }
-      &:active {
-        color:#ccc;
-      }
+  
+    }
+  }
+  > .options {
+    button {
+      height:30px;
+      width:30px;
+      margin:4px;
+      font-size:16px;
+      font-weight:800;
       &.active {
-        color:white;
+        color:lime;
         background:#444;
-        box-shadow:0 0 0 1px #999 inset;
+        box-shadow:0 0 4px 1px lime inset;
       }
     }
   }

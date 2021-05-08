@@ -23,6 +23,8 @@ export class Player extends React.Component {
           <button onClick={player.stop}>
             ⏹
           </button>
+        </div>
+        <div className="options">
           <button
             onClick={action(() => player.looping = !player.looping)}
             className={classes({
@@ -32,12 +34,20 @@ export class Player extends React.Component {
             🔁&#xFE0E;
           </button>
           <button
-            onClick={() => app.toggleLoop()}
+            onClick={app.toggleLoop}
             className={classes({
               active: app.hasLoop
             })}
           >
             L
+          </button>
+          <button
+            onClick={app.toggleSnapping}
+            className={classes({
+              active: app.snapping
+            })}
+          >
+            S
           </button>
         </div>
         <div className="links">

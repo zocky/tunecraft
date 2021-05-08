@@ -1,6 +1,6 @@
 import { processTree } from "./TunecraftProcessor";
 import { scheduleTree } from "./TunecraftScheduler";
-import parser from "./tunecraft.pegjs";
+import parser from "./tunecraft.js";
 
 export function parse(code) {
   return parser.parse(code);

@@ -19,13 +19,86 @@ export class AppState {
     loopIn: 0,
     loopOut: 1,
     hasLoop: false,
-    looping: false
+    looping: false,
+    snapping: true,
+    scrollTime: 0,
   }
 
-  @observable mouseTime = 0;
+  @observable
+  scrollWidth = 0;
 
-  @computed get
-    zoomX() {
+  @observable
+  scrollHeight = 0;
+
+  @observable
+  scrollerWidth = 0;
+
+  @computed 
+  get scrollerZoom() {
+    return this.scrollerWidth / this.tune?.length
+  }
+
+
+  @computed
+  get snapping() {
+    return this.settings.snapping;
+  }
+  set snapping(value) {
+    this.settings.snapping = !!value;
+  }
+
+  @action.bound
+  toggleSnapping() {
+    this.snapping = !this.snapping;
+  }
+
+  @computed get scrollTime() {
+    return this.settings.scrollTime;
+  }
+
+
+  @computed get scrollDuration() {
+    return this.scrollWidth/this.zoomX;
+  }
+
+  @computed get scrollX() {
+    return Math.round(this.settings.scrollTime * this.zoomX)
+  }
+  set scrollX(value) {
+    this.settings.scrollTime = Math.max(0,value) / this.zoomX;
+  }
+  @action
+  moveScrollX(value) {
+    this.scrollX += value;
+  }
+
+  @observable
+  _mouseX = 0;
+
+  @observable
+  _mouseOver = false;
+
+  @computed 
+  get mouseX() {
+    if (!this._mouseOver) return null;
+    return this._mouseX+this.scrollX;
+  }
+  set mouseX(value) {
+    this._mouseOver = true;
+    this._mouseX = value-this.scrollX;
+  }
+  @action mouseLeave() {
+    this._mouseOver = false;
+  }
+
+  @computed get mouseTime() {
+    if (!this._mouseOver) return null;
+    if (this.snapping) return this.tune?.snapTime(this.mouseX / this.zoomX);
+    return +(this.mouseX / this.zoomX).toFixed(6);
+  }
+
+  @computed
+  get zoomX() {
     return 2 ** (this.settings.zoomX / 2)
   }
 
@@ -34,60 +107,63 @@ export class AppState {
     return this.settings.zoomY;
   }
 
-  @action
+  @action.bound
   zoomInY() {
     if (this.settings.zoomY < 8) this.settings.zoomY++;
   }
 
-  @action
+  @action.bound
   zoomOutY() {
     if (this.settings.zoomY > 1) this.settings.zoomY--;
   }
 
-  @action
+  @action.bound
   zoomInX() {
     if (this.settings.zoomX < 16) this.settings.zoomX++;
   }
 
-  @action
+  @action.bound
   zoomOutX() {
     if (this.settings.zoomX > 1) this.settings.zoomX--;
   }
 
   @computed
-  get loopIn() { 
-    return this.settings.hasLoop ? this.tune?.snapTime(this.settings.loopIn): null;
+  get loopIn() {
+    return this.settings.hasLoop ? this.tune?.snapTime(this.settings.loopIn) : null;
   };
   set loopIn(value) {
-    this.settings.loopIn = clamp(value,0,this.settings.loopOut-0.25);
+    this.settings.loopIn = clamp(value, 0, this.settings.loopOut - 0.25);
   }
   @action
   moveLoopIn(value) {
-    this.settings.loopIn = clamp(this.settings.loopIn+value,0,this.settings.loopOut-0.25);
+    this.settings.loopIn = clamp(this.settings.loopIn + value, 0, this.settings.loopOut - 0.25);
   }
 
   @computed
-  get loopOut() { 
+  get loopOut() {
     return this.settings.hasLoop ? this.tune?.snapTime(this.settings.loopOut) : null;
   };
   set loopOut(value) {
-    this.settings.loopOut = clamp(value,this.settings.loopIn+0.25,Infinity);
+    this.settings.loopOut = clamp(value, this.settings.loopIn + 0.25, Infinity);
   }
 
-  @action
+  @action.bound
   moveLoopOut = value => {
-    this.settings.loopOut = clamp(this.settings.loopOut+value,this.settings.loopIn+0.25,Infinity);
+    this.settings.loopOut = clamp(this.settings.loopOut + value, this.settings.loopIn + 0.25, Infinity);
   }
   @computed get hasLoop() {
     return this.settings.hasLoop;
   }
-  @action showLoop() {
+  @action.bound
+  showLoop() {
     this.settings.hasLoop = true;
   }
-  @action hideLoop() {
+  @action.bound
+  hideLoop() {
     this.settings.hasLoop = false;
   }
-  @action toggleLoop() {
+  @action.bound
+  toggleLoop() {
     this.settings.hasLoop = !this.settings.hasLoop;
   }
 
