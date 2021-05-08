@@ -203,6 +203,7 @@ export class Scroller extends React.Component {
   }
 
   componentDidMount() {
+    if(!this.ref) return;
     const { app } = this.props;
     var ro = new ResizeObserver(action(entries => {
       for (let entry of entries) {
@@ -321,7 +322,7 @@ export class SeekCursor extends React.Component {
   render() {
     if (!this.visible) return null;
     const { app } = this.props;
-    return <div refs={ref => false && app.player.playing && ref?.scrollIntoView({ block: 'nearest', inline: app.player?.holding ? 'nearest' : 'center' })} className="tc seek-cursor" style={{ left: this.X }} />
+    return <div ref={ref => false && app.player.playing && ref?.scrollIntoView({ block: 'nearest', inline: app.player?.holding ? 'nearest' : 'center' })} className="tc seek-cursor" style={{ left: this.X }} />
   }
 }
 

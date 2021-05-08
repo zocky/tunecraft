@@ -1,0 +1,235 @@
+* {
+  box-sizing: border-box;
+}
+.tc.app {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  display: flex;
+  flex-flow: row;
+  background: #000;
+  color: white;
+  font-family: Roboto, sans-serif;
+  user-select: none;
+}
+.tc.app > .left {
+  flex: 1;
+  display: flex;
+  flex-flow: column;
+  overflow: hidden;
+}
+.tc.app > .right {
+  max-width: 80%;
+  display: flex;
+  flex-flow: column;
+  overflow: hidden;
+}
+.tc.link {
+  margin: 0 4px;
+  cursor: pointer;
+}
+.tc.link.active,
+.tc.link:hover {
+  text-decoration: underline;
+}
+.tc.json {
+  overflow: auto;
+}
+.tc.splitter {
+  width: 12px;
+  cursor: col-resize;
+}
+
+.tc.player {
+  display: flex;
+  justify-content: space-between;
+  height: 50px;
+  line-height: 50px;
+}
+.tc.player button {
+  border: none;
+  background: #333;
+  color: #999;
+  cursor: hover;
+  border-radius: 6px;
+  line-height: 1;
+}
+.tc.player button:hover {
+  color: white;
+  background: #444;
+}
+.tc.player button:active {
+  color: #ccc;
+}
+.tc.player button.active {
+  color: yellow;
+  background: #444;
+  box-shadow: 0 0 4px 1px #ddd inset;
+}
+.tc.player > .controls button {
+  height: 40px;
+  width: 40px;
+  margin: 4px;
+  font-size: 24px;
+}
+.tc.player > .options button {
+  height: 30px;
+  width: 30px;
+  margin: 4px;
+  font-size: 16px;
+  font-weight: 800;
+}
+.tc.player > .options button.active {
+  color: lime;
+  background: #444;
+  box-shadow: 0 0 4px 1px lime inset;
+}
+.tc.player > .time {
+  font-size: 18px;
+  line-height: 50px;
+  margin: 0 8px;
+}
+
+.tc.tracks {
+  position: relative;
+  height: 100%;
+  width: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+.tc.tracks > .view {
+  min-height: 100%;
+  position: relative;
+  display: inline-block;
+  overflow: visible;
+}
+.tc.tracks > .view > .tracks {
+  width: auto;
+  display: inline-block;
+  border-top: solid 1px white;
+  min-height: 100%;
+  position: relative;
+}
+.tc.tracks .overlay {
+  position: absolute;
+  top: 0;
+  left: 100px;
+  bottom: 0;
+  right: 0;
+  z-index: 1;
+}
+.tc.track {
+  background: #333;
+  display: flex;
+  flex-flow: row;
+  border-bottom: solid 1px white;
+}
+.tc.track > .header {
+  pointer-events: all;
+  flex: 0 0 100px;
+  width: 100px;
+  background: #222;
+  padding: 2px 4px;
+  display: block;
+  position: sticky;
+  font-weight: 400;
+  font-size: 13px;
+  left: 0;
+  top: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  z-index: 2;
+}
+.tc.seek-cursor {
+  pointer-events: none;
+  position: absolute;
+  top: 0;
+  height: 100%;
+  width: 0;
+  margin-left: -1.5px;
+  border-left: solid 1px white;
+}
+.tc.mouse-cursor {
+  pointer-events: none;
+  position: absolute;
+  top: 0;
+  height: 100%;
+  width: 0;
+  margin-left: -1.5px;
+  border-left: solid 1px #6cc;
+}
+.tc.loop-region {
+  pointer-events: none;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  background: #fff2;
+}
+.tc.loop-region > .splitter {
+  pointer-events: all;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 12px;
+  cursor: col-resize;
+}
+.tc.loop-region > .splitter.in {
+  left: -6px;
+}
+.tc.loop-region > .splitter.out {
+  right: -6px;
+}
+.tc.loop-region > .splitter.dragging {
+  background: #ff02;
+}
+.tc.loop-region > .splitter:hover::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 6px;
+  border-left: solid 1px yellow;
+}
+.tc.scroller {
+  flex: 1;
+  display: flex;
+  position: relative;
+  background: #333;
+  margin: 6px 12px;
+  height: 44px;
+}
+.tc.scroller .track {
+  flex: 1;
+  opacity: 0.5;
+}
+.tc.scroller .tc.loop-region {
+  background: #fff4;
+}
+.tc.scroller .tc.view-region {
+  pointer-events: none;
+  position: absolute;
+  top: 0px;
+  bottom: 0px;
+  border: solid 1px #ccc;
+}
+.tc.ruler {
+  background: #333;
+  padding-top: 6px;
+  margin-left: 100px;
+  display: block;
+  white-space: nowrap;
+  overflow: visible;
+  border-bottom: solid 2px white;
+}
+.tc.ruler .second {
+  display: inline-block;
+  font-size: 10px;
+  line-height: 10px;
+  border-left: solid 1px white;
+  padding: 2px 4px;
+}
+
+
+/*# sourceMappingURL=index.f8414e09.css.map */
