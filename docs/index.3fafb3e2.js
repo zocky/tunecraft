@@ -32744,7 +32744,10 @@ try {
       });
       (_monaco$languages2 = monaco.languages) === null || _monaco$languages2 === void 0 ? void 0 : _monaco$languages2.setMonarchTokensProvider('tunecraft', tokenizer());
     }
-    handleEditorDidMount(editor, monaco) {}
+    handleEditorDidMount(editor, monaco) {
+      app.editor = editor;
+      app.monaco = monaco;
+    }
     render() {
       const {app} = this.props;
       return (
@@ -32755,6 +32758,7 @@ try {
           defaultLanguage: "tunecraft",
           onChange: (0, _utils.debounce)((0, _mobx.action)(value => app.source = value), 300),
           beforeMount: this.handleEditorWillMount,
+          onMount: this.handleEditorDidMount,
           options: {
             minimap: {
               enabled: false
@@ -37039,27 +37043,30 @@ try {
       ro.observe(this.ref);
     }
     get scrollerImage() {
+      var _app$tune;
       const canvas = document.createElement('canvas');
       const {app} = this.props;
-      const {tracks} = app;
-      const zoomX = app.scroller.zoom;
-      canvas.height = tracks.length * 4;
-      canvas.width = zoomX * app.tune.length;
-      const ctx = canvas.getContext('2d');
-      // ctx.fillStyle = "#111";
-      // ctx.fillRect(0, 0, canvas.width, canvas.height);
-      for (let idx in tracks) {
-        let track = tracks[idx];
-        let color = COLORS[idx % COLORS.length];
-        drawNotes(ctx, track.events, {
-          color,
-          min: 0,
-          max: tracks.length,
-          zoomX,
-          zoomY: 2,
-          fixedY: idx * 2,
-          gap: 0
-        });
+      if ((_app$tune = app.tune) !== null && _app$tune !== void 0 && _app$tune.length) {
+        const {tracks} = app;
+        const zoomX = app.scroller.zoom;
+        canvas.height = tracks.length * 4;
+        canvas.width = zoomX * app.tune.length;
+        const ctx = canvas.getContext('2d');
+        // ctx.fillStyle = "#111";
+        // ctx.fillRect(0, 0, canvas.width, canvas.height);
+        for (let idx in tracks) {
+          let track = tracks[idx];
+          let color = COLORS[idx % COLORS.length];
+          drawNotes(ctx, track.events, {
+            color,
+            min: 0,
+            max: tracks.length,
+            zoomX,
+            zoomY: 2,
+            fixedY: idx * 2,
+            gap: 0
+          });
+        }
       }
       return canvas.toDataURL("image/png");
     }
@@ -37071,8 +37078,6 @@ try {
       e.stopPropagation();
     }
     render() {
-      var _this$props$app$tune;
-      if (!((_this$props$app$tune = this.props.app.tune) !== null && _this$props$app$tune !== void 0 && _this$props$app$tune.length)) return null;
       return (
         /*#__PURE__*/(0, _jsxRuntime.jsxs)("div", {
           className: "tc scroller",
@@ -37615,7 +37620,7 @@ var _Tune = require("./Tune");
 var _utils = require("./utils");
 var _ScrollerState = require("./ScrollerState");
 var _dayjs = _interopRequireDefault(require("dayjs"));
-var _dec, _dec2, _dec3, _dec4, _dec5, _dec6, _dec7, _dec8, _dec9, _dec10, _class, _descriptor, _descriptor2, _descriptor3, _descriptor4, _descriptor5, _descriptor6, _descriptor7, _descriptor8, _descriptor9, _descriptor10, _descriptor11, _descriptor12, _descriptor13, _descriptor14;
+var _dec, _dec2, _dec3, _dec4, _dec5, _dec6, _dec7, _dec8, _dec9, _dec10, _class, _descriptor, _descriptor2, _descriptor3, _descriptor4, _descriptor5, _descriptor6, _descriptor7, _descriptor8, _descriptor9, _descriptor10, _descriptor11, _descriptor12, _descriptor13, _descriptor14, _descriptor15;
 function _interopRequireDefault(obj) {
   return obj && obj.__esModule ? obj : {
     default: obj
@@ -37845,9 +37850,9 @@ let AppState = (_dec = _mobx.action.bound, _dec2 = _mobx.action.bound, _dec3 = _
   openTune(file) {
     var fr = new FileReader();
     fr.onload = (0, _mobx.action)(() => {
-      this.source = fr.result;
+      // this.source = fr.result;
       this.fileName = file.name.replace(/[0-9\-]+\..*$/, '');
-      console.log(this.fileName);
+      this.editor.getModel().setValue(fr.result);
     });
     fr.readAsText(file);
   }
@@ -37867,6 +37872,7 @@ let AppState = (_dec = _mobx.action.bound, _dec2 = _mobx.action.bound, _dec3 = _
     _initializerDefineProperty(this, "source", _descriptor12, this);
     _initializerDefineProperty(this, "tune", _descriptor13, this);
     _initializerDefineProperty(this, "fileName", _descriptor14, this);
+    _initializerDefineProperty(this, "editor", _descriptor15, this);
     top.app = this;
     let lastResult;
     (0, _mobx.makeObservable)(this);
@@ -37996,6 +38002,13 @@ let AppState = (_dec = _mobx.action.bound, _dec2 = _mobx.action.bound, _dec3 = _
   writable: true,
   initializer: function () {
     return "tune";
+  }
+}), _descriptor15 = _applyDecoratedDescriptor(_class.prototype, "editor", [_mobx.observable], {
+  configurable: true,
+  enumerable: true,
+  writable: true,
+  initializer: function () {
+    return null;
   }
 }), _applyDecoratedDescriptor(_class.prototype, "init", [_mobx.action], Object.getOwnPropertyDescriptor(_class.prototype, "init"), _class.prototype)), _class));
 exports.AppState = AppState;

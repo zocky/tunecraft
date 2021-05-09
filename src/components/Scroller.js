@@ -55,7 +55,9 @@ export class Scroller extends React.Component {
   @computed
   get scrollerImage() {
     const canvas = document.createElement('canvas');
+
     const { app } = this.props;
+    if (app.tune?.length) {
     const { tracks } = app;
 
     const zoomX = app.scroller.zoom;
@@ -72,7 +74,7 @@ export class Scroller extends React.Component {
       let color = COLORS[idx % COLORS.length];
       drawNotes(ctx, track.events, { color, min: 0, max: tracks.length, zoomX, zoomY: 2, fixedY: idx * 2, gap: 0 });
     }
-
+  }
     return canvas.toDataURL("image/png");
   }
 
@@ -86,7 +88,6 @@ export class Scroller extends React.Component {
   }
 
   render() {
-    if (!this.props.app.tune?.length) return null;
     return (
       <div 
         className="tc scroller" 

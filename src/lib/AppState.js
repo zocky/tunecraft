@@ -246,6 +246,7 @@ export class AppState {
 
   @observable fileName = "tune";
 
+  @observable editor = null;
   exportMidi() {
     var blob = new Blob([this.tune.toMidiBuffer], { type: "audio/midi" });
     var link = document.createElement('a');
@@ -271,9 +272,9 @@ export class AppState {
   openTune(file) {
     var fr = new FileReader();
     fr.onload=action(()=>{
-      this.source = fr.result;
+      //this.source = fr.result;
       this.fileName=file.name.replace(/[0-9\-]+\..*$/,'');
-      console.log(this.fileName)
+      this.editor.getModel().setValue(fr.result);
     })
     fr.readAsText(file);
   }

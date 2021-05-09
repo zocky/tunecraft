@@ -17,6 +17,8 @@ export class Editor extends React.Component {
   }
 
   handleEditorDidMount(editor, monaco) {
+		app.editor = editor;
+		app.monaco = monaco;
     // here is another way to get monaco instance
     // you can also store it in `useRef` for further usage
     //  monacoRef.current = editor; 
@@ -31,6 +33,7 @@ export class Editor extends React.Component {
           defaultLanguage="tunecraft"
           onChange={debounce(action(value=>app.source = value),300)}
           beforeMount={this.handleEditorWillMount}
+          onMount={this.handleEditorDidMount}
 					options={{minimap:{enabled:false}}}
           />
     )
