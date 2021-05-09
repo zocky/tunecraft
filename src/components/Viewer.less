@@ -1,3 +1,11 @@
+body {
+  --transition-x: left 0.1s;
+}
+
+body.zooming {
+  --transition-x: none;
+}
+
 .tc.viewer {
   --top-height: 52px;
   --scroller-height: 48px;
@@ -38,6 +46,7 @@
   overflow : hidden;
 
   >.view {
+    transition: var(--transition-x);
     min-height: 100%;
     position  : relative;
     display   : inline-block;
@@ -197,6 +206,7 @@
     position   : absolute;
     top        : 0;
     bottom     : 0;
+    transition: var(--transition-x);
   }
 
   .second {

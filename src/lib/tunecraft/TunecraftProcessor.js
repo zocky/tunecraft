@@ -98,7 +98,6 @@ export function processTree(tree) {
       let sub = node.sub.map(node => process(node, state)).filter(Boolean);
       let divisions = sub.reduce((a, b) => a + (b.length || 0), 0);
       let { length, track, measure } = state;
-      
       return { $$: 'bar', divisions, length, sub, measure, track };
     }
   
@@ -177,6 +176,7 @@ export function processTree(tree) {
       state.scale = scale(state.base, state.mode)
     }
     tempo(node, state) {
+      console.log('tempo',node.tempo)
       const { tempo } = node;
       return { $$: 'tempo', tempo }
     }

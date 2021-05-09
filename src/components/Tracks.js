@@ -1,7 +1,7 @@
 
 import React from "react";
 import { observer } from "mobx-react";
-import { action, computed, makeObservable } from "mobx";
+import { action, computed, makeObservable, toJS, trace } from "mobx";
 import "./Tracks.less";
 import { Draggable, onResize, onWheel, Wheelable } from "./Utils";
 import { Scroller } from "./Scroller";
@@ -133,9 +133,15 @@ export class Track extends React.Component {
     })
   }
 
+  @computed get canvasWidth() {
+    const {app} = this.props;
+    return app.zoomX * app.tune.length;
+  }
+  
+
   @computed
   get trackImage() {
-    //console.log('drawing', this.track.id)
+    //console.time('drawing');
     const canvas = document.createElement('canvas');
     const { app, color } = this.props;
 
@@ -147,7 +153,7 @@ export class Track extends React.Component {
     const max = Math.max(72, ...notes.map(e => e.note + 2));
 
     canvas.height = zoomY * (max - min);
-    canvas.width = zoomX * app.tune.length;
+    canvas.width = this.canvasWidth;
 
     const ctx = canvas.getContext('2d');
 
@@ -175,11 +181,17 @@ export class Track extends React.Component {
     }
 
     drawNotes(ctx, this.events, { color, min, max, zoomX, zoomY });
-    return canvas.toDataURL("image/png");
+    const ret = canvas.toDataURL("image/png");
+    //console.timeEnd('drawing');
+    return ret;
   }
 
-  @computed.struct get events() {
-    return this.track?.events;
+  @computed get events() {
+    return JSON.parse(this.eventsJSON);
+  }
+
+  @computed get eventsJSON() {
+    return JSON.stringify(toJS(this.track?.events));
   }
 
   @computed get track() {
@@ -188,6 +200,7 @@ export class Track extends React.Component {
 
   render() {
     const { app } = this.props;
+    //console.log('render track',this.props.idx)
     return (
       <div className="tc track" ref={ref=>this.ref=ref}>
         <img draggable={false} src={this.trackImage}/>
@@ -231,6 +244,10 @@ export class TrackHeader extends React.Component {
 
 
 function drawNotes(ctx, events, { color, max, min, zoomX, zoomY, fixedY, gap = 2 }) {
+  let n = 0;
+  //const now = performance.now();
+  ctx.beginPath();
+  //let _events = events.filter(e=>e.event==='N')
   for (const e of events) {
     if (e.event === 'N') {
       ctx.fillStyle = color;
@@ -238,14 +255,30 @@ function drawNotes(ctx, events, { color, max, min, zoomX, zoomY, fixedY, gap = 2
       let y = (fixedY ?? (max - e.note)) * zoomY;
       let w = Math.max(1, Math.floor(e.duration * zoomX - gap));
       let h = zoomY;
-      ctx.fillRect(x, y, w, h);
-    } else if (e.event === 'B') {
-      ctx.fillStyle = "#000";
-      let x = Math.round(e.at * zoomX) - 2;
+      ctx.rect(x, y, w, h);
+      n++;
+      if (n==1000) {
+        ctx.fillStyle = color;
+        ctx.fill();
+        ctx.beginPath();
+        n=0;
+      }
+    } 
+  }
+  ctx.fillStyle = color;
+  ctx.fill();
+  ctx.beginPath();
+  for (const e of events) {
+    if (e.event === 'B') {
+      let x = Math.round(e.at * zoomX) - 2+0.5;
       let y = 0;
       let w = 1;
       let h = zoomY * (max - min);
-      ctx.fillRect(x, y, w, h);
+      ctx.rect(x, y, w, h);
     }
   }
+  ctx.fillStyle="#444";
+  ctx.fill();
+  //const spent = performance.now()-now;
+  //console.log('per note',spent/events.length*1000000|0);
 }

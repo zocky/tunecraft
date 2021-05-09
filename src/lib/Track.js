@@ -4,7 +4,7 @@ import instrumentNames from "./instruments.json";
 import Midi from "jsmidgen";
 
 export class BaseTrack {
-  @observable
+  @observable.shallow
   _events;
 
   get events() {
@@ -15,12 +15,12 @@ export class BaseTrack {
     return false;
   }
 
-  constructor(tune, { events }) {
+  constructor(tune, { events, channel }) {
+    this.channel = channel;
     this._events = events;
-    makeObservable(this)
+    //makeObservable(this)
   }
 
-  static midiEvents = new Set('ON', 'OFF');
 
   isMidiEvent = event => false;
 
@@ -44,25 +44,25 @@ export class BaseTrack {
     for (const event of this.eventsForMidi) {
       switch (event.event) {
         case 'ON':
-          midi.addNoteOn(0,event.note, event.wait|0,event.velocity);
+          midi.addNoteOn(this.channel, event.note, event.wait | 0, event.velocity);
           break;
         case 'OFF':
-          midi.addNoteOff(0, event.note, event.wait|0, event.velocity);
+          midi.addNoteOff(this.channel, event.note, event.wait | 0, event.velocity);
           break;
         case 'I':
-          midi.setInstrument(0,event.instrument,event.wait|0);
-        break;
+          midi.setInstrument(this.channel, event.instrument, event.wait | 0);
+          break;
         case 'T':
-          midi.setTempo(event.tempo, event.wait|0);
+          midi.setTempo(event.tempo, event.wait | 0);
           break;
         case 'ID':
-            midi.addEvent(new Midi.MetaEvent({
-              type: Midi.MetaEvent.TRACK_NAME,
-              time: event.wait|0,
-              data: event.id
-            }));
-            break;
-          default:
+          midi.addEvent(new Midi.MetaEvent({
+            type: Midi.MetaEvent.TRACK_NAME,
+            time: event.wait | 0,
+            data: event.id
+          }));
+          break;
+        default:
         //ignore others
       }
     }
@@ -71,18 +71,17 @@ export class BaseTrack {
 }
 
 export class Track extends BaseTrack {
-  @computed get
-    events() {
-    return ([{
-      event:'ID',
-      tick:0,
-      data:this.id
-    },{
-      event:'I',
-      tick:0,
-      instrument:this.midiInstrument||0
+  makeEvents() {
+    this._events = ([{
+      event: 'ID',
+      tick: 0,
+      data: this.id
+    }, {
+      event: 'I',
+      tick: 0,
+      instrument: this.midiInstrument || 0
     },
-    ...this.tune.tempoTrack.events,
+    //...this.tune.tempoTrack.events,
     ...this._events,
     ]
       .map(event => {
@@ -100,30 +99,31 @@ export class Track extends BaseTrack {
   }
 
   @computed get midiInstrument() {
-    return Math.max(0,instrumentNames.indexOf(this.instrument));
+    return Math.max(0, instrumentNames.indexOf(this.instrument));
   }
 
   @computed get isMidiCompatible() {
     return this.midiInstrument >= 0;
   }
 
-  constructor(tune, { id, events, instrument, font }) {
-    super(tune, { events });
-
+  constructor(tune, { id, instrument, font, ...rest }) {
+    super(tune, { ...rest });
     this.tune = tune;
     this.id = id;
     this.font = font;
     this.instrument = instrument;
+    this.makeEvents();
     makeObservable(this)
   }
 
   isMidiEvent = event => {
-    return ({
-      'I': true,
-      'ID': true,
-      'T': true,
-      'ON': true,
-      'OFF': true,
-    })[event.event] || false
+    switch (event.event) {
+      case 'I':
+      //case 'ID':
+      case 'ON':
+      case 'OFF':
+        return true
+    }
+    return false;
   }
 }

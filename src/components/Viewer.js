@@ -38,10 +38,12 @@ export class Viewer extends React.Component {
 
 @observer
 export class View extends React.Component {
+  componentDidUpdate() {
+    console.log('rendered view');
+    document.body.classList.remove('zooming');
+  }
   render() {
     const { app } = this.props;
-    console.log('render', this.constructor.name)
-    //const tracks = app.tracks.filter(({ events }) => events.length);
     return (
       <div className="view" style={{ left: -app.viewLeft }}>
         <TrackList app={app} />

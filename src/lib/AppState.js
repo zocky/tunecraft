@@ -11,7 +11,7 @@ import dayjs from "dayjs";
 export class AppState {
   context = new AudioContext();
 
-  @observable player =null;
+  @observable player = null;
   @observable scroller = null;
 
   @observable
@@ -26,6 +26,7 @@ export class AppState {
     hasLoop: false,
     looping: false,
     snapping: true,
+    following: true,
     viewBeginTime: 0,
   }
 
@@ -38,7 +39,7 @@ export class AppState {
   scrollHeight = 0;
 
   getTime(x) {
-    return x/this.zoomX;
+    return x / this.zoomX;
   }
   getX(time) {
     return time * this.zoomX;
@@ -57,15 +58,30 @@ export class AppState {
     this.snapping = !this.snapping;
   }
 
-  @computed 
+
+  @computed
+  get following() {
+    return this.settings.following;
+  }
+  set following(value) {
+    this.settings.following = !!value;
+  }
+
+  @action.bound
+  toggleFollowing() {
+    this.following = !this.following;
+  }
+
+  @computed
   get maxViewBeginTime() {
     const totalTime = this.tune?.length || 0;
-    const time = totalTime-this.viewDuration;
-    return Math.max(0,time)
+    const time = totalTime - this.viewDuration;
+    return Math.max(0, time) + 1;
   }
 
   clampViewBeginTime(time) {
-    return clamp(time, 0,this.maxViewBeginTime)
+    const totalTime = this.tune?.length || 0;
+    return clamp(time, -this.viewDuration + 1, totalTime - 1)
   }
 
   @computed get viewBeginTime() {
@@ -77,16 +93,16 @@ export class AppState {
   }
 
   @computed get viewCenterTime() {
-    return (this.viewBeginTime+this.viewEndTime)/2;
+    return (this.viewBeginTime + this.viewEndTime) / 2;
   }
 
   set viewCenterTime(time) {
-    this.viewBeginTime = time - this.viewDuration/2;
+    this.viewBeginTime = time - this.viewDuration / 2;
   }
 
 
   @computed get viewDuration() {
-    return this.viewWidth/this.zoomX;
+    return this.viewWidth / this.zoomX;
   }
 
   @computed get viewEndTime() {
@@ -116,14 +132,14 @@ export class AppState {
   @observable
   _mouseOver = false;
 
-  @computed 
+  @computed
   get mouseX() {
     if (!this._mouseOver) return null;
-    return this._mouseX+this.viewLeft;
+    return this._mouseX + this.viewLeft;
   }
   set mouseX(value) {
     this._mouseOver = true;
-    this._mouseX = value-this.viewLeft;
+    this._mouseX = value - this.viewLeft;
   }
   @action mouseLeave() {
     this._mouseOver = false;
@@ -158,20 +174,23 @@ export class AppState {
   @action.bound
   zoomInX() {
     if (this.settings.zoomX < 16) {
+      document.body.classList.add('zooming');
       let x = this.mouseX - this.viewLeft;
       let time = this.mouseTime;
       this.settings.zoomX++;
-      this.viewLeft = this.getX(time)-x;
+      this.viewLeft = this.getX(time) - x;
+      //document.body.classList.remove('zooming');
     }
   }
 
   @action.bound
   zoomOutX() {
     if (this.settings.zoomX > 1) {
+      document.body.classList.add('zooming');
       let x = this.mouseX - this.viewLeft;
       let time = this.mouseTime;
       this.settings.zoomX--;
-      this.viewLeft = this.getX(time)-x;
+      this.viewLeft = this.getX(time) - x;
 
     }
   }
@@ -253,7 +272,7 @@ export class AppState {
     const url = URL.createObjectURL(blob);
     link.href = url;
 
-    link.download = this.fileName+dayjs().format('-YYYY-MM-DD-HH-MM')+".mid";
+    link.download = this.fileName + dayjs().format(' YYYY-MM-DD-HH-mm') + ".mid";
     link.click();
     URL.revokeObjectURL(url);
   }
@@ -264,16 +283,16 @@ export class AppState {
     const url = URL.createObjectURL(blob);
     link.href = url;
 
-    link.download = this.fileName+dayjs().format(' YYYY-MM-DD-HH-MM')+".tune";
+    link.download = this.fileName + dayjs().format(' YYYY-MM-DD-HH-mm') + ".tune";
     link.click();
     URL.revokeObjectURL(url);
   }
 
   openTune(file) {
     var fr = new FileReader();
-    fr.onload=action(()=>{
+    fr.onload = action(() => {
       //this.source = fr.result;
-      this.fileName=file.name.replace(/[0-9\-]+\..*$/,'');
+      this.fileName = file.name.replace(/[0-9\-]+\..*$/, '');
       this.editor.getModel().setValue(fr.result);
     })
     fr.readAsText(file);
@@ -288,14 +307,31 @@ export class AppState {
     this.scroller = new ScrollerState(this);
 
     reaction(() => {
-      this.tune; return this.result }, ({ result, error }) => {
+      this.tune; return this.result
+    }, ({ result, error }) => {
       if (result === lastResult) return;
       lastResult = result;
       localStorage.tunecraft_save = this.source;
       if (result) {
+        console.time('new tune');
         this.tune = new Tune(result);
+        console.timeEnd('new tune');
       }
     })
+
+    reaction(() => (this.player.playing && this.following && this.player.playbackTime), (time) => {
+      if (typeof time !== 'number') return;
+      const b = this.viewBeginTime;
+      if (time < b + 1) {
+        this.viewBeginTime = time - 1;
+        return;
+      }
+      const e = this.viewEndTime;
+
+      if (time > e - 1)
+        this.viewBeginTime = time - 1;
+    })
+
     this.init();
   }
   @action init() {

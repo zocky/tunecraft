@@ -76,14 +76,13 @@ export class PlayerState {
     for (const e of this.notes) {
       const { event, at, duration, track, note, velocity } = e;
       if (event !== 'N') continue;
-      if (at < this.beginTime) continue;
-      if (at > this.endTime) continue;
+      //if (at < this.beginTime) continue;
+      //if (at > this.endTime) continue;
       if (at < this.queueTime) continue;
       if (at + duration < time) continue;
       if (at < time) continue;
       if (at > doneTime) continue;
       const offset = at - time;
-      //console.log(this.instruments,track)
       this.instruments[track].play(note, now + offset, {
         duration: duration,
         gain: velocity / 100
@@ -203,7 +202,7 @@ export class PlayerState {
 
   @computed({keepAlive:true})
   get instruments() {
-    console.log('instruments');
+    console.log('get instruments');
     const tune = this.app.tune;
     const ret = {};
     if (!tune) return {};
@@ -231,6 +230,7 @@ class InstrumentState {
   static async loadInstrument(context, font, name) {
     const id = font + '\n' + name
     if (!this._instruments[id]) {
+      console.log('loading',id)
       try {
         this._instruments[id] = await Soundfont.instrument(context, name, {
           soundfont: font,
@@ -257,13 +257,16 @@ class InstrumentState {
     this.font = font;
     this.name = name;
     this.options = options;
-    this.load();
+    const id = font + '\n' + name;
+    this.instrument=this.constructor._instruments[id];
+    if (!this.instrument) {this.load()};
   }
   async load() {
     this.instrument = await this.constructor.loadInstrument(this.context, this.font, this.name);
   }
 
   play(note, at, options = {}) {
+    if(!this.instrument) console.log('no',this.name)
     this.instrument?.play(note, at, { ...this.options, ...options });
   }
 

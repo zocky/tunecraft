@@ -15,20 +15,20 @@ export class PlayerControls extends React.Component {
     return (
       <div className="tc controls">
         <button
-          onClick={player.toggle}
+          onMouseDown={player.toggle}
           className={classes('tc control-button play', {
             active: player.playing
           })}>
           ⏯
           </button>
         <button
-          onClick={player.stop}
+          onMouseDown={player.stop}
           className="tc control-button stop"
         >
           ⏹
           </button>
         <button
-          onClick={action(() => player.looping = !player.looping)}
+          onMouseDown={action(() => player.looping = !player.looping)}
           className={classes('tc led-button loop', {
             active: player.looping
           })}
@@ -36,7 +36,7 @@ export class PlayerControls extends React.Component {
           LOOP
           </button>
         <button
-          onClick={app.toggleLoop}
+          onMouseDown={app.toggleLoop}
           className={classes('tc led-button sel', {
             active: app.hasLoop
           })}
@@ -44,7 +44,7 @@ export class PlayerControls extends React.Component {
           SEL
           </button>
         <button
-          onClick={app.toggleSnapping}
+          onMouseDown={app.toggleSnapping}
           className={classes('tc led-button snap', {
             active: app.snapping
           })}
@@ -52,12 +52,12 @@ export class PlayerControls extends React.Component {
           SNAP
         </button>
         <button
-          onClick={app.scroller.toggle}
+          onMouseDown={app.toggleFollowing}
           className={classes('tc led-button scroll', {
-            active: app.scroller.show
+            active: app.following
           })}
         >
-          SCR
+          FOLLOW
         </button>
       </div>
     )
@@ -107,7 +107,9 @@ export class PlayerLinks extends React.Component {
         <label className="tc small-button open" htmlFor="open-tune">
           OPEN TUNE
         </label>
-        <button className="tc small-button save">
+        <button className="tc small-button save"
+          onClick={e=>app.saveTune()}
+        >
           SAVE TUNE
         </button>
         <button className="tc small-button midi"

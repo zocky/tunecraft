@@ -3,7 +3,8 @@ import { BaseTrack } from "./Track";
 import Midi from "jsmidgen";
 
 export class TempoTrack extends BaseTrack {
-  @computed get
+
+  @computed({keepAlive:true}) get
     events() {
     return ([{
       event: 'T',
@@ -14,6 +15,8 @@ export class TempoTrack extends BaseTrack {
     );
   }
 
+
+
   ticksPerSecond(tempo) {
     return tempo * this.TPQ / 60
   }
@@ -22,8 +25,8 @@ export class TempoTrack extends BaseTrack {
     return ticks / this.ticksPerSecond(tempo);
   }
 
-  @computed get
-    tickOffsets() {
+  @computed({keepAlive:true}) get
+  tickOffsets() {
     const ret = [{
       tick: 0,
       time: 0,
@@ -52,18 +55,26 @@ export class TempoTrack extends BaseTrack {
     return ret;
   }
 
+  timeCache = {};
+  hits = 0;
+  misses = 0;
   timeAtTick = tick => {
     //return this.ticksToSeconds(120,tick)
-    const offsets = this.tickOffsets
-    for (const { tick: t, time, TPS } of offsets) {
-      if (tick >= t) {
-        return time + (tick - t) / TPS;
-      };
+    if (!(tick in this.timeCache)) {
+      const offsets = this.tickOffsets;
+      let ret = 0;
+      for (const { tick: t, time, TPS } of offsets) {
+        if (tick >= t) {
+          ret = time + (tick - t) / TPS;
+        };
+      }
+      this.timeCache[tick]=ret;
     }
-    return 0;
+    return this.timeCache[tick];
   }
 
   constructor(tune, { events, TPQ }) {
+    console.log('tempo',events)
     super(tune, { events });
     this.TPQ = TPQ;
     this._events = events;

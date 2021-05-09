@@ -1,7 +1,7 @@
 const TPQ = 96;
 
 
-export function scheduleTree({tree,tracks,soundfonts}) {
+export function scheduleTree({ tree, tracks, soundfonts }) {
   const state = {
     measure: 1,
     nom: 4,
@@ -14,25 +14,25 @@ export function scheduleTree({tree,tracks,soundfonts}) {
     bar: 0,
     tick: 0,
     ticks: 0,
-    scheduleEvent: (track,tick,event,args={}) => {
-      const e = {tick:Math.round(tick),event,...args }
+    scheduleEvent: (track, tick, event, args = {}) => {
+      const e = { tick: Math.round(tick), event, ...args }
       state.tracks[track].events.push(e);
       return e;
     },
-    setTick(track,t,d=0) {
+    setTick(track, t, d = 0) {
       state.tick = t;
-      state.ticks = Math.max(state.ticks,Math.round(state.tick+d));
-      if(track) state.tracks[track].ticks = Math.max(state.tracks[track].ticks,Math.round(state.tick+d));
+      state.ticks = Math.max(state.ticks, Math.round(state.tick + d));
+      if (track) state.tracks[track].ticks = Math.max(state.tracks[track].ticks, Math.round(state.tick + d));
     },
-    incTick(track,t,d=0) {
-      state.setTick(track,state.tick + t,d);
+    incTick(track, t, d = 0) {
+      state.setTick(track, state.tick + t, d);
     },
     getTicks: node => state.measure * node.length / state.factor * TPQ * 4
   }
   for (const id in tracks) state.tracks[id] = {
     ...tracks[id],
-    ticks:0,
-    events:[]
+    ticks: 0,
+    events: []
   }
   for (const id in soundfonts) state.soundfonts[id] = {
     ...soundfonts[id],
@@ -40,22 +40,22 @@ export function scheduleTree({tree,tracks,soundfonts}) {
   schedule(tree, state);
 
   for (const id in state.tracks) {
-    state.tracks[id].events.sort(function(a,b) {
-      return a.tick-b.tick;
+    state.tracks[id].events.sort(function (a, b) {
+      return a.tick - b.tick;
     })
     state.tracks[id].events.push({
-      event:'EOT',
+      event: 'EOT',
       tick: state.tracks[id].ticks
     })
   }
   return {
-     tempo:state.tempo,
-     tracks:state.tracks,
-     soundfonts:state.soundfonts,
-     tree,
-     ticks:state.ticks,
-     TPQ
-    };
+    tempo: state.tempo,
+    tracks: state.tracks,
+    soundfonts: state.soundfonts,
+    tree,
+    ticks: state.ticks,
+    TPQ
+  };
   return state;
 }
 
@@ -80,15 +80,15 @@ const nodeScheduler = new class {
   }
   bar(node, state) {
     if (node.divisions > 0) {
-      state.scheduleEvent(node.track, state.tick, 'B' )
-      const factor = state.factor * node.divisions / node.length;
-      const measure = node.measure;
-      node.sub.forEach(s => schedule(s, state, {factor,measure}));
+      state.scheduleEvent(node.track, state.tick, 'B')
     }
+    const factor = state.factor * node.divisions / node.length;
+    const measure = node.measure;
+    node.sub.forEach(s => schedule(s, state, { factor, measure }));
   }
   seq(node, state) {
     const factor = state.factor * node.divisions / node.length;
-    node.sub.forEach(s => schedule(s, state, {factor}));
+    node.sub.forEach(s => schedule(s, state, { factor }));
   }
   poly(node, state) {
     var firstTick = state.tick, lastTick = state.tick;
@@ -97,41 +97,42 @@ const nodeScheduler = new class {
       if (state.tick > lastTick) lastTick = state.tick;
       state.tick = firstTick;
     })
-    state.setTick(null,lastTick);
+    state.setTick(null, lastTick);
   }
   tempo(node, state) {
+    console.log('found tempo', node.tempo)
     state.tempo.push({
       event: "T",
       tick: Math.round(state.tick),
       tempo: node.tempo
     });
   }
-  note(node,state) {
+  note(node, state) {
     var ticks = state.getTicks(node);
     if (!ticks) debugger;
 
-    state.scheduleEvent(node.track,state.tick,"N",{
+    state.scheduleEvent(node.track, state.tick, "N", {
       note: node.note,
       velocity: node.velocity,
       ticks: Math.round(ticks),
     });
-    state.scheduleEvent(node.track,state.tick,"ON",{
+    state.scheduleEvent(node.track, state.tick, "ON", {
       velocity: node.velocity,
       note: node.note,
       ticks: Math.round(ticks),
     });
-    state.scheduleEvent(node.track,state.tick,"OFF",{
+    state.scheduleEvent(node.track, state.tick + ticks, "OFF", {
       velocity: node.velocity,
       note: node.note,
     });
-    state.incTick(node.track,ticks);
+    state.incTick(node.track, ticks);
   }
-  pause(node,state) {
+  pause(node, state) {
     var ticks = state.getTicks(node);
-    state.scheduleEvent(node.track,state.tick,"P",{
+    state.scheduleEvent(node.track, state.tick, "P", {
       ticks: Math.round(ticks),
     });
-    state.incTick(node.track,ticks);
+    state.incTick(node.track, ticks);
   }
 }
 
