@@ -16,12 +16,44 @@ export class Editor extends React.Component {
     monaco.languages?.setMonarchTokensProvider('tunecraft',tokenizer());
   }
 
-  handleEditorDidMount(editor, monaco) {
+  handleEditorDidMount = (editor, monaco) => {
+		const {app} = this.props;
 		app.editor = editor;
 		app.monaco = monaco;
     // here is another way to get monaco instance
     // you can also store it in `useRef` for further usage
-    //  monacoRef.current = editor; 
+    //  monacoRef.current = editor;
+		editor.addAction({
+			// An unique identifier of the contributed action.
+			id: 'my-play',
+		
+			// A label of the action that will be presented to the user.
+			label: 'Play',
+		
+			// An optional array of keybindings for the action.
+			keybindings: [
+				monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter
+			],
+		
+			// A precondition for this action.
+			precondition: null,
+		
+			// A rule to evaluate on top of the precondition in order to dispatch the keybindings.
+			keybindingContext: null,
+		
+			contextMenuGroupId: 'transport',
+		
+			contextMenuOrder: 1.5,
+		
+			// Method that will be executed when the action is triggered.
+			// @param editor The editor instance is passed in as a convinience
+			run: function(ed) {
+				console.log("Play");
+				app.player.toggle();
+				return null;
+			}
+		});
+	 
   }
   render() {
     const {app} = this.props;
