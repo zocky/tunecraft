@@ -9,12 +9,13 @@ import { Player } from "./Player";
 import { Tracks } from "./Tracks";
 
 import {Draggable} from "./Utils";
+import { Viewer } from "./Viewer";
 
 
 @observer
 export class App extends React.Component {
   componentDidMount() {
-    window.addEventListener('wheel', e => e.ctrlKey && e.preventDefault(), { passive: false });
+    window.addEventListener('wheel', e => e.ctrlKey && e.preventDefault(), { passive: false, capture:true });
   }
   render() {
     const { app } = this.props;
@@ -22,8 +23,7 @@ export class App extends React.Component {
     return (
       <div className="tc app">
         <div className="left">
-          <Player app={app} />
-          <Output app={app} />
+          <Viewer app={app} />
         </div>
         <Draggable
           className="tc splitter"
@@ -46,7 +46,7 @@ export class Output extends React.Component {
     const { app } = this.props;
     switch (app.viewerMode) {
       case 'tracks':
-        return <Tracks app={app} />
+        return <Viewer app={app} />
       case 'result':
         return <pre className="tc json">{JSON.stringify([app.tune?.tempoTrack.tickOffsets, app.tune?.events], null, 2)}</pre>
     }

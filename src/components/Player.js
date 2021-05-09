@@ -7,63 +7,66 @@ import './Player.less';
 import { classes } from "../lib/utils";
 
 @observer
-export class Player extends React.Component {
+export class PlayerControls extends React.Component {
   render() {
     const { app } = this.props;
     const { player } = app;
     if (!player) return null;
     return (
-      <div className="tc player">
-        <div className="controls">
-          <button onClick={player.toggle} className={classes({
+      <div className="tc controls">
+        <button
+          onClick={player.toggle}
+          className={classes('tc control-button play', {
             active: player.playing
           })}>
-            ⏯
+          ⏯
           </button>
-          <button onClick={player.stop}>
-            ⏹
+        <button
+          onClick={player.stop}
+          className="tc control-button stop"
+        >
+          ⏹
           </button>
-        </div>
-        <div className="options">
-          <button
-            onClick={action(() => player.looping = !player.looping)}
-            className={classes({
-              active: player.looping
-            })}
-          >
-            🔁&#xFE0E;
+        <button
+          onClick={action(() => player.looping = !player.looping)}
+          className={classes('tc led-button loop', {
+            active: player.looping
+          })}
+        >
+          LOOP
           </button>
-          <button
-            onClick={app.toggleLoop}
-            className={classes({
-              active: app.hasLoop
-            })}
-          >
-            L
+        <button
+          onClick={app.toggleLoop}
+          className={classes('tc led-button sel', {
+            active: app.hasLoop
+          })}
+        >
+          SEL
           </button>
-          <button
-            onClick={app.toggleSnapping}
-            className={classes({
-              active: app.snapping
-            })}
-          >
-            S
-          </button>
-        </div>
-        <div className="links">
-          show:
-          <RadioLinks obj={app} prop="viewerMode" options={["tracks", "result"]} />
-        </div>
-        <div className="time">
-          <PlayerTime app={app} />
-        </div>
+        <button
+          onClick={app.toggleSnapping}
+          className={classes('tc led-button snap', {
+            active: app.snapping
+          })}
+        >
+          SNAP
+        </button>
+        <button
+          onClick={app.scroller.toggle}
+          className={classes('tc led-button scroll', {
+            active: app.scroller.show
+          })}
+        >
+          SCR
+        </button>
       </div>
     )
   }
 }
 
+
 @observer
-class PlayerTime extends React.Component {
+export class PlayerTime extends React.Component {
   formatTime(time) {
     return `${0 | (time / 60)}:${(time % 60).toFixed(1).padStart(4, "0")}`;
   }
@@ -76,12 +79,51 @@ class PlayerTime extends React.Component {
     return this.formatTime(playbackTime || 0);
   }
   render() {
-    return (<>
+    return (<div className="tc time">
       {this.playbackTime} /
       {this.totalTime}
-    </>)
+    </div>)
   }
 }
+
+
+@observer
+export class PlayerLinks extends React.Component {
+  
+  render() {
+    const { app } = this.props;
+    return(
+      <div className="tc links">
+        <input type="file" id="open-tune" style={{
+          position:"fixed",
+          left:"-100vw"
+        }}
+        accept=".tune"
+        onChange={e=>{
+          app.openTune(e.target.files[0]);
+        }}
+
+        />
+        <label className="tc small-button open" htmlFor="open-tune">
+          OPEN TUNE
+        </label>
+        <button className="tc small-button save">
+          SAVE TUNE
+        </button>
+        <button className="tc small-button midi"
+          onClick={e=>app.exportMidi()}
+        >
+          EXPORT MIDI
+        </button>
+        
+
+        <button className="tc small-button mp3 hidden">
+          EXPORT MP3
+        </button>
+      </div>)
+  }
+}
+
 
 @observer
 export class RadioLinks extends React.Component {

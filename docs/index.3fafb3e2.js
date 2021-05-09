@@ -26280,6 +26280,7 @@ try {
   var _Player = require("./Player");
   var _Tracks = require("./Tracks");
   var _Utils = require("./Utils");
+  var _Viewer = require("./Viewer");
   var _jsxRuntime = require("react/jsx-runtime");
   var _class, _class2, _class3;
   function _interopRequireDefault(obj) {
@@ -26290,7 +26291,8 @@ try {
   let App = (0, _mobxReact.observer)(_class = class App extends _react.default.Component {
     componentDidMount() {
       window.addEventListener('wheel', e => e.ctrlKey && e.preventDefault(), {
-        passive: false
+        passive: false,
+        capture: true
       });
     }
     render() {
@@ -26298,13 +26300,11 @@ try {
       return (
         /*#__PURE__*/(0, _jsxRuntime.jsxs)("div", {
           className: "tc app",
-          children: [/*#__PURE__*/(0, _jsxRuntime.jsxs)("div", {
+          children: [/*#__PURE__*/(0, _jsxRuntime.jsx)("div", {
             className: "left",
-            children: [/*#__PURE__*/(0, _jsxRuntime.jsx)(_Player.Player, {
+            children: /*#__PURE__*/(0, _jsxRuntime.jsx)(_Viewer.Viewer, {
               app: app
-            }), /*#__PURE__*/(0, _jsxRuntime.jsx)(Output, {
-              app: app
-            })]
+            })
           }), /*#__PURE__*/(0, _jsxRuntime.jsx)(_Utils.Draggable, {
             className: "tc splitter",
             onDrag: e => {
@@ -26333,7 +26333,7 @@ try {
       switch (app.viewerMode) {
         case 'tracks':
           return (
-            /*#__PURE__*/(0, _jsxRuntime.jsx)(_Tracks.Tracks, {
+            /*#__PURE__*/(0, _jsxRuntime.jsx)(_Viewer.Viewer, {
               app: app
             })
           );
@@ -26375,7 +26375,7 @@ try {
   window.$RefreshSig$ = prevRefreshSig;
 }
 
-},{"react":"3b2NM","mobx-react":"27J27","mobx":"2yJsB","./App.less":"2Ixld","./Editor":"5Hwy4","./Player":"2OcgD","./Tracks":"6eMdw","./Utils":"7t1Qy","react/jsx-runtime":"7jBZW","../../node_modules/@parcel/transformer-react-refresh-wrap/lib/helpers/helpers.js":"4Jj4f"}],"27J27":[function(require,module,exports) {
+},{"react":"3b2NM","mobx-react":"27J27","mobx":"2yJsB","./App.less":"2Ixld","./Editor":"5Hwy4","./Player":"2OcgD","./Tracks":"6eMdw","./Utils":"7t1Qy","./Viewer":"7xTds","react/jsx-runtime":"7jBZW","../../node_modules/@parcel/transformer-react-refresh-wrap/lib/helpers/helpers.js":"4Jj4f"}],"27J27":[function(require,module,exports) {
 "use strict";
 if ("development" === 'production') {
   module.exports = require('./mobxreact.cjs.production.min.js');
@@ -35043,6 +35043,7 @@ exports.default = usePrevious;
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
+exports.findClosest = findClosest;
 exports.clamp = exports.throttle = exports.debounce = exports.classes = void 0;
 var _classnames = _interopRequireDefault(require("classnames"));
 function _interopRequireDefault(obj) {
@@ -35090,6 +35091,37 @@ const throttle = (func, limit) => {
 exports.throttle = throttle;
 const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
 exports.clamp = clamp;
+function findClosest(needle, haystack) {
+  const getClosest = (val1, val2, target) => {
+    if (target - val1 >= val2 - target) return val2; else return val1;
+  };
+  let n = haystack.length;
+  // Corner cases
+  if (needle <= haystack[0]) return haystack[0];
+  if (needle >= haystack[n - 1]) return haystack[n - 1];
+  // Doing binary search
+  let i = 0, j = n, mid = 0;
+  while (i < j) {
+    mid = Math.floor((i + j) / 2);
+    if (haystack[mid] == needle) return haystack[mid];
+    // If target is less than array
+    // element,then search in left
+    if (needle < haystack[mid]) {
+      // If target is greater than previous
+      // to mid, return closest of two
+      if (mid > 0 && needle > haystack[mid - 1]) return getClosest(haystack[mid - 1], haystack[mid], needle);
+      // Repeat for left half
+      j = mid;
+          // If target is greater than mid
+} else // If target is greater than mid
+    {
+      if (mid < n - 1 && needle < haystack[mid + 1]) return getClosest(haystack[mid], haystack[mid + 1], needle);
+      i = mid + 1;
+    }
+  }
+  // Only single element left after search
+  return haystack[mid];
+}
 
 },{"classnames":"5aJRc"}],"5aJRc":[function(require,module,exports) {
 var define;
@@ -36359,78 +36391,67 @@ try {
   Object.defineProperty(exports, "__esModule", {
     value: true
   });
-  exports.RadioLinks = exports.Player = void 0;
+  exports.RadioLinks = exports.PlayerLinks = exports.PlayerTime = exports.PlayerControls = void 0;
   var _react = _interopRequireDefault(require("react"));
   var _mobxReact = require("mobx-react");
   var _mobx = require("mobx");
   require("./Player.less");
   var _utils = require("../lib/utils");
   var _jsxRuntime = require("react/jsx-runtime");
-  var _class, _class2, _class3;
+  var _class, _class2, _class3, _class4;
   function _interopRequireDefault(obj) {
     return obj && obj.__esModule ? obj : {
       default: obj
     };
   }
-  let Player = (0, _mobxReact.observer)(_class = class Player extends _react.default.Component {
+  let PlayerControls = (0, _mobxReact.observer)(_class = class PlayerControls extends _react.default.Component {
     render() {
       const {app} = this.props;
       const {player} = app;
       if (!player) return null;
       return (
         /*#__PURE__*/(0, _jsxRuntime.jsxs)("div", {
-          className: "tc player",
-          children: [/*#__PURE__*/(0, _jsxRuntime.jsxs)("div", {
-            className: "controls",
-            children: [/*#__PURE__*/(0, _jsxRuntime.jsx)("button", {
-              onClick: player.toggle,
-              className: (0, _utils.classes)({
-                active: player.playing
-              }),
-              children: "⏯"
-            }), /*#__PURE__*/(0, _jsxRuntime.jsx)("button", {
-              onClick: player.stop,
-              children: "⏹"
-            })]
-          }), /*#__PURE__*/(0, _jsxRuntime.jsxs)("div", {
-            className: "options",
-            children: [/*#__PURE__*/(0, _jsxRuntime.jsx)("button", {
-              onClick: (0, _mobx.action)(() => player.looping = !player.looping),
-              className: (0, _utils.classes)({
-                active: player.looping
-              }),
-              children: "🔁︎"
-            }), /*#__PURE__*/(0, _jsxRuntime.jsx)("button", {
-              onClick: app.toggleLoop,
-              className: (0, _utils.classes)({
-                active: app.hasLoop
-              }),
-              children: "L"
-            }), /*#__PURE__*/(0, _jsxRuntime.jsx)("button", {
-              onClick: app.toggleSnapping,
-              className: (0, _utils.classes)({
-                active: app.snapping
-              }),
-              children: "S"
-            })]
-          }), /*#__PURE__*/(0, _jsxRuntime.jsxs)("div", {
-            className: "links",
-            children: ["show:", /*#__PURE__*/(0, _jsxRuntime.jsx)(RadioLinks, {
-              obj: app,
-              prop: "viewerMode",
-              options: ["tracks", "result"]
-            })]
-          }), /*#__PURE__*/(0, _jsxRuntime.jsx)("div", {
-            className: "time",
-            children: /*#__PURE__*/(0, _jsxRuntime.jsx)(PlayerTime, {
-              app: app
-            })
+          className: "tc controls",
+          children: [/*#__PURE__*/(0, _jsxRuntime.jsx)("button", {
+            onClick: player.toggle,
+            className: (0, _utils.classes)('tc control-button play', {
+              active: player.playing
+            }),
+            children: "⏯"
+          }), /*#__PURE__*/(0, _jsxRuntime.jsx)("button", {
+            onClick: player.stop,
+            className: "tc control-button stop",
+            children: "⏹"
+          }), /*#__PURE__*/(0, _jsxRuntime.jsx)("button", {
+            onClick: (0, _mobx.action)(() => player.looping = !player.looping),
+            className: (0, _utils.classes)('tc led-button loop', {
+              active: player.looping
+            }),
+            children: "LOOP"
+          }), /*#__PURE__*/(0, _jsxRuntime.jsx)("button", {
+            onClick: app.toggleLoop,
+            className: (0, _utils.classes)('tc led-button sel', {
+              active: app.hasLoop
+            }),
+            children: "SEL"
+          }), /*#__PURE__*/(0, _jsxRuntime.jsx)("button", {
+            onClick: app.toggleSnapping,
+            className: (0, _utils.classes)('tc led-button snap', {
+              active: app.snapping
+            }),
+            children: "SNAP"
+          }), /*#__PURE__*/(0, _jsxRuntime.jsx)("button", {
+            onClick: app.scroller.toggle,
+            className: (0, _utils.classes)('tc led-button scroll', {
+              active: app.scroller.show
+            }),
+            children: "SCR"
           })]
         })
       );
     }
   }) || _class;
-  exports.Player = Player;
+  exports.PlayerControls = PlayerControls;
   let PlayerTime = (0, _mobxReact.observer)(_class2 = class PlayerTime extends _react.default.Component {
     formatTime(time) {
       return `${0 | time / 60}:${(time % 60).toFixed(1).padStart(4, "0")}`;
@@ -36446,13 +36467,52 @@ try {
     }
     render() {
       return (
-        /*#__PURE__*/(0, _jsxRuntime.jsxs)(_jsxRuntime.Fragment, {
+        /*#__PURE__*/(0, _jsxRuntime.jsxs)("div", {
+          className: "tc time",
           children: [this.playbackTime, " /", this.totalTime]
         })
       );
     }
   }) || _class2;
-  let RadioLinks = (0, _mobxReact.observer)(_class3 = class RadioLinks extends _react.default.Component {
+  exports.PlayerTime = PlayerTime;
+  let PlayerLinks = (0, _mobxReact.observer)(_class3 = class PlayerLinks extends _react.default.Component {
+    render() {
+      const {app} = this.props;
+      return (
+        /*#__PURE__*/(0, _jsxRuntime.jsxs)("div", {
+          className: "tc links",
+          children: [/*#__PURE__*/(0, _jsxRuntime.jsx)("input", {
+            type: "file",
+            id: "open-tune",
+            style: {
+              position: "fixed",
+              left: "-100vw"
+            },
+            accept: ".tune",
+            onChange: e => {
+              app.openTune(e.target.files[0]);
+            }
+          }), /*#__PURE__*/(0, _jsxRuntime.jsx)("label", {
+            className: "tc small-button open",
+            htmlFor: "open-tune",
+            children: "OPEN TUNE"
+          }), /*#__PURE__*/(0, _jsxRuntime.jsx)("button", {
+            className: "tc small-button save",
+            children: "SAVE TUNE"
+          }), /*#__PURE__*/(0, _jsxRuntime.jsx)("button", {
+            className: "tc small-button midi",
+            onClick: e => app.exportMidi(),
+            children: "EXPORT MIDI"
+          }), /*#__PURE__*/(0, _jsxRuntime.jsx)("button", {
+            className: "tc small-button mp3 hidden",
+            children: "EXPORT MP3"
+          })]
+        })
+      );
+    }
+  }) || _class3;
+  exports.PlayerLinks = PlayerLinks;
+  let RadioLinks = (0, _mobxReact.observer)(_class4 = class RadioLinks extends _react.default.Component {
     render() {
       const {obj, prop, options} = this.props;
       let list = [];
@@ -36469,7 +36529,7 @@ try {
         children: v
       }, k));
     }
-  }) || _class3;
+  }) || _class4;
   exports.RadioLinks = RadioLinks;
   helpers.postlude(module);
 } finally {
@@ -36487,14 +36547,16 @@ try {
   Object.defineProperty(exports, "__esModule", {
     value: true
   });
-  exports.Track = exports.LoopRegion = exports.MouseCursor = exports.SeekCursor = exports.ScrollerViewRegion = exports.ScrollerSeekCursor = exports.Scroller = exports.Ruler = exports.Overlay = exports.TrackList = exports.View = exports.Tracks = void 0;
+  exports.TrackHeader = exports.Track = exports.TrackHeaders = exports.TrackList = exports.Tracks = void 0;
   var _react = _interopRequireDefault(require("react"));
   var _mobxReact = require("mobx-react");
   var _mobx = require("mobx");
   require("./Tracks.less");
   var _Utils = require("./Utils");
+  var _Scroller = require("./Scroller");
+  var _Overlay = require("./Overlay");
   var _jsxRuntime = require("react/jsx-runtime");
-  var _class, _class3, _class4, _class5, _class6, _class7, _class8, _class9, _class10, _class11, _class12, _class13, _class14, _class15, _class16, _class17, _class18, _class19, _dec, _class20, _class21;
+  var _class, _class3, _class4, _dec, _class5, _class6, _class7, _class8;
   function _interopRequireDefault(obj) {
     return obj && obj.__esModule ? obj : {
       default: obj
@@ -36540,6 +36602,11 @@ try {
   let Tracks = (0, _mobxReact.observer)(_class = class Tracks extends _react.default.Component {
     constructor(...args) {
       super(...args);
+      _defineProperty(this, "onResize", e => {
+        const {app} = this.props;
+        app.viewWidth = e.width;
+        app.scrollHeight = e.height;
+      });
       _defineProperty(this, "onWheel", e => {
         const {app} = this.props;
         if (e.shiftKey) {
@@ -36559,25 +36626,15 @@ try {
           e.preventDefault();
         }
         if (!e.ctrlKey && !e.shiftKey) {
-          app.moveScrollX(e.deltaY);
+          app.moveViewLeft(e.deltaY);
           e.stopPropagation();
           e.preventDefault();
         }
       });
     }
     componentDidMount() {
-      const {app} = this.props;
-      var ro = new ResizeObserver(entries => {
-        for (let entry of entries) {
-          const cr = entry.contentRect;
-          app.scrollWidth = cr.width;
-          app.scrollHeight = cr.height;
-        }
-      });
-      ro.observe(this.ref);
-      this.ref.addEventListener('wheel', this.onWheel, {
-        passive: false
-      });
+      (0, _Utils.onResize)(this.ref, this.onResize);
+      (0, _Utils.onWheel)(this.ref, this.onWheel);
     }
     render() {
       const {app} = this.props;
@@ -36585,51 +36642,23 @@ try {
       // const tracks = app.tracks.filter(({ events }) => events.length);
       return (
         /*#__PURE__*/(0, _jsxRuntime.jsxs)(_jsxRuntime.Fragment, {
-          children: [/*#__PURE__*/(0, _jsxRuntime.jsx)(Scroller, {
+          children: [/*#__PURE__*/(0, _jsxRuntime.jsx)(_Scroller.Scroller, {
             app: app
-          }), /*#__PURE__*/(0, _jsxRuntime.jsx)("div", {
+          }), /*#__PURE__*/(0, _jsxRuntime.jsxs)("div", {
             className: "tc tracks",
             ref: ref => this.ref = ref,
-            children: /*#__PURE__*/(0, _jsxRuntime.jsxs)(View, {
-              app: app,
-              children: [/*#__PURE__*/(0, _jsxRuntime.jsx)(Ruler, {
-                app: app
-              }), /*#__PURE__*/(0, _jsxRuntime.jsx)(TrackList, {
-                app: app
-              }), /*#__PURE__*/(0, _jsxRuntime.jsx)(Overlay, {
-                app: app
-              })]
-            })
+            children: [/*#__PURE__*/(0, _jsxRuntime.jsx)(TrackHeaders, {
+              app: app
+            }), /*#__PURE__*/(0, _jsxRuntime.jsx)(View, {
+              app: app
+            })]
           })]
         })
       );
     }
   }) || _class;
   exports.Tracks = Tracks;
-  let View = (0, _mobxReact.observer)(_class3 = class View extends _react.default.Component {
-    render() {
-      const {app} = this.props;
-      console.log('render', this.constructor.name);
-      // const tracks = app.tracks.filter(({ events }) => events.length);
-      return (
-        /*#__PURE__*/(0, _jsxRuntime.jsxs)("div", {
-          className: "view",
-          style: {
-            left: -app.scrollX
-          },
-          children: [/*#__PURE__*/(0, _jsxRuntime.jsx)(Ruler, {
-            app: app
-          }), /*#__PURE__*/(0, _jsxRuntime.jsx)(TrackList, {
-            app: app
-          }), /*#__PURE__*/(0, _jsxRuntime.jsx)(Overlay, {
-            app: app
-          })]
-        })
-      );
-    }
-  }) || _class3;
-  exports.View = View;
-  let TrackList = (0, _mobxReact.observer)(_class4 = class TrackList extends _react.default.Component {
+  let TrackList = (0, _mobxReact.observer)(_class3 = class TrackList extends _react.default.Component {
     render() {
       const {app} = this.props;
       console.log('render', this.constructor.name);
@@ -36645,300 +36674,35 @@ try {
         })
       );
     }
-  }) || _class4;
+  }) || _class3;
   exports.TrackList = TrackList;
-  let Overlay = (0, _mobxReact.observer)(_class5 = class Overlay extends _react.default.Component {
+  let TrackHeaders = (0, _mobxReact.observer)(_class4 = class TrackHeaders extends _react.default.Component {
     render() {
       const {app} = this.props;
       console.log('render', this.constructor.name);
-      return (
-        /*#__PURE__*/(0, _jsxRuntime.jsxs)("div", {
-          className: "overlay",
-          ref: ref => this.ref = ref,
-          onMouseDown: e => {
-            if (e.buttons === 1) {
-              app.player.hold();
-              app.player.seek(app.mouseTime);
-            }
-          },
-          onMouseUp: e => {
-            app.player.unhold();
-          },
-          onMouseMove: (0, _mobx.action)(e => {
-            const {app} = this.props;
-            const x = e.pageX - this.ref.getBoundingClientRect().left;
-            app.mouseX = x;
-            if (e.buttons === 1) {
-              app.player.seek(app.mouseTime);
-            } else if (e.buttons === 4) {
-              app.moveScrollX(-e.movementX);
-            }
-          }),
-          onMouseLeave: (0, _mobx.action)(e => {
-            app.mouseLeave();
-          }),
-          children: [/*#__PURE__*/(0, _jsxRuntime.jsx)(LoopRegion, {
-            app: app
-          }), /*#__PURE__*/(0, _jsxRuntime.jsx)(MouseCursor, {
-            app: app
-          }), /*#__PURE__*/(0, _jsxRuntime.jsx)(SeekCursor, {
-            app: app
-          })]
-        })
-      );
-    }
-  }) || _class5;
-  exports.Overlay = Overlay;
-  let Ruler = (0, _mobxReact.observer)(_class6 = (_class7 = class Ruler extends _react.default.Component {
-    constructor(...args) {
-      super(...args);
-      (0, _mobx.makeObservable)(this);
-    }
-    get seconds() {
-      var _this$props$app$tune;
-      return ((_this$props$app$tune = this.props.app.tune) === null || _this$props$app$tune === void 0 ? void 0 : _this$props$app$tune.length) | 0;
-    }
-    render() {
-      const {app} = this.props;
-      // if (!app.tune) return null;
-      const seconds = [];
-      let step = Math.ceil(64 / app.zoomX);
-      for (let i = 0; i <= this.seconds; i += step) {
-        seconds.push(/*#__PURE__*/(0, _jsxRuntime.jsx)("div", {
-          className: "second",
-          style: {
-            width: app.zoomX * step
-          },
-          children: i
-        }, i));
-      }
+      // const tracks = app.tracks.filter(({ events }) => events.length);
       return (
         /*#__PURE__*/(0, _jsxRuntime.jsx)("div", {
-          className: "tc ruler",
-          children: seconds
+          className: "tc track-headers",
+          children: app.trackKeys.map(idx => /*#__PURE__*/(0, _jsxRuntime.jsx)(TrackHeader, {
+            app: app,
+            idx: idx,
+            color: COLORS[idx % COLORS.length]
+          }, idx))
         })
       );
     }
-  }, (_applyDecoratedDescriptor(_class7.prototype, "seconds", [_mobx.computed], Object.getOwnPropertyDescriptor(_class7.prototype, "seconds"), _class7.prototype)), _class7)) || _class6;
-  exports.Ruler = Ruler;
-  let Scroller = (0, _mobxReact.observer)(_class8 = (_class9 = class Scroller extends _react.default.Component {
+  }) || _class4;
+  exports.TrackHeaders = TrackHeaders;
+  let Track = (_dec = _mobx.computed.struct, (0, _mobxReact.observer)(_class5 = (_class6 = class Track extends _react.default.Component {
     constructor(...args) {
       super(...args);
       (0, _mobx.makeObservable)(this);
     }
     componentDidMount() {
-      if (!this.ref) return;
-      const {app} = this.props;
-      var ro = new ResizeObserver((0, _mobx.action)(entries => {
-        for (let entry of entries) {
-          const cr = entry.contentRect;
-          app.scrollerWidth = cr.width;
-        }
-      }));
-      ro.observe(this.ref);
-    }
-    get scrollerImage() {
-      const canvas = document.createElement('canvas');
-      const {app} = this.props;
-      const {tracks} = app;
-      canvas.height = tracks.length * 4;
-      canvas.width = 32 * app.tune.length;
-      const ctx = canvas.getContext('2d');
-      // ctx.fillStyle = "#111";
-      // ctx.fillRect(0, 0, canvas.width, canvas.height);
-      for (let idx in tracks) {
-        let track = tracks[idx];
-        let color = COLORS[idx % COLORS.length];
-        drawNotes(ctx, track.events, {
-          color,
-          min: 0,
-          max: tracks.length,
-          zoomX: 32,
-          zoomY: 2,
-          fixedY: idx * 2,
-          gap: 0
-        });
-      }
-      return canvas.toDataURL("image/png");
-    }
-    render() {
-      var _this$props$app$tune2;
-      if (!((_this$props$app$tune2 = this.props.app.tune) !== null && _this$props$app$tune2 !== void 0 && _this$props$app$tune2.length)) return null;
-      return (
-        /*#__PURE__*/(0, _jsxRuntime.jsxs)("div", {
-          className: "tc scroller",
-          ref: ref => this.ref = ref,
-          children: [/*#__PURE__*/(0, _jsxRuntime.jsx)("img", {
-            style: {
-              imageRendering: "pixelated"
-            },
-            className: "track",
-            src: this.scrollerImage
-          }), /*#__PURE__*/(0, _jsxRuntime.jsx)(LoopRegion, {
-            app: app
-          }), /*#__PURE__*/(0, _jsxRuntime.jsx)(ScrollerSeekCursor, {
-            app: app
-          }), /*#__PURE__*/(0, _jsxRuntime.jsx)(ScrollerViewRegion, {
-            app: app
-          })]
-        })
-      );
-    }
-  }, (_applyDecoratedDescriptor(_class9.prototype, "scrollerImage", [_mobx.computed], Object.getOwnPropertyDescriptor(_class9.prototype, "scrollerImage"), _class9.prototype)), _class9)) || _class8;
-  exports.Scroller = Scroller;
-  let ScrollerSeekCursor = (0, _mobxReact.observer)(_class10 = (_class11 = class ScrollerSeekCursor extends _react.default.Component {
-    get X() {
-      const {player} = app;
-      if (!player) return 0;
-      return Math.round(player.playbackTime * app.scrollerZoom);
-    }
-    render() {
-      return (
-        /*#__PURE__*/(0, _jsxRuntime.jsx)("div", {
-          className: "tc seek-cursor",
-          style: {
-            left: this.X
-          }
-        })
-      );
-    }
-  }, (_applyDecoratedDescriptor(_class11.prototype, "X", [_mobx.computed], Object.getOwnPropertyDescriptor(_class11.prototype, "X"), _class11.prototype)), _class11)) || _class10;
-  exports.ScrollerSeekCursor = ScrollerSeekCursor;
-  let ScrollerViewRegion = (0, _mobxReact.observer)(_class12 = (_class13 = class ScrollerViewRegion extends _react.default.Component {
-    constructor(...args) {
-      super(...args);
-      (0, _mobx.makeObservable)(this);
-    }
-    get X() {
-      const {app} = this.props;
-      return app.scrollTime * app.scrollerZoom;
-    }
-    get W() {
-      const {app} = this.props;
-      return app.scrollDuration * app.scrollerZoom;
-    }
-    render() {
-      const {app} = this.props;
-      return (
-        /*#__PURE__*/(0, _jsxRuntime.jsx)("div", {
-          className: "tc view-region",
-          style: {
-            left: this.X,
-            width: this.W
-          }
-        })
-      );
-    }
-  }, (_applyDecoratedDescriptor(_class13.prototype, "X", [_mobx.computed], Object.getOwnPropertyDescriptor(_class13.prototype, "X"), _class13.prototype), _applyDecoratedDescriptor(_class13.prototype, "W", [_mobx.computed], Object.getOwnPropertyDescriptor(_class13.prototype, "W"), _class13.prototype)), _class13)) || _class12;
-  exports.ScrollerViewRegion = ScrollerViewRegion;
-  let SeekCursor = (0, _mobxReact.observer)(_class14 = (_class15 = class SeekCursor extends _react.default.Component {
-    constructor(...args) {
-      super(...args);
-      (0, _mobx.makeObservable)(this);
-    }
-    get X2() {
-      const {app} = this.props;
-      const {player} = app;
-      if (!player) return 0;
-      return (player.playbackTime / player.totalTime * 100).toFixed(4) + '%';
-    }
-    get visible() {
-      const {app} = this.props;
-      const {X} = this;
-      return X >= app.scrollX && X <= app.scrollX + app.scrollWidth;
-    }
-    get X() {
-      const {player} = app;
-      if (!player) return 0;
-      return Math.round(player.playbackTime * app.zoomX);
-    }
-    render() {
-      if (!this.visible) return null;
-      const {app} = this.props;
-      return (
-        /*#__PURE__*/(0, _jsxRuntime.jsx)("div", {
-          ref: ref => {
-            var _app$player;
-            return false && app.player.playing && (ref === null || ref === void 0 ? void 0 : ref.scrollIntoView({
-              block: 'nearest',
-              inline: (_app$player = app.player) !== null && _app$player !== void 0 && _app$player.holding ? 'nearest' : 'center'
-            }));
-          },
-          className: "tc seek-cursor",
-          style: {
-            left: this.X
-          }
-        })
-      );
-    }
-  }, (_applyDecoratedDescriptor(_class15.prototype, "X2", [_mobx.computed], Object.getOwnPropertyDescriptor(_class15.prototype, "X2"), _class15.prototype), _applyDecoratedDescriptor(_class15.prototype, "visible", [_mobx.computed], Object.getOwnPropertyDescriptor(_class15.prototype, "visible"), _class15.prototype), _applyDecoratedDescriptor(_class15.prototype, "X", [_mobx.computed], Object.getOwnPropertyDescriptor(_class15.prototype, "X"), _class15.prototype)), _class15)) || _class14;
-  exports.SeekCursor = SeekCursor;
-  let MouseCursor = (0, _mobxReact.observer)(_class16 = (_class17 = class MouseCursor extends _react.default.Component {
-    constructor(...args) {
-      super(...args);
-      (0, _mobx.makeObservable)(this);
-    }
-    get X() {
-      const {app} = this.props;
-      return Math.round(app.mouseTime * app.zoomX);
-    }
-    render() {
-      // return null;
-      if (this.props.app.mouseTime === null) return null;
-      return (
-        /*#__PURE__*/(0, _jsxRuntime.jsx)("div", {
-          ref: ref => ref === null || ref === void 0 ? void 0 : ref.scrollIntoView({
-            block: 'nearest',
-            inline: 'nearest'
-          }),
-          className: "tc mouse-cursor",
-          style: {
-            left: this.X
-          }
-        })
-      );
-    }
-  }, (_applyDecoratedDescriptor(_class17.prototype, "X", [_mobx.computed], Object.getOwnPropertyDescriptor(_class17.prototype, "X"), _class17.prototype)), _class17)) || _class16;
-  exports.MouseCursor = MouseCursor;
-  let LoopRegion = (0, _mobxReact.observer)(_class18 = (_class19 = class LoopRegion extends _react.default.Component {
-    constructor(...args) {
-      super(...args);
-      (0, _mobx.makeObservable)(this);
-    }
-    get X() {
-      const {app} = this.props;
-      return (app.loopIn / app.player.totalTime * 100).toFixed(4) + '%';
-    }
-    get W() {
-      const {app} = this.props;
-      return ((app.loopOut - app.loopIn) / app.player.totalTime * 100).toFixed(4) + '%';
-    }
-    render() {
-      const {app} = this.props;
-      if (!app.hasLoop) return null;
-      return (
-        /*#__PURE__*/(0, _jsxRuntime.jsxs)("div", {
-          className: "tc loop-region",
-          style: {
-            left: this.X,
-            width: this.W
-          },
-          children: [/*#__PURE__*/(0, _jsxRuntime.jsx)(_Utils.Draggable, {
-            className: "in splitter",
-            onDrag: e => app.moveLoopIn(e.movementX / app.zoomX)
-          }), /*#__PURE__*/(0, _jsxRuntime.jsx)(_Utils.Draggable, {
-            className: "out splitter",
-            onDrag: e => app.moveLoopOut(e.movementX / app.zoomX)
-          })]
-        })
-      );
-    }
-  }, (_applyDecoratedDescriptor(_class19.prototype, "X", [_mobx.computed], Object.getOwnPropertyDescriptor(_class19.prototype, "X"), _class19.prototype), _applyDecoratedDescriptor(_class19.prototype, "W", [_mobx.computed], Object.getOwnPropertyDescriptor(_class19.prototype, "W"), _class19.prototype)), _class19)) || _class18;
-  exports.LoopRegion = LoopRegion;
-  let Track = (_dec = _mobx.computed.struct, (0, _mobxReact.observer)(_class20 = (_class21 = class Track extends _react.default.Component {
-    constructor(...args) {
-      super(...args);
-      (0, _mobx.makeObservable)(this);
+      (0, _Utils.onResize)(this.ref, e => {
+        this.props.app.trackHeights[this.props.idx] = e.height;
+      });
     }
     get trackImage() {
       // console.log('drawing', this.track.id)
@@ -36992,23 +36756,50 @@ try {
     render() {
       const {app} = this.props;
       return (
-        /*#__PURE__*/(0, _jsxRuntime.jsxs)("div", {
+        /*#__PURE__*/(0, _jsxRuntime.jsx)("div", {
           className: "tc track",
-          children: [/*#__PURE__*/(0, _jsxRuntime.jsx)(_Utils.Wheelable, {
-            className: "header",
-            onWheel: e => {
-              e.stopPropagation();
-            },
-            children: this.track.id
-          }), /*#__PURE__*/(0, _jsxRuntime.jsx)("img", {
+          ref: ref => this.ref = ref,
+          children: /*#__PURE__*/(0, _jsxRuntime.jsx)("img", {
             draggable: false,
             src: this.trackImage
-          })]
+          })
         })
       );
     }
-  }, (_applyDecoratedDescriptor(_class21.prototype, "trackImage", [_mobx.computed], Object.getOwnPropertyDescriptor(_class21.prototype, "trackImage"), _class21.prototype), _applyDecoratedDescriptor(_class21.prototype, "events", [_dec], Object.getOwnPropertyDescriptor(_class21.prototype, "events"), _class21.prototype), _applyDecoratedDescriptor(_class21.prototype, "track", [_mobx.computed], Object.getOwnPropertyDescriptor(_class21.prototype, "track"), _class21.prototype)), _class21)) || _class20);
+  }, (_applyDecoratedDescriptor(_class6.prototype, "trackImage", [_mobx.computed], Object.getOwnPropertyDescriptor(_class6.prototype, "trackImage"), _class6.prototype), _applyDecoratedDescriptor(_class6.prototype, "events", [_dec], Object.getOwnPropertyDescriptor(_class6.prototype, "events"), _class6.prototype), _applyDecoratedDescriptor(_class6.prototype, "track", [_mobx.computed], Object.getOwnPropertyDescriptor(_class6.prototype, "track"), _class6.prototype)), _class6)) || _class5);
   exports.Track = Track;
+  let TrackHeader = (0, _mobxReact.observer)(_class7 = (_class8 = class TrackHeader extends _react.default.Component {
+    constructor(...args) {
+      super(...args);
+      (0, _mobx.makeObservable)(this);
+    }
+    get track() {
+      return this.props.app.tracks[this.props.idx];
+    }
+    get height() {
+      if (this.props.app.trackHeights.length <= this.props.idx) return 0;
+      return this.props.app.trackHeights[this.props.idx];
+    }
+    render() {
+      return (
+        /*#__PURE__*/(0, _jsxRuntime.jsx)("div", {
+          className: "tc track-header",
+          style: {
+            height: this.height,
+            "--track-color": this.props.color
+          },
+          ref: ref => ref && (0, _Utils.onWheel)(ref, e => {
+            e.stopPropagation();
+          }),
+          children: /*#__PURE__*/(0, _jsxRuntime.jsx)("span", {
+            className: "track-id",
+            children: this.track.id
+          })
+        })
+      );
+    }
+  }, (_applyDecoratedDescriptor(_class8.prototype, "track", [_mobx.computed], Object.getOwnPropertyDescriptor(_class8.prototype, "track"), _class8.prototype), _applyDecoratedDescriptor(_class8.prototype, "height", [_mobx.computed], Object.getOwnPropertyDescriptor(_class8.prototype, "height"), _class8.prototype)), _class8)) || _class7;
+  exports.TrackHeader = TrackHeader;
   function drawNotes(ctx, events, {color, max, min, zoomX, zoomY, fixedY, gap = 2}) {
     for (const e of events) {
       if (e.event === 'N') {
@@ -37034,7 +36825,7 @@ try {
   window.$RefreshSig$ = prevRefreshSig;
 }
 
-},{"react":"3b2NM","mobx-react":"27J27","mobx":"2yJsB","./Tracks.less":"2LpkN","./Utils":"7t1Qy","react/jsx-runtime":"7jBZW","../../node_modules/@parcel/transformer-react-refresh-wrap/lib/helpers/helpers.js":"4Jj4f"}],"2LpkN":[function() {},{}],"7t1Qy":[function(require,module,exports) {
+},{"react":"3b2NM","mobx-react":"27J27","mobx":"2yJsB","./Tracks.less":"2LpkN","./Utils":"7t1Qy","./Scroller":"4M8hf","./Overlay":"2z5pj","react/jsx-runtime":"7jBZW","../../node_modules/@parcel/transformer-react-refresh-wrap/lib/helpers/helpers.js":"4Jj4f"}],"2LpkN":[function() {},{}],"7t1Qy":[function(require,module,exports) {
 "use strict";
 var helpers = require("../../node_modules/@parcel/transformer-react-refresh-wrap/lib/helpers/helpers.js");
 var prevRefreshReg = window.$RefreshReg$;
@@ -37044,12 +36835,14 @@ try {
   Object.defineProperty(exports, "__esModule", {
     value: true
   });
-  exports.Wheelable = exports.Draggable = void 0;
+  exports.onResize = onResize;
+  exports.onWheel = onWheel;
+  exports.Resizable = exports.Wheelable = exports.Draggable = void 0;
   var _react = _interopRequireDefault(require("react"));
   var _mobxReact = require("mobx-react");
   var _mobx = require("mobx");
   var _jsxRuntime = require("react/jsx-runtime");
-  var _class, _class3;
+  var _class, _class3, _class5;
   function _interopRequireDefault(obj) {
     return obj && obj.__esModule ? obj : {
       default: obj
@@ -37076,6 +36869,7 @@ try {
         if (e.buttons != buttons) return;
         if (e.ctrlKey != ctrl) return;
         if (e.shiftKey != shift) return;
+        console.log('drag');
         const {draggable} = this.ref;
         const dd = {
           draggable,
@@ -37105,7 +36899,7 @@ try {
         /*#__PURE__*/(0, _jsxRuntime.jsx)(As, {
           ref: ref => this.ref = ref,
           ...attr,
-          onMouseDown: this.onMouseDown,
+          onMouseMove: this.onMouseDown,
           children: children
         })
       );
@@ -37137,13 +36931,677 @@ try {
     }
   }) || _class3;
   exports.Wheelable = Wheelable;
+  let Resizable = (0, _mobxReact.observer)(_class5 = class Resizable extends _react.default.Component {
+    componentDidMount() {
+      const onResize = (0, _mobx.action)(this.props.onResize);
+      this.observer = new ResizeObserver((0, _mobx.action)(entries => {
+        for (let entry of entries) {
+          onResize(entry.contentRect);
+        }
+      }));
+      this.observer.observe(this.ref);
+    }
+    componentWillMount() {
+      this.observer.disconnect();
+    }
+    render() {
+      const {children, as: As = 'div', onResize, ...attr} = this.props;
+      return (
+        /*#__PURE__*/(0, _jsxRuntime.jsx)(As, {
+          ref: ref => this.ref = ref,
+          ...attr,
+          children: children
+        })
+      );
+    }
+  }) || _class5;
+  exports.Resizable = Resizable;
+  function onResize(element, handler) {
+    const onResize = (0, _mobx.action)(handler);
+    const observer = new ResizeObserver((0, _mobx.action)(entries => {
+      for (let entry of entries) {
+        onResize(entry.contentRect);
+      }
+    }));
+    observer.observe(element);
+  }
+  function onWheel(element, handler) {
+    const onWheel = (0, _mobx.action)(handler);
+    element.addEventListener('wheel', onWheel, {
+      passive: false
+    });
+  }
   helpers.postlude(module);
 } finally {
   window.$RefreshReg$ = prevRefreshReg;
   window.$RefreshSig$ = prevRefreshSig;
 }
 
-},{"react":"3b2NM","mobx-react":"27J27","mobx":"2yJsB","react/jsx-runtime":"7jBZW","../../node_modules/@parcel/transformer-react-refresh-wrap/lib/helpers/helpers.js":"4Jj4f"}],"6d5qu":[function() {},{}],"2Kc7t":[function(require,module,exports) {
+},{"react":"3b2NM","mobx-react":"27J27","mobx":"2yJsB","react/jsx-runtime":"7jBZW","../../node_modules/@parcel/transformer-react-refresh-wrap/lib/helpers/helpers.js":"4Jj4f"}],"4M8hf":[function(require,module,exports) {
+"use strict";
+var helpers = require("../../node_modules/@parcel/transformer-react-refresh-wrap/lib/helpers/helpers.js");
+var prevRefreshReg = window.$RefreshReg$;
+var prevRefreshSig = window.$RefreshSig$;
+helpers.prelude(module);
+try {
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.ScrollerViewRegion = exports.ScrollerSeekCursor = exports.Scroller = void 0;
+  var _react = _interopRequireDefault(require("react"));
+  var _mobxReact = require("mobx-react");
+  var _mobx = require("mobx");
+  var _Utils = require("./Utils");
+  var _jsxRuntime = require("react/jsx-runtime");
+  var _dec, _class, _class2, _class3, _class4, _class5, _class6;
+  function _interopRequireDefault(obj) {
+    return obj && obj.__esModule ? obj : {
+      default: obj
+    };
+  }
+  function _applyDecoratedDescriptor(target, property, decorators, descriptor, context) {
+    var desc = {};
+    Object.keys(descriptor).forEach(function (key) {
+      desc[key] = descriptor[key];
+    });
+    desc.enumerable = !!desc.enumerable;
+    desc.configurable = !!desc.configurable;
+    if (('value' in desc) || desc.initializer) {
+      desc.writable = true;
+    }
+    desc = decorators.slice().reverse().reduce(function (desc, decorator) {
+      return decorator(target, property, desc) || desc;
+    }, desc);
+    if (context && desc.initializer !== void 0) {
+      desc.value = desc.initializer ? desc.initializer.call(context) : void 0;
+      desc.initializer = undefined;
+    }
+    if (desc.initializer === void 0) {
+      Object.defineProperty(target, property, desc);
+      desc = null;
+    }
+    return desc;
+  }
+  const COLORS = ['#FF695E', '#FF851B', '#FFE21F', '#D9E778', '#2ECC40', '#6DFFFF', '#54C8FF', '#A291FB', '#DC73FF', '#FF8EDF', '#D67C1C', '#DCDDDE', '#545454', '#DB2828', '#F2711C', '#FBBD08', '#B5CC18', '#21BA45', '#00B5AD', '#2185D0', '#6435C9', '#A333C8', '#E03997', '#A5673F', '#767676'];
+  let Scroller = (_dec = _mobx.action.bound, (0, _mobxReact.observer)(_class = (_class2 = class Scroller extends _react.default.Component {
+    constructor(...args) {
+      super(...args);
+      (0, _mobx.makeObservable)(this);
+    }
+    componentDidMount() {
+      const {app} = this.props;
+      var ro = new ResizeObserver((0, _mobx.action)(entries => {
+        for (let entry of entries) {
+          const cr = entry.contentRect;
+          app.scroller.width = cr.width;
+        }
+      }));
+      ro.observe(this.ref);
+    }
+    get scrollerImage() {
+      const canvas = document.createElement('canvas');
+      const {app} = this.props;
+      const {tracks} = app;
+      const zoomX = app.scroller.zoom;
+      canvas.height = tracks.length * 4;
+      canvas.width = zoomX * app.tune.length;
+      const ctx = canvas.getContext('2d');
+      // ctx.fillStyle = "#111";
+      // ctx.fillRect(0, 0, canvas.width, canvas.height);
+      for (let idx in tracks) {
+        let track = tracks[idx];
+        let color = COLORS[idx % COLORS.length];
+        drawNotes(ctx, track.events, {
+          color,
+          min: 0,
+          max: tracks.length,
+          zoomX,
+          zoomY: 2,
+          fixedY: idx * 2,
+          gap: 0
+        });
+      }
+      return canvas.toDataURL("image/png");
+    }
+    onMouseDown(e) {
+      const {app} = this.props;
+      const x = e.pageX - this.ref.getBoundingClientRect().left;
+      app.scroller.centerView(x);
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    render() {
+      var _this$props$app$tune;
+      if (!((_this$props$app$tune = this.props.app.tune) !== null && _this$props$app$tune !== void 0 && _this$props$app$tune.length)) return null;
+      return (
+        /*#__PURE__*/(0, _jsxRuntime.jsxs)("div", {
+          className: "tc scroller",
+          ref: ref => this.ref = ref,
+          onMouseDown: this.onMouseDown,
+          children: [/*#__PURE__*/(0, _jsxRuntime.jsx)("img", {
+            style: {
+              imageRendering: "pixelated"
+            },
+            className: "track",
+            src: this.scrollerImage
+          }), /*#__PURE__*/(0, _jsxRuntime.jsx)(ScrollerSeekCursor, {
+            app: app
+          }), /*#__PURE__*/(0, _jsxRuntime.jsx)(ScrollerViewRegion, {
+            app: app
+          })]
+        })
+      );
+    }
+  }, (_applyDecoratedDescriptor(_class2.prototype, "componentDidMount", [_mobx.action], Object.getOwnPropertyDescriptor(_class2.prototype, "componentDidMount"), _class2.prototype), _applyDecoratedDescriptor(_class2.prototype, "scrollerImage", [_mobx.computed], Object.getOwnPropertyDescriptor(_class2.prototype, "scrollerImage"), _class2.prototype), _applyDecoratedDescriptor(_class2.prototype, "onMouseDown", [_dec], Object.getOwnPropertyDescriptor(_class2.prototype, "onMouseDown"), _class2.prototype)), _class2)) || _class);
+  exports.Scroller = Scroller;
+  let ScrollerSeekCursor = (0, _mobxReact.observer)(_class3 = (_class4 = class ScrollerSeekCursor extends _react.default.Component {
+    get X() {
+      const {player} = app;
+      if (!player) return 0;
+      return Math.round(player.playbackTime * app.scroller.zoom);
+    }
+    render() {
+      return (
+        /*#__PURE__*/(0, _jsxRuntime.jsx)("div", {
+          className: "tc seek-cursor",
+          style: {
+            left: this.X
+          }
+        })
+      );
+    }
+  }, (_applyDecoratedDescriptor(_class4.prototype, "X", [_mobx.computed], Object.getOwnPropertyDescriptor(_class4.prototype, "X"), _class4.prototype)), _class4)) || _class3;
+  exports.ScrollerSeekCursor = ScrollerSeekCursor;
+  let ScrollerViewRegion = (0, _mobxReact.observer)(_class5 = (_class6 = class ScrollerViewRegion extends _react.default.Component {
+    constructor(...args) {
+      super(...args);
+      (0, _mobx.makeObservable)(this);
+    }
+    get X() {
+      const {app} = this.props;
+      return app.scroller.viewLeft;
+    }
+    get W() {
+      const {app} = this.props;
+      return app.scroller.viewWidth;
+    }
+    render() {
+      const {app} = this.props;
+      return (
+        /*#__PURE__*/(0, _jsxRuntime.jsx)(_Utils.Draggable, {
+          className: "tc view-region",
+          style: {
+            left: this.X,
+            width: this.W
+          },
+          onDrag: e => app.scroller.moveView(e.movementX),
+          onMouseDown: e => e.stopPropagation()
+        })
+      );
+    }
+  }, (_applyDecoratedDescriptor(_class6.prototype, "X", [_mobx.computed], Object.getOwnPropertyDescriptor(_class6.prototype, "X"), _class6.prototype), _applyDecoratedDescriptor(_class6.prototype, "W", [_mobx.computed], Object.getOwnPropertyDescriptor(_class6.prototype, "W"), _class6.prototype)), _class6)) || _class5;
+  exports.ScrollerViewRegion = ScrollerViewRegion;
+  function drawNotes(ctx, events, {color, max, min, zoomX, zoomY, fixedY, gap = 2}) {
+    for (const e of events) {
+      if (e.event === 'N') {
+        ctx.fillStyle = color;
+        let x = Math.floor(e.at * zoomX);
+        let y = (fixedY ?? max - e.note) * zoomY;
+        let w = Math.max(1, Math.floor(e.duration * zoomX - gap));
+        let h = zoomY;
+        ctx.fillRect(x, y, w, h);
+      } else if (e.event === 'B') {
+        ctx.fillStyle = "#000";
+        let x = Math.round(e.at * zoomX) - 2;
+        let y = 0;
+        let w = 1;
+        let h = zoomY * (max - min);
+        ctx.fillRect(x, y, w, h);
+      }
+    }
+  }
+  helpers.postlude(module);
+} finally {
+  window.$RefreshReg$ = prevRefreshReg;
+  window.$RefreshSig$ = prevRefreshSig;
+}
+
+},{"react":"3b2NM","mobx-react":"27J27","mobx":"2yJsB","./Utils":"7t1Qy","react/jsx-runtime":"7jBZW","../../node_modules/@parcel/transformer-react-refresh-wrap/lib/helpers/helpers.js":"4Jj4f"}],"2z5pj":[function(require,module,exports) {
+"use strict";
+var helpers = require("../../node_modules/@parcel/transformer-react-refresh-wrap/lib/helpers/helpers.js");
+var prevRefreshReg = window.$RefreshReg$;
+var prevRefreshSig = window.$RefreshSig$;
+helpers.prelude(module);
+try {
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.LoopRegion = exports.MouseCursor = exports.SeekCursor = exports.Ruler = exports.Overlay = void 0;
+  var _react = _interopRequireDefault(require("react"));
+  var _mobxReact = require("mobx-react");
+  var _mobx = require("mobx");
+  var _Utils = require("./Utils");
+  var _jsxRuntime = require("react/jsx-runtime");
+  var _class, _class2, _class3, _class4, _class5, _class6, _class7, _class8, _class9;
+  function _interopRequireDefault(obj) {
+    return obj && obj.__esModule ? obj : {
+      default: obj
+    };
+  }
+  function _applyDecoratedDescriptor(target, property, decorators, descriptor, context) {
+    var desc = {};
+    Object.keys(descriptor).forEach(function (key) {
+      desc[key] = descriptor[key];
+    });
+    desc.enumerable = !!desc.enumerable;
+    desc.configurable = !!desc.configurable;
+    if (('value' in desc) || desc.initializer) {
+      desc.writable = true;
+    }
+    desc = decorators.slice().reverse().reduce(function (desc, decorator) {
+      return decorator(target, property, desc) || desc;
+    }, desc);
+    if (context && desc.initializer !== void 0) {
+      desc.value = desc.initializer ? desc.initializer.call(context) : void 0;
+      desc.initializer = undefined;
+    }
+    if (desc.initializer === void 0) {
+      Object.defineProperty(target, property, desc);
+      desc = null;
+    }
+    return desc;
+  }
+  let Overlay = (0, _mobxReact.observer)(_class = class Overlay extends _react.default.Component {
+    render() {
+      const {app} = this.props;
+      console.log('render', this.constructor.name);
+      return (
+        /*#__PURE__*/(0, _jsxRuntime.jsxs)("div", {
+          className: "overlay",
+          ref: ref => this.ref = ref,
+          onMouseDown: e => {
+            if (e.buttons === 1) {
+              app.player.hold();
+              app.player.seek(app.mouseTime);
+            }
+          },
+          onMouseUp: e => {
+            app.player.unhold();
+          },
+          onMouseMove: (0, _mobx.action)(e => {
+            const {app} = this.props;
+            const x = e.pageX - this.ref.getBoundingClientRect().left;
+            app.mouseX = x;
+            if (e.buttons === 1) {
+              app.player.seek(app.mouseTime);
+            } else if (e.buttons === 4) {
+              app.moveViewLeft(-e.movementX);
+            }
+          }),
+          onMouseLeave: (0, _mobx.action)(e => {
+            app.mouseLeave();
+          }),
+          children: [/*#__PURE__*/(0, _jsxRuntime.jsx)(LoopRegion, {
+            app: app
+          }), /*#__PURE__*/(0, _jsxRuntime.jsx)(MouseCursor, {
+            app: app
+          }), /*#__PURE__*/(0, _jsxRuntime.jsx)(SeekCursor, {
+            app: app
+          })]
+        })
+      );
+    }
+  }) || _class;
+  exports.Overlay = Overlay;
+  let Ruler = (0, _mobxReact.observer)(_class2 = (_class3 = class Ruler extends _react.default.Component {
+    constructor(...args) {
+      super(...args);
+      (0, _mobx.makeObservable)(this);
+    }
+    get seconds() {
+      const {app} = this.props;
+      return Math.max(app.player.totalTime, app.viewDuration);
+    }
+    render() {
+      const {app} = this.props;
+      // if (!app.tune) return null;
+      const seconds = [];
+      let step = Math.ceil(64 / app.zoomX);
+      for (let i = 0; i <= this.seconds; i += step) {
+        seconds.push(/*#__PURE__*/(0, _jsxRuntime.jsx)("div", {
+          className: "second",
+          style: {
+            width: app.zoomX * step
+          },
+          children: i
+        }, i));
+      }
+      return (
+        /*#__PURE__*/(0, _jsxRuntime.jsx)("div", {
+          className: "tc ruler",
+          children: /*#__PURE__*/(0, _jsxRuntime.jsx)("div", {
+            className: "units",
+            style: {
+              left: -app.viewLeft
+            },
+            children: seconds
+          })
+        })
+      );
+    }
+  }, (_applyDecoratedDescriptor(_class3.prototype, "seconds", [_mobx.computed], Object.getOwnPropertyDescriptor(_class3.prototype, "seconds"), _class3.prototype)), _class3)) || _class2;
+  exports.Ruler = Ruler;
+  let SeekCursor = (0, _mobxReact.observer)(_class4 = (_class5 = class SeekCursor extends _react.default.Component {
+    constructor(...args) {
+      super(...args);
+      (0, _mobx.makeObservable)(this);
+    }
+    get X2() {
+      const {app} = this.props;
+      const {player} = app;
+      if (!player) return 0;
+      return (player.playbackTime / player.totalTime * 100).toFixed(4) + '%';
+    }
+    get visible() {
+      const {app} = this.props;
+      const {X} = this;
+      return X >= app.viewLeft && X <= app.viewLeft + app.viewWidth;
+    }
+    get X() {
+      const {player} = app;
+      if (!player) return 0;
+      return Math.round(player.playbackTime * app.zoomX);
+    }
+    render() {
+      if (!this.visible) return null;
+      const {app} = this.props;
+      // refs={ref => false && app.player.playing && ref?.scrollIntoView({ block: 'nearest', inline: app.player?.holding ? 'nearest' : 'center' })}
+      return (
+        /*#__PURE__*/(0, _jsxRuntime.jsx)("div", {
+          className: "tc seek-cursor",
+          style: {
+            left: this.X
+          }
+        })
+      );
+    }
+  }, (_applyDecoratedDescriptor(_class5.prototype, "X2", [_mobx.computed], Object.getOwnPropertyDescriptor(_class5.prototype, "X2"), _class5.prototype), _applyDecoratedDescriptor(_class5.prototype, "visible", [_mobx.computed], Object.getOwnPropertyDescriptor(_class5.prototype, "visible"), _class5.prototype), _applyDecoratedDescriptor(_class5.prototype, "X", [_mobx.computed], Object.getOwnPropertyDescriptor(_class5.prototype, "X"), _class5.prototype)), _class5)) || _class4;
+  exports.SeekCursor = SeekCursor;
+  let MouseCursor = (0, _mobxReact.observer)(_class6 = (_class7 = class MouseCursor extends _react.default.Component {
+    constructor(...args) {
+      super(...args);
+      (0, _mobx.makeObservable)(this);
+    }
+    get X() {
+      const {app} = this.props;
+      return Math.round(app.mouseTime * app.zoomX);
+    }
+    render() {
+      // return null;
+      if (this.props.app.mouseTime === null) return null;
+      return (
+        /*#__PURE__*/(0, _jsxRuntime.jsx)("div", {
+          ref: ref => ref === null || ref === void 0 ? void 0 : ref.scrollIntoView({
+            block: 'nearest',
+            inline: 'nearest'
+          }),
+          className: "tc mouse-cursor",
+          style: {
+            left: this.X
+          }
+        })
+      );
+    }
+  }, (_applyDecoratedDescriptor(_class7.prototype, "X", [_mobx.computed], Object.getOwnPropertyDescriptor(_class7.prototype, "X"), _class7.prototype)), _class7)) || _class6;
+  exports.MouseCursor = MouseCursor;
+  let LoopRegion = (0, _mobxReact.observer)(_class8 = (_class9 = class LoopRegion extends _react.default.Component {
+    constructor(...args) {
+      super(...args);
+      (0, _mobx.makeObservable)(this);
+    }
+    get X() {
+      const {app} = this.props;
+      return (app.loopIn / app.player.totalTime * 100).toFixed(4) + '%';
+    }
+    get W() {
+      const {app} = this.props;
+      return ((app.loopOut - app.loopIn) / app.player.totalTime * 100).toFixed(4) + '%';
+    }
+    render() {
+      const {app} = this.props;
+      if (!app.hasLoop) return null;
+      return (
+        /*#__PURE__*/(0, _jsxRuntime.jsxs)("div", {
+          className: "tc loop-region",
+          style: {
+            left: this.X,
+            width: this.W
+          },
+          children: [/*#__PURE__*/(0, _jsxRuntime.jsx)(_Utils.Draggable, {
+            className: "in splitter",
+            onDrag: e => app.moveLoopIn(e.movementX / app.zoomX)
+          }), /*#__PURE__*/(0, _jsxRuntime.jsx)(_Utils.Draggable, {
+            className: "out splitter",
+            onDrag: e => app.moveLoopOut(e.movementX / app.zoomX)
+          })]
+        })
+      );
+    }
+  }, (_applyDecoratedDescriptor(_class9.prototype, "X", [_mobx.computed], Object.getOwnPropertyDescriptor(_class9.prototype, "X"), _class9.prototype), _applyDecoratedDescriptor(_class9.prototype, "W", [_mobx.computed], Object.getOwnPropertyDescriptor(_class9.prototype, "W"), _class9.prototype)), _class9)) || _class8;
+  exports.LoopRegion = LoopRegion;
+  helpers.postlude(module);
+} finally {
+  window.$RefreshReg$ = prevRefreshReg;
+  window.$RefreshSig$ = prevRefreshSig;
+}
+
+},{"react":"3b2NM","mobx-react":"27J27","mobx":"2yJsB","./Utils":"7t1Qy","react/jsx-runtime":"7jBZW","../../node_modules/@parcel/transformer-react-refresh-wrap/lib/helpers/helpers.js":"4Jj4f"}],"7xTds":[function(require,module,exports) {
+"use strict";
+var helpers = require("../../node_modules/@parcel/transformer-react-refresh-wrap/lib/helpers/helpers.js");
+var prevRefreshReg = window.$RefreshReg$;
+var prevRefreshSig = window.$RefreshSig$;
+helpers.prelude(module);
+try {
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.ViewPort = exports.View = exports.Viewer = void 0;
+  var _react = _interopRequireDefault(require("react"));
+  var _mobxReact = require("mobx-react");
+  var _mobx = require("mobx");
+  require("./Viewer.less");
+  var _Utils = require("./Utils");
+  var _Scroller = require("./Scroller");
+  var _Overlay = require("./Overlay");
+  var _Tracks = require("./Tracks");
+  var _tunecraft = _interopRequireDefault(require("url:../tunecraft.svg"));
+  var _Player = require("./Player");
+  var _jsxRuntime = require("react/jsx-runtime");
+  var _class, _class2, _class3;
+  function _interopRequireDefault(obj) {
+    return obj && obj.__esModule ? obj : {
+      default: obj
+    };
+  }
+  function _defineProperty(obj, key, value) {
+    if ((key in obj)) {
+      Object.defineProperty(obj, key, {
+        value: value,
+        enumerable: true,
+        configurable: true,
+        writable: true
+      });
+    } else {
+      obj[key] = value;
+    }
+    return obj;
+  }
+  let Viewer = (0, _mobxReact.observer)(_class = class Viewer extends _react.default.Component {
+    render() {
+      const {app} = this.props;
+      console.log('render', this.constructor.name);
+      // const tracks = app.tracks.filter(({ events }) => events.length);
+      return (
+        /*#__PURE__*/(0, _jsxRuntime.jsxs)("div", {
+          className: "tc viewer",
+          children: [/*#__PURE__*/(0, _jsxRuntime.jsx)("div", {
+            className: "tc splitter"
+          }), /*#__PURE__*/(0, _jsxRuntime.jsx)(_Player.PlayerControls, {
+            app: app
+          }), /*#__PURE__*/(0, _jsxRuntime.jsx)(_Player.PlayerTime, {
+            app: app
+          }), /*#__PURE__*/(0, _jsxRuntime.jsx)(_Player.PlayerLinks, {
+            app: app
+          }), /*#__PURE__*/(0, _jsxRuntime.jsx)(_Scroller.Scroller, {
+            app: app
+          }), /*#__PURE__*/(0, _jsxRuntime.jsx)(_Overlay.Ruler, {
+            app: app
+          }), /*#__PURE__*/(0, _jsxRuntime.jsx)(ViewPort, {
+            app: app
+          }), /*#__PURE__*/(0, _jsxRuntime.jsx)("div", {
+            className: "tc logo",
+            children: /*#__PURE__*/(0, _jsxRuntime.jsx)("a", {
+              href: "https://github.com/zocky/tunecraft/blob/main/tunecraft.md",
+              target: "_blank",
+              className: "link",
+              children: /*#__PURE__*/(0, _jsxRuntime.jsx)("img", {
+                src: _tunecraft.default
+              })
+            })
+          }), /*#__PURE__*/(0, _jsxRuntime.jsx)(_Tracks.TrackHeaders, {
+            app: app
+          })]
+        })
+      );
+    }
+  }) || _class;
+  exports.Viewer = Viewer;
+  let View = (0, _mobxReact.observer)(_class2 = class View extends _react.default.Component {
+    render() {
+      const {app} = this.props;
+      console.log('render', this.constructor.name);
+      // const tracks = app.tracks.filter(({ events }) => events.length);
+      return (
+        /*#__PURE__*/(0, _jsxRuntime.jsxs)("div", {
+          className: "view",
+          style: {
+            left: -app.viewLeft
+          },
+          children: [/*#__PURE__*/(0, _jsxRuntime.jsx)(_Tracks.TrackList, {
+            app: app
+          }), /*#__PURE__*/(0, _jsxRuntime.jsx)(_Overlay.Overlay, {
+            app: app
+          })]
+        })
+      );
+    }
+  }) || _class2;
+  exports.View = View;
+  let ViewPort = (0, _mobxReact.observer)(_class3 = class ViewPort extends _react.default.Component {
+    constructor(...args) {
+      super(...args);
+      _defineProperty(this, "onResize", e => {
+        const {app} = this.props;
+        app.viewWidth = e.width;
+        app.scrollHeight = e.height;
+      });
+      _defineProperty(this, "onWheel", e => {
+        const {app} = this.props;
+        if (e.shiftKey) {
+          if (e.deltaY > 0) {
+            app.zoomOutY();
+          } else {
+            app.zoomInY();
+          }
+          e.preventDefault();
+        }
+        if (e.ctrlKey) {
+          if (e.deltaY > 0) {
+            app.zoomOutX();
+          } else {
+            app.zoomInX();
+          }
+          e.preventDefault();
+        }
+        if (!e.ctrlKey && !e.shiftKey) {
+          app.moveViewLeft(e.deltaY);
+          e.stopPropagation();
+          e.preventDefault();
+        }
+      });
+    }
+    componentDidMount() {
+      (0, _Utils.onResize)(this.ref, this.onResize);
+      (0, _Utils.onWheel)(this.ref, this.onWheel);
+    }
+    render() {
+      return (
+        /*#__PURE__*/(0, _jsxRuntime.jsx)("div", {
+          className: "tc viewport",
+          ref: ref => this.ref = ref,
+          children: /*#__PURE__*/(0, _jsxRuntime.jsx)(View, {
+            app: app
+          })
+        })
+      );
+    }
+  }) || _class3;
+  exports.ViewPort = ViewPort;
+  helpers.postlude(module);
+} finally {
+  window.$RefreshReg$ = prevRefreshReg;
+  window.$RefreshSig$ = prevRefreshSig;
+}
+
+},{"react":"3b2NM","mobx-react":"27J27","mobx":"2yJsB","./Viewer.less":"4Yndx","./Utils":"7t1Qy","./Scroller":"4M8hf","./Overlay":"2z5pj","./Tracks":"6eMdw","url:../tunecraft.svg":"Yh3jz","./Player":"2OcgD","react/jsx-runtime":"7jBZW","../../node_modules/@parcel/transformer-react-refresh-wrap/lib/helpers/helpers.js":"4Jj4f"}],"4Yndx":[function() {},{}],"Yh3jz":[function(require,module,exports) {
+module.exports = require('./bundle-url').getBundleURL() + "tunecraft.3d525ac1.svg"
+},{"./bundle-url":"3seVR"}],"3seVR":[function(require,module,exports) {
+"use strict";
+
+/* globals document:readonly */
+var bundleURL = null;
+
+function getBundleURLCached() {
+  if (!bundleURL) {
+    bundleURL = getBundleURL();
+  }
+
+  return bundleURL;
+}
+
+function getBundleURL() {
+  try {
+    throw new Error();
+  } catch (err) {
+    var matches = ('' + err.stack).match(/(https?|file|ftp):\/\/[^)\n]+/g);
+
+    if (matches) {
+      return getBaseURL(matches[0]);
+    }
+  }
+
+  return '/';
+}
+
+function getBaseURL(url) {
+  return ('' + url).replace(/^((?:https?|file|ftp):\/\/.+)\/[^/]+$/, '$1') + '/';
+} // TODO: Replace uses with `new URL(url).origin` when ie11 is no longer supported.
+
+
+function getOrigin(url) {
+  let matches = ('' + url).match(/(https?|file|ftp):\/\/[^/]+/);
+
+  if (!matches) {
+    throw new Error('Origin not found');
+  }
+
+  return matches[0];
+}
+
+exports.getBundleURL = getBundleURLCached;
+exports.getBaseURL = getBaseURL;
+exports.getOrigin = getOrigin;
+},{}],"6d5qu":[function() {},{}],"2Kc7t":[function(require,module,exports) {
 "use strict";
 Object.defineProperty(exports, "__esModule", {
   value: true
@@ -37155,7 +37613,9 @@ var _soundfontPlayer = _interopRequireDefault(require("soundfont-player"));
 var _PlayerState = require("./PlayerState");
 var _Tune = require("./Tune");
 var _utils = require("./utils");
-var _dec, _dec2, _dec3, _dec4, _dec5, _dec6, _dec7, _dec8, _dec9, _dec10, _class, _descriptor, _descriptor2, _descriptor3, _descriptor4, _descriptor5, _descriptor6, _descriptor7, _descriptor8, _descriptor9, _descriptor10, _descriptor11;
+var _ScrollerState = require("./ScrollerState");
+var _dayjs = _interopRequireDefault(require("dayjs"));
+var _dec, _dec2, _dec3, _dec4, _dec5, _dec6, _dec7, _dec8, _dec9, _dec10, _class, _descriptor, _descriptor2, _descriptor3, _descriptor4, _descriptor5, _descriptor6, _descriptor7, _descriptor8, _descriptor9, _descriptor10, _descriptor11, _descriptor12, _descriptor13, _descriptor14;
 function _interopRequireDefault(obj) {
   return obj && obj.__esModule ? obj : {
     default: obj
@@ -37210,9 +37670,11 @@ function _initializerWarningHelper(descriptor, context) {
   throw new Error('Decorating class property failed. Please ensure that ' + 'proposal-class-properties is enabled and runs after the decorators transform.');
 }
 let AppState = (_dec = _mobx.action.bound, _dec2 = _mobx.action.bound, _dec3 = _mobx.action.bound, _dec4 = _mobx.action.bound, _dec5 = _mobx.action.bound, _dec6 = _mobx.action.bound, _dec7 = _mobx.action.bound, _dec8 = _mobx.action.bound, _dec9 = _mobx.action.bound, _dec10 = _mobx.computed.struct, (_class = class AppState {
-  get scrollerZoom() {
-    var _this$tune;
-    return this.scrollerWidth / ((_this$tune = this.tune) === null || _this$tune === void 0 ? void 0 : _this$tune.length);
+  getTime(x) {
+    return x / this.zoomX;
+  }
+  getX(time) {
+    return time * this.zoomX;
   }
   get snapping() {
     return this.settings.snapping;
@@ -37223,28 +37685,52 @@ let AppState = (_dec = _mobx.action.bound, _dec2 = _mobx.action.bound, _dec3 = _
   toggleSnapping() {
     this.snapping = !this.snapping;
   }
-  get scrollTime() {
-    return this.settings.scrollTime;
+  get maxViewBeginTime() {
+    var _this$tune;
+    const totalTime = ((_this$tune = this.tune) === null || _this$tune === void 0 ? void 0 : _this$tune.length) || 0;
+    const time = totalTime - this.viewDuration;
+    return Math.max(0, time);
   }
-  get scrollDuration() {
-    return this.scrollWidth / this.zoomX;
+  clampViewBeginTime(time) {
+    return (0, _utils.clamp)(time, 0, this.maxViewBeginTime);
   }
-  get scrollX() {
-    return Math.round(this.settings.scrollTime * this.zoomX);
+  get viewBeginTime() {
+    return this.clampViewBeginTime(this.settings.viewBeginTime);
   }
-  set scrollX(value) {
-    this.settings.scrollTime = Math.max(0, value) / this.zoomX;
+  set viewBeginTime(time) {
+    this.settings.viewBeginTime = this.clampViewBeginTime(time);
   }
-  moveScrollX(value) {
-    this.scrollX += value;
+  get viewCenterTime() {
+    return (this.viewBeginTime + this.viewEndTime) / 2;
+  }
+  set viewCenterTime(time) {
+    this.viewBeginTime = time - this.viewDuration / 2;
+  }
+  get viewDuration() {
+    return this.viewWidth / this.zoomX;
+  }
+  get viewEndTime() {
+    return this.viewBeginTime + this.viewDuration;
+  }
+  get viewLeft() {
+    return this.getX(this.viewBeginTime);
+  }
+  set viewLeft(value) {
+    this.viewBeginTime = this.getTime(value);
+  }
+  moveViewLeft(value) {
+    this.viewLeft += value;
+  }
+  moveViewTime(time) {
+    this.viewBeginTime += time;
   }
   get mouseX() {
     if (!this._mouseOver) return null;
-    return this._mouseX + this.scrollX;
+    return this._mouseX + this.viewLeft;
   }
   set mouseX(value) {
     this._mouseOver = true;
-    this._mouseX = value - this.scrollX;
+    this._mouseX = value - this.viewLeft;
   }
   mouseLeave() {
     this._mouseOver = false;
@@ -37268,10 +37754,20 @@ let AppState = (_dec = _mobx.action.bound, _dec2 = _mobx.action.bound, _dec3 = _
     if (this.settings.zoomY > 1) this.settings.zoomY--;
   }
   zoomInX() {
-    if (this.settings.zoomX < 16) this.settings.zoomX++;
+    if (this.settings.zoomX < 16) {
+      let x = this.mouseX - this.viewLeft;
+      let time = this.mouseTime;
+      this.settings.zoomX++;
+      this.viewLeft = this.getX(time) - x;
+    }
   }
   zoomOutX() {
-    if (this.settings.zoomX > 1) this.settings.zoomX--;
+    if (this.settings.zoomX > 1) {
+      let x = this.mouseX - this.viewLeft;
+      let time = this.mouseTime;
+      this.settings.zoomX--;
+      this.viewLeft = this.getX(time) - x;
+    }
   }
   get loopIn() {
     var _this$tune3;
@@ -37324,33 +37820,59 @@ let AppState = (_dec = _mobx.action.bound, _dec2 = _mobx.action.bound, _dec3 = _
   get trackKeys() {
     return Object.keys(this.tracks);
   }
-  get soundfonts() {
-    (0, _mobx.trace)();
-    if (!this.tune) return {};
-    return {
-      default: "FatBoy",
-      ...this.tune.soundfonts
-    };
+  exportMidi() {
+    var blob = new Blob([this.tune.toMidiBuffer], {
+      type: "audio/midi"
+    });
+    var link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.href = url;
+    link.download = this.fileName + (0, _dayjs.default)().format('-YYYY-MM-DD-HH-MM') + ".mid";
+    link.click();
+    URL.revokeObjectURL(url);
+  }
+  saveTune() {
+    var blob = new Blob([this.source], {
+      type: "text/plain"
+    });
+    var link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.href = url;
+    link.download = this.fileName + (0, _dayjs.default)().format(' YYYY-MM-DD-HH-MM') + ".tune";
+    link.click();
+    URL.revokeObjectURL(url);
+  }
+  openTune(file) {
+    var fr = new FileReader();
+    fr.onload = (0, _mobx.action)(() => {
+      this.source = fr.result;
+      this.fileName = file.name.replace(/[0-9\-]+\..*$/, '');
+      console.log(this.fileName);
+    });
+    fr.readAsText(file);
   }
   constructor() {
     _defineProperty(this, "context", new AudioContext());
-    _initializerDefineProperty(this, "editorWidth", _descriptor, this);
-    _initializerDefineProperty(this, "settings", _descriptor2, this);
-    _initializerDefineProperty(this, "scrollWidth", _descriptor3, this);
-    _initializerDefineProperty(this, "scrollHeight", _descriptor4, this);
-    _initializerDefineProperty(this, "scrollerWidth", _descriptor5, this);
-    _initializerDefineProperty(this, "_mouseX", _descriptor6, this);
-    _initializerDefineProperty(this, "_mouseOver", _descriptor7, this);
-    _initializerDefineProperty(this, "moveLoopOut", _descriptor8, this);
-    _initializerDefineProperty(this, "viewerMode", _descriptor9, this);
-    _initializerDefineProperty(this, "source", _descriptor10, this);
-    _initializerDefineProperty(this, "tune", _descriptor11, this);
+    _initializerDefineProperty(this, "player", _descriptor, this);
+    _initializerDefineProperty(this, "scroller", _descriptor2, this);
+    _initializerDefineProperty(this, "editorWidth", _descriptor3, this);
+    _initializerDefineProperty(this, "settings", _descriptor4, this);
+    _initializerDefineProperty(this, "trackHeights", _descriptor5, this);
+    _initializerDefineProperty(this, "viewWidth", _descriptor6, this);
+    _initializerDefineProperty(this, "scrollHeight", _descriptor7, this);
+    _initializerDefineProperty(this, "_mouseX", _descriptor8, this);
+    _initializerDefineProperty(this, "_mouseOver", _descriptor9, this);
+    _initializerDefineProperty(this, "moveLoopOut", _descriptor10, this);
+    _initializerDefineProperty(this, "viewerMode", _descriptor11, this);
+    _initializerDefineProperty(this, "source", _descriptor12, this);
+    _initializerDefineProperty(this, "tune", _descriptor13, this);
+    _initializerDefineProperty(this, "fileName", _descriptor14, this);
     top.app = this;
     let lastResult;
     (0, _mobx.makeObservable)(this);
     this.player = new _PlayerState.PlayerState(this);
+    this.scroller = new _ScrollerState.ScrollerState(this);
     (0, _mobx.reaction)(() => {
-      this.instruments;
       this.tune;
       return this.result;
     }, ({result, error}) => {
@@ -37366,14 +37888,28 @@ let AppState = (_dec = _mobx.action.bound, _dec2 = _mobx.action.bound, _dec3 = _
   init() {
     this.source = localStorage.tunecraft_save || "";
   }
-}, (_descriptor = _applyDecoratedDescriptor(_class.prototype, "editorWidth", [_mobx.observable], {
+}, (_descriptor = _applyDecoratedDescriptor(_class.prototype, "player", [_mobx.observable], {
+  configurable: true,
+  enumerable: true,
+  writable: true,
+  initializer: function () {
+    return null;
+  }
+}), _descriptor2 = _applyDecoratedDescriptor(_class.prototype, "scroller", [_mobx.observable], {
+  configurable: true,
+  enumerable: true,
+  writable: true,
+  initializer: function () {
+    return null;
+  }
+}), _descriptor3 = _applyDecoratedDescriptor(_class.prototype, "editorWidth", [_mobx.observable], {
   configurable: true,
   enumerable: true,
   writable: true,
   initializer: function () {
     return 500;
   }
-}), _descriptor2 = _applyDecoratedDescriptor(_class.prototype, "settings", [_mobx.observable], {
+}), _descriptor4 = _applyDecoratedDescriptor(_class.prototype, "settings", [_mobx.observable], {
   configurable: true,
   enumerable: true,
   writable: true,
@@ -37386,45 +37922,45 @@ let AppState = (_dec = _mobx.action.bound, _dec2 = _mobx.action.bound, _dec3 = _
       hasLoop: false,
       looping: false,
       snapping: true,
-      scrollTime: 0
+      viewBeginTime: 0
     };
   }
-}), _descriptor3 = _applyDecoratedDescriptor(_class.prototype, "scrollWidth", [_mobx.observable], {
+}), _descriptor5 = _applyDecoratedDescriptor(_class.prototype, "trackHeights", [_mobx.observable], {
+  configurable: true,
+  enumerable: true,
+  writable: true,
+  initializer: function () {
+    return [];
+  }
+}), _descriptor6 = _applyDecoratedDescriptor(_class.prototype, "viewWidth", [_mobx.observable], {
   configurable: true,
   enumerable: true,
   writable: true,
   initializer: function () {
     return 0;
   }
-}), _descriptor4 = _applyDecoratedDescriptor(_class.prototype, "scrollHeight", [_mobx.observable], {
+}), _descriptor7 = _applyDecoratedDescriptor(_class.prototype, "scrollHeight", [_mobx.observable], {
   configurable: true,
   enumerable: true,
   writable: true,
   initializer: function () {
     return 0;
   }
-}), _descriptor5 = _applyDecoratedDescriptor(_class.prototype, "scrollerWidth", [_mobx.observable], {
+}), _applyDecoratedDescriptor(_class.prototype, "snapping", [_mobx.computed], Object.getOwnPropertyDescriptor(_class.prototype, "snapping"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "toggleSnapping", [_dec], Object.getOwnPropertyDescriptor(_class.prototype, "toggleSnapping"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "maxViewBeginTime", [_mobx.computed], Object.getOwnPropertyDescriptor(_class.prototype, "maxViewBeginTime"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "viewBeginTime", [_mobx.computed], Object.getOwnPropertyDescriptor(_class.prototype, "viewBeginTime"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "viewCenterTime", [_mobx.computed], Object.getOwnPropertyDescriptor(_class.prototype, "viewCenterTime"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "viewDuration", [_mobx.computed], Object.getOwnPropertyDescriptor(_class.prototype, "viewDuration"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "viewEndTime", [_mobx.computed], Object.getOwnPropertyDescriptor(_class.prototype, "viewEndTime"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "viewLeft", [_mobx.computed], Object.getOwnPropertyDescriptor(_class.prototype, "viewLeft"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "moveViewLeft", [_mobx.action], Object.getOwnPropertyDescriptor(_class.prototype, "moveViewLeft"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "moveViewTime", [_mobx.action], Object.getOwnPropertyDescriptor(_class.prototype, "moveViewTime"), _class.prototype), _descriptor8 = _applyDecoratedDescriptor(_class.prototype, "_mouseX", [_mobx.observable], {
   configurable: true,
   enumerable: true,
   writable: true,
   initializer: function () {
     return 0;
   }
-}), _applyDecoratedDescriptor(_class.prototype, "scrollerZoom", [_mobx.computed], Object.getOwnPropertyDescriptor(_class.prototype, "scrollerZoom"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "snapping", [_mobx.computed], Object.getOwnPropertyDescriptor(_class.prototype, "snapping"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "toggleSnapping", [_dec], Object.getOwnPropertyDescriptor(_class.prototype, "toggleSnapping"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "scrollTime", [_mobx.computed], Object.getOwnPropertyDescriptor(_class.prototype, "scrollTime"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "scrollDuration", [_mobx.computed], Object.getOwnPropertyDescriptor(_class.prototype, "scrollDuration"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "scrollX", [_mobx.computed], Object.getOwnPropertyDescriptor(_class.prototype, "scrollX"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "moveScrollX", [_mobx.action], Object.getOwnPropertyDescriptor(_class.prototype, "moveScrollX"), _class.prototype), _descriptor6 = _applyDecoratedDescriptor(_class.prototype, "_mouseX", [_mobx.observable], {
-  configurable: true,
-  enumerable: true,
-  writable: true,
-  initializer: function () {
-    return 0;
-  }
-}), _descriptor7 = _applyDecoratedDescriptor(_class.prototype, "_mouseOver", [_mobx.observable], {
+}), _descriptor9 = _applyDecoratedDescriptor(_class.prototype, "_mouseOver", [_mobx.observable], {
   configurable: true,
   enumerable: true,
   writable: true,
   initializer: function () {
     return false;
   }
-}), _applyDecoratedDescriptor(_class.prototype, "mouseX", [_mobx.computed], Object.getOwnPropertyDescriptor(_class.prototype, "mouseX"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "mouseLeave", [_mobx.action], Object.getOwnPropertyDescriptor(_class.prototype, "mouseLeave"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "mouseTime", [_mobx.computed], Object.getOwnPropertyDescriptor(_class.prototype, "mouseTime"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "zoomX", [_mobx.computed], Object.getOwnPropertyDescriptor(_class.prototype, "zoomX"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "zoomY", [_mobx.computed], Object.getOwnPropertyDescriptor(_class.prototype, "zoomY"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "zoomInY", [_dec2], Object.getOwnPropertyDescriptor(_class.prototype, "zoomInY"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "zoomOutY", [_dec3], Object.getOwnPropertyDescriptor(_class.prototype, "zoomOutY"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "zoomInX", [_dec4], Object.getOwnPropertyDescriptor(_class.prototype, "zoomInX"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "zoomOutX", [_dec5], Object.getOwnPropertyDescriptor(_class.prototype, "zoomOutX"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "loopIn", [_mobx.computed], Object.getOwnPropertyDescriptor(_class.prototype, "loopIn"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "moveLoopIn", [_mobx.action], Object.getOwnPropertyDescriptor(_class.prototype, "moveLoopIn"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "loopOut", [_mobx.computed], Object.getOwnPropertyDescriptor(_class.prototype, "loopOut"), _class.prototype), _descriptor8 = _applyDecoratedDescriptor(_class.prototype, "moveLoopOut", [_dec6], {
+}), _applyDecoratedDescriptor(_class.prototype, "mouseX", [_mobx.computed], Object.getOwnPropertyDescriptor(_class.prototype, "mouseX"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "mouseLeave", [_mobx.action], Object.getOwnPropertyDescriptor(_class.prototype, "mouseLeave"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "mouseTime", [_mobx.computed], Object.getOwnPropertyDescriptor(_class.prototype, "mouseTime"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "zoomX", [_mobx.computed], Object.getOwnPropertyDescriptor(_class.prototype, "zoomX"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "zoomY", [_mobx.computed], Object.getOwnPropertyDescriptor(_class.prototype, "zoomY"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "zoomInY", [_dec2], Object.getOwnPropertyDescriptor(_class.prototype, "zoomInY"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "zoomOutY", [_dec3], Object.getOwnPropertyDescriptor(_class.prototype, "zoomOutY"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "zoomInX", [_dec4], Object.getOwnPropertyDescriptor(_class.prototype, "zoomInX"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "zoomOutX", [_dec5], Object.getOwnPropertyDescriptor(_class.prototype, "zoomOutX"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "loopIn", [_mobx.computed], Object.getOwnPropertyDescriptor(_class.prototype, "loopIn"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "moveLoopIn", [_mobx.action], Object.getOwnPropertyDescriptor(_class.prototype, "moveLoopIn"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "loopOut", [_mobx.computed], Object.getOwnPropertyDescriptor(_class.prototype, "loopOut"), _class.prototype), _descriptor10 = _applyDecoratedDescriptor(_class.prototype, "moveLoopOut", [_dec6], {
   configurable: true,
   enumerable: true,
   writable: true,
@@ -37433,31 +37969,38 @@ let AppState = (_dec = _mobx.action.bound, _dec2 = _mobx.action.bound, _dec3 = _
       this.settings.loopOut = (0, _utils.clamp)(this.settings.loopOut + value, this.settings.loopIn + 0.25, Infinity);
     };
   }
-}), _applyDecoratedDescriptor(_class.prototype, "hasLoop", [_mobx.computed], Object.getOwnPropertyDescriptor(_class.prototype, "hasLoop"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "showLoop", [_dec7], Object.getOwnPropertyDescriptor(_class.prototype, "showLoop"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "hideLoop", [_dec8], Object.getOwnPropertyDescriptor(_class.prototype, "hideLoop"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "toggleLoop", [_dec9], Object.getOwnPropertyDescriptor(_class.prototype, "toggleLoop"), _class.prototype), _descriptor9 = _applyDecoratedDescriptor(_class.prototype, "viewerMode", [_mobx.observable], {
+}), _applyDecoratedDescriptor(_class.prototype, "hasLoop", [_mobx.computed], Object.getOwnPropertyDescriptor(_class.prototype, "hasLoop"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "showLoop", [_dec7], Object.getOwnPropertyDescriptor(_class.prototype, "showLoop"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "hideLoop", [_dec8], Object.getOwnPropertyDescriptor(_class.prototype, "hideLoop"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "toggleLoop", [_dec9], Object.getOwnPropertyDescriptor(_class.prototype, "toggleLoop"), _class.prototype), _descriptor11 = _applyDecoratedDescriptor(_class.prototype, "viewerMode", [_mobx.observable], {
   configurable: true,
   enumerable: true,
   writable: true,
   initializer: function () {
     return "tracks";
   }
-}), _descriptor10 = _applyDecoratedDescriptor(_class.prototype, "source", [_mobx.observable], {
+}), _descriptor12 = _applyDecoratedDescriptor(_class.prototype, "source", [_mobx.observable], {
   configurable: true,
   enumerable: true,
   writable: true,
   initializer: function () {
     return "";
   }
-}), _applyDecoratedDescriptor(_class.prototype, "result", [_mobx.computed], Object.getOwnPropertyDescriptor(_class.prototype, "result"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "error", [_mobx.computed], Object.getOwnPropertyDescriptor(_class.prototype, "error"), _class.prototype), _descriptor11 = _applyDecoratedDescriptor(_class.prototype, "tune", [_mobx.observable], {
+}), _applyDecoratedDescriptor(_class.prototype, "result", [_mobx.computed], Object.getOwnPropertyDescriptor(_class.prototype, "result"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "error", [_mobx.computed], Object.getOwnPropertyDescriptor(_class.prototype, "error"), _class.prototype), _descriptor13 = _applyDecoratedDescriptor(_class.prototype, "tune", [_mobx.observable], {
   configurable: true,
   enumerable: true,
   writable: true,
   initializer: function () {
     return null;
   }
-}), _applyDecoratedDescriptor(_class.prototype, "tracks", [_mobx.computed], Object.getOwnPropertyDescriptor(_class.prototype, "tracks"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "trackKeys", [_dec10], Object.getOwnPropertyDescriptor(_class.prototype, "trackKeys"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "soundfonts", [_mobx.computed], Object.getOwnPropertyDescriptor(_class.prototype, "soundfonts"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "init", [_mobx.action], Object.getOwnPropertyDescriptor(_class.prototype, "init"), _class.prototype)), _class));
+}), _applyDecoratedDescriptor(_class.prototype, "tracks", [_mobx.computed], Object.getOwnPropertyDescriptor(_class.prototype, "tracks"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "trackKeys", [_dec10], Object.getOwnPropertyDescriptor(_class.prototype, "trackKeys"), _class.prototype), _descriptor14 = _applyDecoratedDescriptor(_class.prototype, "fileName", [_mobx.observable], {
+  configurable: true,
+  enumerable: true,
+  writable: true,
+  initializer: function () {
+    return "tune";
+  }
+}), _applyDecoratedDescriptor(_class.prototype, "init", [_mobx.action], Object.getOwnPropertyDescriptor(_class.prototype, "init"), _class.prototype)), _class));
 exports.AppState = AppState;
 
-},{"mobx":"2yJsB","./tunecraft":"1KSkd","soundfont-player":"7IOtV","./PlayerState":"2iluj","./Tune":"55noZ","./utils":"1XhVI"}],"1KSkd":[function(require,module,exports) {
+},{"mobx":"2yJsB","./tunecraft":"1KSkd","soundfont-player":"7IOtV","./PlayerState":"2iluj","./Tune":"55noZ","./utils":"1XhVI","./ScrollerState":"OFDF3","dayjs":"DpABt"}],"1KSkd":[function(require,module,exports) {
 "use strict";
 Object.defineProperty(exports, "__esModule", {
   value: true
@@ -42958,7 +43501,7 @@ Object.defineProperty(exports, "__esModule", {
 exports.PlayerState = void 0;
 var _mobx = require("mobx");
 var _soundfontPlayer = _interopRequireDefault(require("soundfont-player"));
-var _dec, _dec2, _dec3, _dec4, _dec5, _dec6, _dec7, _dec8, _dec9, _dec10, _class, _descriptor, _descriptor2, _descriptor3, _descriptor4, _descriptor5, _descriptor6, _descriptor7;
+var _dec, _dec2, _dec3, _dec4, _dec5, _dec6, _dec7, _dec8, _dec9, _dec10, _dec11, _dec12, _dec13, _class, _descriptor, _descriptor2, _descriptor3, _descriptor4, _descriptor5, _descriptor6, _descriptor7;
 function _interopRequireDefault(obj) {
   return obj && obj.__esModule ? obj : {
     default: obj
@@ -43012,7 +43555,13 @@ function _applyDecoratedDescriptor(target, property, decorators, descriptor, con
 function _initializerWarningHelper(descriptor, context) {
   throw new Error('Decorating class property failed. Please ensure that ' + 'proposal-class-properties is enabled and runs after the decorators transform.');
 }
-let PlayerState = (_dec = _mobx.action.bound, _dec2 = _mobx.action.bound, _dec3 = _mobx.action.bound, _dec4 = _mobx.action.bound, _dec5 = _mobx.action.bound, _dec6 = _mobx.action.bound, _dec7 = _mobx.action.bound, _dec8 = _mobx.action.bound, _dec9 = _mobx.action.bound, _dec10 = _mobx.action.bound, (_class = class PlayerState {
+let PlayerState = (_dec = (0, _mobx.computed)({
+  keepAlive: true
+}), _dec2 = _mobx.action.bound, _dec3 = _mobx.action.bound, _dec4 = _mobx.action.bound, _dec5 = _mobx.action.bound, _dec6 = _mobx.action.bound, _dec7 = _mobx.action.bound, _dec8 = _mobx.action.bound, _dec9 = _mobx.action.bound, _dec10 = _mobx.action.bound, _dec11 = _mobx.action.bound, _dec12 = (0, _mobx.computed)({
+  keepAlive: true
+}), _dec13 = (0, _mobx.computed)({
+  keepAlive: true
+}), (_class = class PlayerState {
   get beginTime() {
     return this.app.loopIn ?? 0;
   }
@@ -43027,7 +43576,6 @@ let PlayerState = (_dec = _mobx.action.bound, _dec2 = _mobx.action.bound, _dec3 
     return ((_this$app$tune = this.app.tune) === null || _this$app$tune === void 0 ? void 0 : _this$app$tune.length) ?? 0;
   }
   get tune() {
-    console.log('tune');
     return this.app.tune;
   }
   constructor(app) {
@@ -43043,11 +43591,6 @@ let PlayerState = (_dec = _mobx.action.bound, _dec2 = _mobx.action.bound, _dec3 
     this.ac = app.context;
     this.app = app;
     (0, _mobx.makeObservable)(this);
-    (0, _mobx.reaction)(() => {
-      this.tune;
-      this.instruments;
-      this.soundfonts;
-    }, x => {});
   }
   get notes() {
     const notes = this.app.tune.events.filter(e => {
@@ -43234,14 +43777,14 @@ let PlayerState = (_dec = _mobx.action.bound, _dec2 = _mobx.action.bound, _dec3 
   initializer: function () {
     return 0;
   }
-}), _applyDecoratedDescriptor(_class.prototype, "tune", [_mobx.computed], Object.getOwnPropertyDescriptor(_class.prototype, "tune"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "notes", [_mobx.computed], Object.getOwnPropertyDescriptor(_class.prototype, "notes"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "loop", [_dec], Object.getOwnPropertyDescriptor(_class.prototype, "loop"), _class.prototype), _descriptor7 = _applyDecoratedDescriptor(_class.prototype, "holding", [_mobx.observable], {
+}), _applyDecoratedDescriptor(_class.prototype, "tune", [_mobx.computed], Object.getOwnPropertyDescriptor(_class.prototype, "tune"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "notes", [_dec], Object.getOwnPropertyDescriptor(_class.prototype, "notes"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "loop", [_dec2], Object.getOwnPropertyDescriptor(_class.prototype, "loop"), _class.prototype), _descriptor7 = _applyDecoratedDescriptor(_class.prototype, "holding", [_mobx.observable], {
   configurable: true,
   enumerable: true,
   writable: true,
   initializer: function () {
     return false;
   }
-}), _applyDecoratedDescriptor(_class.prototype, "hold", [_dec2], Object.getOwnPropertyDescriptor(_class.prototype, "hold"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "unhold", [_dec3], Object.getOwnPropertyDescriptor(_class.prototype, "unhold"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "play", [_dec4], Object.getOwnPropertyDescriptor(_class.prototype, "play"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "start", [_dec5], Object.getOwnPropertyDescriptor(_class.prototype, "start"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "pause", [_dec6], Object.getOwnPropertyDescriptor(_class.prototype, "pause"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "seek", [_dec7], Object.getOwnPropertyDescriptor(_class.prototype, "seek"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "silence", [_dec8], Object.getOwnPropertyDescriptor(_class.prototype, "silence"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "stop", [_dec9], Object.getOwnPropertyDescriptor(_class.prototype, "stop"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "toggle", [_dec10], Object.getOwnPropertyDescriptor(_class.prototype, "toggle"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "soundfonts", [_mobx.computed], Object.getOwnPropertyDescriptor(_class.prototype, "soundfonts"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "instruments", [_mobx.computed], Object.getOwnPropertyDescriptor(_class.prototype, "instruments"), _class.prototype)), _class));
+}), _applyDecoratedDescriptor(_class.prototype, "hold", [_dec3], Object.getOwnPropertyDescriptor(_class.prototype, "hold"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "unhold", [_dec4], Object.getOwnPropertyDescriptor(_class.prototype, "unhold"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "play", [_dec5], Object.getOwnPropertyDescriptor(_class.prototype, "play"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "start", [_dec6], Object.getOwnPropertyDescriptor(_class.prototype, "start"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "pause", [_dec7], Object.getOwnPropertyDescriptor(_class.prototype, "pause"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "seek", [_dec8], Object.getOwnPropertyDescriptor(_class.prototype, "seek"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "silence", [_dec9], Object.getOwnPropertyDescriptor(_class.prototype, "silence"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "stop", [_dec10], Object.getOwnPropertyDescriptor(_class.prototype, "stop"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "toggle", [_dec11], Object.getOwnPropertyDescriptor(_class.prototype, "toggle"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "soundfonts", [_dec12], Object.getOwnPropertyDescriptor(_class.prototype, "soundfonts"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "instruments", [_dec13], Object.getOwnPropertyDescriptor(_class.prototype, "instruments"), _class.prototype)), _class));
 exports.PlayerState = PlayerState;
 class InstrumentState {
   static create(context, font, name, options) {
@@ -43305,7 +43848,8 @@ var _mobx = require("mobx");
 var _TempoTrack = require("./TempoTrack");
 var _Track = require("./Track");
 var _jsmidgen = _interopRequireDefault(require("jsmidgen"));
-var _class, _descriptor, _descriptor2, _descriptor3;
+var _utils = require("./utils");
+var _dec, _dec2, _dec3, _class, _descriptor, _descriptor2, _descriptor3;
 function _interopRequireDefault(obj) {
   return obj && obj.__esModule ? obj : {
     default: obj
@@ -43359,7 +43903,13 @@ function _applyDecoratedDescriptor(target, property, decorators, descriptor, con
 function _initializerWarningHelper(descriptor, context) {
   throw new Error('Decorating class property failed. Please ensure that ' + 'proposal-class-properties is enabled and runs after the decorators transform.');
 }
-let Tune = (_class = class Tune {
+let Tune = (_dec = (0, _mobx.computed)({
+  keepAlive: true
+}), _dec2 = (0, _mobx.computed)({
+  keepAlive: true
+}), _dec3 = (0, _mobx.computed)({
+  keepAlive: true
+}), (_class = class Tune {
   get tracks() {
     return Object.values(this.tracksById);
   }
@@ -43367,10 +43917,18 @@ let Tune = (_class = class Tune {
     return this.tempoTrack.timeAtTick(tick);
   }
   get events() {
+    console.log('evens');
     let events = this.tracks.flatMap(t => t.events).sort((a, b) => a.tick - b.tick);
     return events;
   }
+  get uniqueTimes() {
+    console.log('uniqu');
+    let ret = new Set();
+    for (const e of this.events) ret.add(e.at);
+    return [...ret];
+  }
   snapTime(time) {
+    return (0, _utils.findClosest)(time, this.uniqueTimes);
     let mt = 0;
     const {events} = this;
     let lower = 0;
@@ -43409,17 +43967,6 @@ let Tune = (_class = class Tune {
     }
     return bytes;
   }
-  downloadMidiFile() {
-    var blob = new Blob([this.toMidiBuffer], {
-      type: "audio/midi"
-    });
-    var link = document.createElement('a');
-    const url = URL.createObjectURL(blob);
-    link.href = url;
-    link.download = 'tune.mid';
-    link.click();
-    URL.revokeObjectURL(url);
-  }
   get length() {
     return this.tempoTrack.timeAtTick(this.ticks);
   }
@@ -43450,24 +43997,24 @@ let Tune = (_class = class Tune {
   initializer: function () {
     return {};
   }
-}), _applyDecoratedDescriptor(_class.prototype, "tracks", [_mobx.computed], Object.getOwnPropertyDescriptor(_class.prototype, "tracks"), _class.prototype), _descriptor2 = _applyDecoratedDescriptor(_class.prototype, "tempoTrack", [_mobx.observable], {
+}), _applyDecoratedDescriptor(_class.prototype, "tracks", [_dec], Object.getOwnPropertyDescriptor(_class.prototype, "tracks"), _class.prototype), _descriptor2 = _applyDecoratedDescriptor(_class.prototype, "tempoTrack", [_mobx.observable], {
   configurable: true,
   enumerable: true,
   writable: true,
   initializer: function () {
     return null;
   }
-}), _applyDecoratedDescriptor(_class.prototype, "events", [_mobx.computed], Object.getOwnPropertyDescriptor(_class.prototype, "events"), _class.prototype), _descriptor3 = _applyDecoratedDescriptor(_class.prototype, "ticks", [_mobx.observable], {
+}), _applyDecoratedDescriptor(_class.prototype, "events", [_dec2], Object.getOwnPropertyDescriptor(_class.prototype, "events"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "uniqueTimes", [_dec3], Object.getOwnPropertyDescriptor(_class.prototype, "uniqueTimes"), _class.prototype), _descriptor3 = _applyDecoratedDescriptor(_class.prototype, "ticks", [_mobx.observable], {
   configurable: true,
   enumerable: true,
   writable: true,
   initializer: function () {
     return 0;
   }
-}), _applyDecoratedDescriptor(_class.prototype, "toMidi", [_mobx.computed], Object.getOwnPropertyDescriptor(_class.prototype, "toMidi"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "toMidiBuffer", [_mobx.computed], Object.getOwnPropertyDescriptor(_class.prototype, "toMidiBuffer"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "length", [_mobx.computed], Object.getOwnPropertyDescriptor(_class.prototype, "length"), _class.prototype)), _class);
+}), _applyDecoratedDescriptor(_class.prototype, "toMidi", [_mobx.computed], Object.getOwnPropertyDescriptor(_class.prototype, "toMidi"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "toMidiBuffer", [_mobx.computed], Object.getOwnPropertyDescriptor(_class.prototype, "toMidiBuffer"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "length", [_mobx.computed], Object.getOwnPropertyDescriptor(_class.prototype, "length"), _class.prototype)), _class));
 exports.Tune = Tune;
 
-},{"mobx":"2yJsB","./TempoTrack":"3Vt9t","./Track":"3AQM8","jsmidgen":"7AWdF"}],"3Vt9t":[function(require,module,exports) {
+},{"mobx":"2yJsB","./TempoTrack":"3Vt9t","./Track":"3AQM8","jsmidgen":"7AWdF","./utils":"1XhVI"}],"3Vt9t":[function(require,module,exports) {
 "use strict";
 Object.defineProperty(exports, "__esModule", {
   value: true
@@ -44447,6 +44994,343 @@ if (typeof module != 'undefined' && module !== null) {
 } else {
 	this.Midi = Midi;
 }
+
+},{}],"OFDF3":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.ScrollerState = void 0;
+var _mobx = require("mobx");
+var _class, _descriptor;
+function _initializerDefineProperty(target, property, descriptor, context) {
+  if (!descriptor) return;
+  Object.defineProperty(target, property, {
+    enumerable: descriptor.enumerable,
+    configurable: descriptor.configurable,
+    writable: descriptor.writable,
+    value: descriptor.initializer ? descriptor.initializer.call(context) : void 0
+  });
+}
+function _defineProperty(obj, key, value) {
+  if ((key in obj)) {
+    Object.defineProperty(obj, key, {
+      value: value,
+      enumerable: true,
+      configurable: true,
+      writable: true
+    });
+  } else {
+    obj[key] = value;
+  }
+  return obj;
+}
+function _applyDecoratedDescriptor(target, property, decorators, descriptor, context) {
+  var desc = {};
+  Object.keys(descriptor).forEach(function (key) {
+    desc[key] = descriptor[key];
+  });
+  desc.enumerable = !!desc.enumerable;
+  desc.configurable = !!desc.configurable;
+  if (('value' in desc) || desc.initializer) {
+    desc.writable = true;
+  }
+  desc = decorators.slice().reverse().reduce(function (desc, decorator) {
+    return decorator(target, property, desc) || desc;
+  }, desc);
+  if (context && desc.initializer !== void 0) {
+    desc.value = desc.initializer ? desc.initializer.call(context) : void 0;
+    desc.initializer = undefined;
+  }
+  if (desc.initializer === void 0) {
+    Object.defineProperty(target, property, desc);
+    desc = null;
+  }
+  return desc;
+}
+function _initializerWarningHelper(descriptor, context) {
+  throw new Error('Decorating class property failed. Please ensure that ' + 'proposal-class-properties is enabled and runs after the decorators transform.');
+}
+let ScrollerState = (_class = class ScrollerState {
+  get zoom() {
+    var _this$app$tune;
+    return this.width / ((_this$app$tune = this.app.tune) === null || _this$app$tune === void 0 ? void 0 : _this$app$tune.length);
+  }
+  getTime(x) {
+    return x / this.zoom;
+  }
+  getX(time) {
+    return Math.round(time * this.zoom);
+  }
+  get viewLeft() {
+    return this.getX(this.app.viewBeginTime);
+  }
+  get viewWidth() {
+    var _this$app$tune2;
+    return this.getX(Math.min((_this$app$tune2 = this.app.tune) === null || _this$app$tune2 === void 0 ? void 0 : _this$app$tune2.length, this.app.viewDuration));
+  }
+  get viewRight() {
+    return this.getX(this.app.viewEndTime);
+  }
+  centerView(x) {
+    this.app.viewCenterTime = this.getTime(x);
+  }
+  moveView(deltaX) {
+    this.app.moveViewTime(this.getTime(deltaX));
+  }
+  constructor(app) {
+    _initializerDefineProperty(this, "width", _descriptor, this);
+    this.app = app;
+    (0, _mobx.makeObservable)(this);
+  }
+}, (_descriptor = _applyDecoratedDescriptor(_class.prototype, "width", [_mobx.observable], {
+  configurable: true,
+  enumerable: true,
+  writable: true,
+  initializer: function () {
+    return 0;
+  }
+}), _applyDecoratedDescriptor(_class.prototype, "zoom", [_mobx.computed], Object.getOwnPropertyDescriptor(_class.prototype, "zoom"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "viewLeft", [_mobx.computed], Object.getOwnPropertyDescriptor(_class.prototype, "viewLeft"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "viewWidth", [_mobx.computed], Object.getOwnPropertyDescriptor(_class.prototype, "viewWidth"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "viewRight", [_mobx.computed], Object.getOwnPropertyDescriptor(_class.prototype, "viewRight"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "centerView", [_mobx.action], Object.getOwnPropertyDescriptor(_class.prototype, "centerView"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "moveView", [_mobx.action], Object.getOwnPropertyDescriptor(_class.prototype, "moveView"), _class.prototype)), _class);
+exports.ScrollerState = ScrollerState;
+
+},{"mobx":"2yJsB"}],"DpABt":[function(require,module,exports) {
+var define;
+!(function (t, e) {
+  "object" == typeof exports && "undefined" != typeof module ? module.exports = e() : "function" == typeof define && define.amd ? define(e) : t.dayjs = e();
+})(this, function () {
+  "use strict";
+  var t = "millisecond", e = "second", n = "minute", r = "hour", i = "day", s = "week", u = "month", a = "quarter", o = "year", f = "date", h = /^(\d{4})[-/]?(\d{1,2})?[-/]?(\d{0,2})[^0-9]*(\d{1,2})?:?(\d{1,2})?:?(\d{1,2})?[.:]?(\d+)?$/, c = /\[([^\]]+)]|Y{1,4}|M{1,4}|D{1,2}|d{1,4}|H{1,2}|h{1,2}|a|A|m{1,2}|s{1,2}|Z{1,2}|SSS/g, d = {
+    name: "en",
+    weekdays: ("Sunday_Monday_Tuesday_Wednesday_Thursday_Friday_Saturday").split("_"),
+    months: ("January_February_March_April_May_June_July_August_September_October_November_December").split("_")
+  }, $ = function (t, e, n) {
+    var r = String(t);
+    return !r || r.length >= e ? t : "" + Array(e + 1 - r.length).join(n) + t;
+  }, l = {
+    s: $,
+    z: function (t) {
+      var e = -t.utcOffset(), n = Math.abs(e), r = Math.floor(n / 60), i = n % 60;
+      return (e <= 0 ? "+" : "-") + $(r, 2, "0") + ":" + $(i, 2, "0");
+    },
+    m: function t(e, n) {
+      if (e.date() < n.date()) return -t(n, e);
+      var r = 12 * (n.year() - e.year()) + (n.month() - e.month()), i = e.clone().add(r, u), s = n - i < 0, a = e.clone().add(r + (s ? -1 : 1), u);
+      return +(-(r + (n - i) / (s ? i - a : a - i)) || 0);
+    },
+    a: function (t) {
+      return t < 0 ? Math.ceil(t) || 0 : Math.floor(t);
+    },
+    p: function (h) {
+      return ({
+        M: u,
+        y: o,
+        w: s,
+        d: i,
+        D: f,
+        h: r,
+        m: n,
+        s: e,
+        ms: t,
+        Q: a
+      })[h] || String(h || "").toLowerCase().replace(/s$/, "");
+    },
+    u: function (t) {
+      return void 0 === t;
+    }
+  }, y = "en", M = {};
+  M[y] = d;
+  var m = function (t) {
+    return t instanceof S;
+  }, D = function (t, e, n) {
+    var r;
+    if (!t) return y;
+    if ("string" == typeof t) (M[t] && (r = t), e && (M[t] = e, r = t)); else {
+      var i = t.name;
+      (M[i] = t, r = i);
+    }
+    return (!n && r && (y = r), r || !n && y);
+  }, v = function (t, e) {
+    if (m(t)) return t.clone();
+    var n = "object" == typeof e ? e : {};
+    return (n.date = t, n.args = arguments, new S(n));
+  }, g = l;
+  (g.l = D, g.i = m, g.w = function (t, e) {
+    return v(t, {
+      locale: e.$L,
+      utc: e.$u,
+      x: e.$x,
+      $offset: e.$offset
+    });
+  });
+  var S = (function () {
+    function d(t) {
+      (this.$L = D(t.locale, null, !0), this.parse(t));
+    }
+    var $ = d.prototype;
+    return ($.parse = function (t) {
+      (this.$d = (function (t) {
+        var e = t.date, n = t.utc;
+        if (null === e) return new Date(NaN);
+        if (g.u(e)) return new Date();
+        if (e instanceof Date) return new Date(e);
+        if ("string" == typeof e && !(/Z$/i).test(e)) {
+          var r = e.match(h);
+          if (r) {
+            var i = r[2] - 1 || 0, s = (r[7] || "0").substring(0, 3);
+            return n ? new Date(Date.UTC(r[1], i, r[3] || 1, r[4] || 0, r[5] || 0, r[6] || 0, s)) : new Date(r[1], i, r[3] || 1, r[4] || 0, r[5] || 0, r[6] || 0, s);
+          }
+        }
+        return new Date(e);
+      })(t), this.$x = t.x || ({}), this.init());
+    }, $.init = function () {
+      var t = this.$d;
+      (this.$y = t.getFullYear(), this.$M = t.getMonth(), this.$D = t.getDate(), this.$W = t.getDay(), this.$H = t.getHours(), this.$m = t.getMinutes(), this.$s = t.getSeconds(), this.$ms = t.getMilliseconds());
+    }, $.$utils = function () {
+      return g;
+    }, $.isValid = function () {
+      return !("Invalid Date" === this.$d.toString());
+    }, $.isSame = function (t, e) {
+      var n = v(t);
+      return this.startOf(e) <= n && n <= this.endOf(e);
+    }, $.isAfter = function (t, e) {
+      return v(t) < this.startOf(e);
+    }, $.isBefore = function (t, e) {
+      return this.endOf(e) < v(t);
+    }, $.$g = function (t, e, n) {
+      return g.u(t) ? this[e] : this.set(n, t);
+    }, $.unix = function () {
+      return Math.floor(this.valueOf() / 1e3);
+    }, $.valueOf = function () {
+      return this.$d.getTime();
+    }, $.startOf = function (t, a) {
+      var h = this, c = !!g.u(a) || a, d = g.p(t), $ = function (t, e) {
+        var n = g.w(h.$u ? Date.UTC(h.$y, e, t) : new Date(h.$y, e, t), h);
+        return c ? n : n.endOf(i);
+      }, l = function (t, e) {
+        return g.w(h.toDate()[t].apply(h.toDate("s"), (c ? [0, 0, 0, 0] : [23, 59, 59, 999]).slice(e)), h);
+      }, y = this.$W, M = this.$M, m = this.$D, D = "set" + (this.$u ? "UTC" : "");
+      switch (d) {
+        case o:
+          return c ? $(1, 0) : $(31, 11);
+        case u:
+          return c ? $(1, M) : $(0, M + 1);
+        case s:
+          var v = this.$locale().weekStart || 0, S = (y < v ? y + 7 : y) - v;
+          return $(c ? m - S : m + (6 - S), M);
+        case i:
+        case f:
+          return l(D + "Hours", 0);
+        case r:
+          return l(D + "Minutes", 1);
+        case n:
+          return l(D + "Seconds", 2);
+        case e:
+          return l(D + "Milliseconds", 3);
+        default:
+          return this.clone();
+      }
+    }, $.endOf = function (t) {
+      return this.startOf(t, !1);
+    }, $.$set = function (s, a) {
+      var h, c = g.p(s), d = "set" + (this.$u ? "UTC" : ""), $ = (h = {}, h[i] = d + "Date", h[f] = d + "Date", h[u] = d + "Month", h[o] = d + "FullYear", h[r] = d + "Hours", h[n] = d + "Minutes", h[e] = d + "Seconds", h[t] = d + "Milliseconds", h)[c], l = c === i ? this.$D + (a - this.$W) : a;
+      if (c === u || c === o) {
+        var y = this.clone().set(f, 1);
+        (y.$d[$](l), y.init(), this.$d = y.set(f, Math.min(this.$D, y.daysInMonth())).$d);
+      } else $ && this.$d[$](l);
+      return (this.init(), this);
+    }, $.set = function (t, e) {
+      return this.clone().$set(t, e);
+    }, $.get = function (t) {
+      return this[g.p(t)]();
+    }, $.add = function (t, a) {
+      var f, h = this;
+      t = Number(t);
+      var c = g.p(a), d = function (e) {
+        var n = v(h);
+        return g.w(n.date(n.date() + Math.round(e * t)), h);
+      };
+      if (c === u) return this.set(u, this.$M + t);
+      if (c === o) return this.set(o, this.$y + t);
+      if (c === i) return d(1);
+      if (c === s) return d(7);
+      var $ = (f = {}, f[n] = 6e4, f[r] = 36e5, f[e] = 1e3, f)[c] || 1, l = this.$d.getTime() + t * $;
+      return g.w(l, this);
+    }, $.subtract = function (t, e) {
+      return this.add(-1 * t, e);
+    }, $.format = function (t) {
+      var e = this;
+      if (!this.isValid()) return "Invalid Date";
+      var n = t || "YYYY-MM-DDTHH:mm:ssZ", r = g.z(this), i = this.$locale(), s = this.$H, u = this.$m, a = this.$M, o = i.weekdays, f = i.months, h = function (t, r, i, s) {
+        return t && (t[r] || t(e, n)) || i[r].substr(0, s);
+      }, d = function (t) {
+        return g.s(s % 12 || 12, t, "0");
+      }, $ = i.meridiem || (function (t, e, n) {
+        var r = t < 12 ? "AM" : "PM";
+        return n ? r.toLowerCase() : r;
+      }), l = {
+        YY: String(this.$y).slice(-2),
+        YYYY: this.$y,
+        M: a + 1,
+        MM: g.s(a + 1, 2, "0"),
+        MMM: h(i.monthsShort, a, f, 3),
+        MMMM: h(f, a),
+        D: this.$D,
+        DD: g.s(this.$D, 2, "0"),
+        d: String(this.$W),
+        dd: h(i.weekdaysMin, this.$W, o, 2),
+        ddd: h(i.weekdaysShort, this.$W, o, 3),
+        dddd: o[this.$W],
+        H: String(s),
+        HH: g.s(s, 2, "0"),
+        h: d(1),
+        hh: d(2),
+        a: $(s, u, !0),
+        A: $(s, u, !1),
+        m: String(u),
+        mm: g.s(u, 2, "0"),
+        s: String(this.$s),
+        ss: g.s(this.$s, 2, "0"),
+        SSS: g.s(this.$ms, 3, "0"),
+        Z: r
+      };
+      return n.replace(c, function (t, e) {
+        return e || l[t] || r.replace(":", "");
+      });
+    }, $.utcOffset = function () {
+      return 15 * -Math.round(this.$d.getTimezoneOffset() / 15);
+    }, $.diff = function (t, f, h) {
+      var c, d = g.p(f), $ = v(t), l = 6e4 * ($.utcOffset() - this.utcOffset()), y = this - $, M = g.m(this, $);
+      return (M = (c = {}, c[o] = M / 12, c[u] = M, c[a] = M / 3, c[s] = (y - l) / 6048e5, c[i] = (y - l) / 864e5, c[r] = y / 36e5, c[n] = y / 6e4, c[e] = y / 1e3, c)[d] || y, h ? M : g.a(M));
+    }, $.daysInMonth = function () {
+      return this.endOf(u).$D;
+    }, $.$locale = function () {
+      return M[this.$L];
+    }, $.locale = function (t, e) {
+      if (!t) return this.$L;
+      var n = this.clone(), r = D(t, e, !0);
+      return (r && (n.$L = r), n);
+    }, $.clone = function () {
+      return g.w(this.$d, this);
+    }, $.toDate = function () {
+      return new Date(this.valueOf());
+    }, $.toJSON = function () {
+      return this.isValid() ? this.toISOString() : null;
+    }, $.toISOString = function () {
+      return this.$d.toISOString();
+    }, $.toString = function () {
+      return this.$d.toUTCString();
+    }, d);
+  })(), p = S.prototype;
+  return (v.prototype = p, [["$ms", t], ["$s", e], ["$m", n], ["$H", r], ["$W", i], ["$M", u], ["$y", o], ["$D", f]].forEach(function (t) {
+    p[t[1]] = function (e) {
+      return this.$g(e, t[0], t[1]);
+    };
+  }), v.extend = function (t, e) {
+    return (t.$i || (t(e, S, v), t.$i = !0), v);
+  }, v.locale = D, v.isDayjs = m, v.unix = function (t) {
+    return v(1e3 * t);
+  }, v.en = M[y], v.Ls = M, v.p = {}, v);
+});
 
 },{}]},["1j6wU","3Imd1","5rkFb"], "5rkFb", "parcelRequire86a3")
 

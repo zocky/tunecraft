@@ -5,9 +5,14 @@ import Soundfont from "soundfont-player";
 import { PlayerState } from "./PlayerState";
 import { Tune } from "./Tune";
 import { clamp } from "./utils";
+import { ScrollerState } from "./ScrollerState";
+import dayjs from "dayjs";
 
 export class AppState {
   context = new AudioContext();
+
+  @observable player =null;
+  @observable scroller = null;
 
   @observable
   editorWidth = 500;
@@ -21,23 +26,23 @@ export class AppState {
     hasLoop: false,
     looping: false,
     snapping: true,
-    scrollTime: 0,
+    viewBeginTime: 0,
   }
 
+  @observable trackHeights = [];
+
   @observable
-  scrollWidth = 0;
+  viewWidth = 0;
 
   @observable
   scrollHeight = 0;
 
-  @observable
-  scrollerWidth = 0;
-
-  @computed 
-  get scrollerZoom() {
-    return this.scrollerWidth / this.tune?.length
+  getTime(x) {
+    return x/this.zoomX;
   }
-
+  getX(time) {
+    return time * this.zoomX;
+  }
 
   @computed
   get snapping() {
@@ -52,24 +57,57 @@ export class AppState {
     this.snapping = !this.snapping;
   }
 
-  @computed get scrollTime() {
-    return this.settings.scrollTime;
+  @computed 
+  get maxViewBeginTime() {
+    const totalTime = this.tune?.length || 0;
+    const time = totalTime-this.viewDuration;
+    return Math.max(0,time)
+  }
+
+  clampViewBeginTime(time) {
+    return clamp(time, 0,this.maxViewBeginTime)
+  }
+
+  @computed get viewBeginTime() {
+    return this.clampViewBeginTime(this.settings.viewBeginTime);
+  }
+
+  set viewBeginTime(time) {
+    this.settings.viewBeginTime = this.clampViewBeginTime(time);
+  }
+
+  @computed get viewCenterTime() {
+    return (this.viewBeginTime+this.viewEndTime)/2;
+  }
+
+  set viewCenterTime(time) {
+    this.viewBeginTime = time - this.viewDuration/2;
   }
 
 
-  @computed get scrollDuration() {
-    return this.scrollWidth/this.zoomX;
+  @computed get viewDuration() {
+    return this.viewWidth/this.zoomX;
   }
 
-  @computed get scrollX() {
-    return Math.round(this.settings.scrollTime * this.zoomX)
+  @computed get viewEndTime() {
+    return this.viewBeginTime + this.viewDuration;
   }
-  set scrollX(value) {
-    this.settings.scrollTime = Math.max(0,value) / this.zoomX;
+
+  @computed get viewLeft() {
+    return this.getX(this.viewBeginTime)
   }
+  set viewLeft(value) {
+    this.viewBeginTime = this.getTime(value);
+  }
+
   @action
-  moveScrollX(value) {
-    this.scrollX += value;
+  moveViewLeft(value) {
+    this.viewLeft += value;
+  }
+
+  @action
+  moveViewTime(time) {
+    this.viewBeginTime += time;
   }
 
   @observable
@@ -81,11 +119,11 @@ export class AppState {
   @computed 
   get mouseX() {
     if (!this._mouseOver) return null;
-    return this._mouseX+this.scrollX;
+    return this._mouseX+this.viewLeft;
   }
   set mouseX(value) {
     this._mouseOver = true;
-    this._mouseX = value-this.scrollX;
+    this._mouseX = value-this.viewLeft;
   }
   @action mouseLeave() {
     this._mouseOver = false;
@@ -119,12 +157,23 @@ export class AppState {
 
   @action.bound
   zoomInX() {
-    if (this.settings.zoomX < 16) this.settings.zoomX++;
+    if (this.settings.zoomX < 16) {
+      let x = this.mouseX - this.viewLeft;
+      let time = this.mouseTime;
+      this.settings.zoomX++;
+      this.viewLeft = this.getX(time)-x;
+    }
   }
 
   @action.bound
   zoomOutX() {
-    if (this.settings.zoomX > 1) this.settings.zoomX--;
+    if (this.settings.zoomX > 1) {
+      let x = this.mouseX - this.viewLeft;
+      let time = this.mouseTime;
+      this.settings.zoomX--;
+      this.viewLeft = this.getX(time)-x;
+
+    }
   }
 
   @computed
@@ -195,22 +244,50 @@ export class AppState {
     return Object.keys(this.tracks);
   }
 
-  @computed get soundfonts() {
-    trace();
-    if (!this.tune) return {};
-    return {
-      default: "FatBoy",
-      ...this.tune.soundfonts
-    }
+  @observable fileName = "tune";
+
+  exportMidi() {
+    var blob = new Blob([this.tune.toMidiBuffer], { type: "audio/midi" });
+    var link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.href = url;
+
+    link.download = this.fileName+dayjs().format('-YYYY-MM-DD-HH-MM')+".mid";
+    link.click();
+    URL.revokeObjectURL(url);
   }
+
+  saveTune() {
+    var blob = new Blob([this.source], { type: "text/plain" });
+    var link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.href = url;
+
+    link.download = this.fileName+dayjs().format(' YYYY-MM-DD-HH-MM')+".tune";
+    link.click();
+    URL.revokeObjectURL(url);
+  }
+
+  openTune(file) {
+    var fr = new FileReader();
+    fr.onload=action(()=>{
+      this.source = fr.result;
+      this.fileName=file.name.replace(/[0-9\-]+\..*$/,'');
+      console.log(this.fileName)
+    })
+    fr.readAsText(file);
+  }
+
 
   constructor() {
     top.app = this;
     let lastResult;
     makeObservable(this);
     this.player = new PlayerState(this);
+    this.scroller = new ScrollerState(this);
 
-    reaction(() => { this.instruments; this.tune; return this.result }, ({ result, error }) => {
+    reaction(() => {
+      this.tune; return this.result }, ({ result, error }) => {
       if (result === lastResult) return;
       lastResult = result;
       localStorage.tunecraft_save = this.source;

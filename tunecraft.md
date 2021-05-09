@@ -13,7 +13,7 @@ $scale = 1 (2 3) 4 (5 6)
 [ C | $scale | D | $scale ]
 
 // Plays the first six notes of the major scale in C, then in D
-// both times in a 1/4 1/8 1/8 1/4 1/8 1/8 šattern
+// both times in a 1/4 1/8 1/8 1/4 1/8 1/8 pattern
 ````
 ### Advanced
 ````

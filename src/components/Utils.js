@@ -17,6 +17,7 @@ export class Draggable extends React.Component {
     if (e.buttons != buttons) return;
     if (e.ctrlKey != ctrl) return;
     if (e.shiftKey != shift) return;
+    console.log('drag')
 
     const { draggable } = this.ref;
     const dd = { draggable, nativeEvent: e.nativeEvent };
@@ -40,7 +41,7 @@ export class Draggable extends React.Component {
   }
   render() {
     const { children, as: As = 'div', buttons, ctrl, shift, onBeginDrag, onEndDrag, onDrag, draggingClass, ...attr } = this.props;
-    return (<As ref={ref => this.ref = ref} {...attr} onMouseDown={this.onMouseDown}>
+    return (<As ref={ref => this.ref = ref} {...attr} onMouseMove={this.onMouseDown}>
       {children}
     </As>
     )
@@ -74,3 +75,45 @@ export class Wheelable extends React.Component {
   }
 }
 
+
+
+
+@observer
+export class Resizable extends React.Component {
+  componentDidMount() {
+    const onResize = action(this.props.onResize);
+    this.observer = new ResizeObserver(action(entries => {
+      for (let entry of entries) {
+        onResize( entry.contentRect);
+      }
+    }));
+    this.observer.observe(this.ref);
+  }
+  componentWillMount() {
+    this.observer.disconnect();
+  }
+  render() {
+    const { children, as: As = 'div', onResize, ...attr } = this.props;
+    return (<As ref={ref => this.ref = ref} {...attr}>
+      {children}
+    </As>
+    )
+  }
+}
+
+
+export function onResize(element,handler) {
+  const onResize = action(handler);
+  const observer = new ResizeObserver(action(entries => {
+    for (let entry of entries) {
+      onResize( entry.contentRect);
+    }
+  }));
+  observer.observe(element);
+}
+
+
+export function onWheel(element,handler) {
+  const onWheel = action(handler);
+  element.addEventListener('wheel',onWheel,{passive:false});
+}

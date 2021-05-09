@@ -7,24 +7,27 @@
   left: 0;
   bottom: 0;
   right: 0;
-  display: flex;
-  flex-flow: row;
+  display: grid;
+  grid-template-areas: "left splitter right";
+  grid-template-columns: 1fr 0 max-content;
   background: #000;
   color: white;
   font-family: Roboto, sans-serif;
   user-select: none;
+  overflow: hidden;
 }
 .tc.app > .left {
-  flex: 1;
-  display: flex;
-  flex-flow: column;
+  grid-area: left;
   overflow: hidden;
+  position: relative;
+}
+.tc.app > .splitter {
+  grid-area: splitter;
 }
 .tc.app > .right {
-  max-width: 80%;
-  display: flex;
-  flex-flow: column;
+  grid-area: right;
   overflow: hidden;
+  position: relative;
 }
 .tc.link {
   margin: 0 4px;
@@ -39,108 +42,278 @@
 }
 .tc.splitter {
   width: 12px;
+  position: relative;
+  z-index: 100;
   cursor: col-resize;
+  margin: 0 -6px;
+}
+.tc.logo {
+  position: relative;
+  background: #364e59ff;
+  border-bottom: solid 1px #999;
+  overflow: hidden;
+}
+.tc.logo img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
 }
 
-.tc.player {
-  display: flex;
-  justify-content: space-between;
-  height: 50px;
-  line-height: 50px;
+.tc.controls {
+  grid-area: controls;
+  height: var(--top-height);
+  line-height: var(--top-height);
+  background: #222;
+  display: grid;
+  grid-template-areas: "play stop loop sel" "play stop snap scroll";
+  padding: 4px 2px;
+  gap: 4px;
+  grid-template-rows: 20px 20px;
+  grid-template-columns: 48px 48px 60px 60px;
 }
-.tc.player button {
+.tc.controls > .play {
+  grid-area: play;
+}
+.tc.controls > .stop {
+  grid-area: stop;
+}
+.tc.controls > .loop {
+  grid-area: loop;
+}
+.tc.controls > .sel {
+  grid-area: sel;
+}
+.tc.controls > .snap {
+  grid-area: snap;
+}
+.tc.controls > .scroll {
+  grid-area: scroll;
+}
+.tc.time {
+  grid-area: time;
+  text-align: center;
+  background: #222;
+  line-height: var(--top-height);
+  width: 200px;
+}
+.tc.links {
+  grid-area: links;
+  text-align: right;
+  line-height: var(--top-height);
+  padding-right: 8px;
+  height: var(--top-height);
+  background: #222;
+  display: grid;
+  grid-template-areas: "left open midi" "left save mp3";
+  padding: 4px 2px;
+  gap: 4px;
+  grid-template-rows: 20px 20px;
+  grid-template-columns: 1fr max-content max-content;
+}
+.tc.links > .open {
+  grid-area: open;
+}
+.tc.links > .save {
+  grid-area: save;
+}
+.tc.links > .midi {
+  grid-area: midi;
+}
+.tc.links > .mp3 {
+  grid-area: mp3;
+  opacity: 0.2;
+}
+.tc.small-button {
+  color: #818181;
+  background: linear-gradient(to bottom, #282828 0%, #0F0F0F 5%, #060606 100%);
+  box-shadow: 0 0 1px 1px #0a0a0a, 0 0 2px 2px #fff2;
   border: none;
-  background: #333;
-  color: #999;
-  cursor: hover;
-  border-radius: 6px;
-  line-height: 1;
+  text-align: left;
+  font-size: 9.9px;
+  font-weight: 800;
+  border-radius: 4px;
+  padding: 0 8px;
+  position: relative;
+  vertical-align: middle;
+  line-height: 20px;
+  min-height: 20px;
 }
-.tc.player button:hover {
-  color: white;
-  background: #444;
-}
-.tc.player button:active {
+.tc.small-button:hover {
   color: #ccc;
 }
-.tc.player button.active {
-  color: yellow;
-  background: #444;
-  box-shadow: 0 0 4px 1px #ddd inset;
-}
-.tc.player > .controls button {
-  height: 40px;
-  width: 40px;
-  margin: 4px;
-  font-size: 24px;
-}
-.tc.player > .options button {
-  height: 30px;
-  width: 30px;
-  margin: 4px;
-  font-size: 16px;
+.tc.led-button {
+  padding: 0 16px 0 8px;
+  color: #818181;
+  background: linear-gradient(to bottom, #282828 0%, #0F0F0F 5%, #060606 100%);
+  box-shadow: 0 0 1px 1px #0a0a0a, 0 0 2px 2px #fff2;
+  border: none;
+  text-align: left;
+  font-size: 9.9px;
   font-weight: 800;
+  border-radius: 4px;
+  padding: 0 8px;
+  position: relative;
+  vertical-align: middle;
+  line-height: 20px;
+  min-height: 20px;
 }
-.tc.player > .options button.active {
-  color: lime;
-  background: #444;
-  box-shadow: 0 0 4px 1px lime inset;
+.tc.led-button:hover {
+  color: #ccc;
 }
-.tc.player > .time {
-  font-size: 18px;
-  line-height: 50px;
-  margin: 0 8px;
+.tc.led-button:before {
+  position: absolute;
+  content: '';
+  right: 4px;
+  top: 6px;
+  width: 6px;
+  height: 6px;
+  background: #646464;
+  border-radius: 50%;
+  box-shadow: 0 0 4px #1C1C17;
+  transition: all 0.2s ease;
+}
+.tc.led-button.active {
+  color: #ccc;
+  box-shadow: 0 0 1px 1px #0a0a0a, 0 0 2px 2px #ff04;
+}
+.tc.led-button.active:before {
+  background: goldenrod;
+}
+.tc.control-button {
+  vertical-align: middle;
+  color: #818181;
+  background: linear-gradient(to bottom, #282828 0%, #0F0F0F 5%, #060606 100%);
+  box-shadow: 0 0 1px 1px #0a0a0a, 0 0 2px 2px #fff2;
+  border: none;
+  text-align: center;
+  font-size: 24px;
+  font-weight: 800;
+  border-radius: 4px;
+  position: relative;
+}
+.tc.control-button.active {
+  color: goldenrod;
+  box-shadow: 0 0 1px 1px #0a0a0a, 0 0 2px 2px #ff04;
 }
 
-.tc.tracks {
-  position: relative;
-  height: 100%;
-  width: 100%;
-  overflow-y: auto;
-  overflow-x: hidden;
+/*.tc.tracks {
+  position       : relative;
+  height         : 100%;
+  width          : 100%;
+  overflow-y     : auto;
+  overflow-x     : hidden;
+  //padding-right:100px;
+  display:flex;
+  >.headers {
+    margin-top:28px;
+    background:black;
+    z-index:3;
+  }
+
+  >.view {
+    min-height: 100%;
+    position  : relative;
+    display   : inline-block;
+    overflow  : visible;
+
+
+    >.tracks {
+      width     : auto;
+      display   : inline-block;
+      border-top: solid 1px white;
+      min-height: 100%;
+      margin-top: 20px;
+      position  : relative;
+    }
+  }
+
+  .overlay {
+    position: absolute;
+    top     : 0;
+    bottom  : 0;
+    right   : 0;
+    z-index : 1;
+  }
 }
-.tc.tracks > .view {
+*/
+.tc.track {
+  display: block;
+  background: #000400;
+  background: linear-gradient(to bottom, #181818 0%, #111 60%, #060606 100%);
+}
+.tc.track-headers {
+  grid-area: headers;
+  overflow: hidden;
+  position: relative;
+  box-shadow: 0px 0 6px 0 #0008;
+  background: #222;
+}
+.tc.track-header {
+  pointer-events: all;
+  overflow: hidden;
+  padding: 4px 8px 4px 8px;
+  display: block;
+  font-weight: 400;
+  font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  background: #000400;
+  background: linear-gradient(to bottom, #181818 0%, #111 60%, #060606 100%);
+}
+.tc.track-header .track-id:before {
+  content: "";
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  background: var(--track-color);
+  margin-right: 4px;
+}
+
+.tc.viewer {
+  --top-height: 52px;
+  --scroller-height: 48px;
+  --ruler-height: 24px;
+  position: absolute;
+  top: 0px;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  display: grid;
+  grid-template-areas: "logo splitter controls time links" "logo splitter scroller scroller scroller" "logo splitter ruler ruler ruler" "headers splitter viewport viewport viewport";
+  grid-template-columns: 120px 0px 1fr max-content 1fr;
+  grid-template-rows: var(--top-height) var(--scroller-height) var(--ruler-height) 1fr;
+}
+.tc.viewer > .logo {
+  grid-area: logo;
+}
+.tc.viewer > .splitter {
+  grid-area: splitter;
+}
+.tc.viewport {
+  grid-area: viewport;
+  overflow: hidden;
+}
+.tc.viewport > .view {
   min-height: 100%;
   position: relative;
   display: inline-block;
   overflow: visible;
 }
-.tc.tracks > .view > .tracks {
+.tc.viewport > .view > .tracks {
   width: auto;
   display: inline-block;
-  border-top: solid 1px white;
   min-height: 100%;
   position: relative;
 }
-.tc.tracks .overlay {
+.tc.viewport > .view .overlay {
   position: absolute;
   top: 0;
-  left: 100px;
   bottom: 0;
   right: 0;
-  z-index: 1;
-}
-.tc.track {
-  background: #333;
-  display: flex;
-  flex-flow: row;
-  border-bottom: solid 1px white;
-}
-.tc.track > .header {
-  pointer-events: all;
-  flex: 0 0 100px;
-  width: 100px;
-  background: #222;
-  padding: 2px 4px;
-  display: block;
-  position: sticky;
-  font-weight: 400;
-  font-size: 13px;
   left: 0;
-  top: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  z-index: 2;
+  z-index: 1;
 }
 .tc.seek-cursor {
   pointer-events: none;
@@ -149,16 +322,18 @@
   height: 100%;
   width: 0;
   margin-left: -1.5px;
-  border-left: solid 1px white;
+  border-left: solid 1px yellow;
+  z-index: 6;
 }
 .tc.mouse-cursor {
   pointer-events: none;
   position: absolute;
   top: 0;
   height: 100%;
+  z-index: 5;
   width: 0;
   margin-left: -1.5px;
-  border-left: solid 1px #6cc;
+  border-left: solid 1px #999;
 }
 .tc.loop-region {
   pointer-events: none;
@@ -193,42 +368,71 @@
   border-left: solid 1px yellow;
 }
 .tc.scroller {
-  flex: 1;
-  display: flex;
+  grid-area: scroller;
+  overflow: hidden;
   position: relative;
-  background: #333;
-  margin: 6px 12px;
-  height: 44px;
+  background: #222;
+  height: var(--scroller-height);
+  border: solid 3px #222;
 }
 .tc.scroller .track {
-  flex: 1;
-  opacity: 0.5;
+  width: 100%;
+  height: 100%;
 }
 .tc.scroller .tc.loop-region {
   background: #fff4;
 }
 .tc.scroller .tc.view-region {
-  pointer-events: none;
   position: absolute;
   top: 0px;
   bottom: 0px;
-  border: solid 1px #ccc;
+  border-left: solid 2px #999;
+  border-right: solid 2px #999;
+}
+.tc.scroller .tc.view-region:before {
+  pointer-events: none;
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: calc(100% + 1px);
+  width: 100vw;
+  background: #0009;
+}
+.tc.scroller .tc.view-region:after {
+  pointer-events: none;
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: calc(100% + 1px);
+  width: 100vw;
+  background: #0009;
 }
 .tc.ruler {
-  background: #333;
-  padding-top: 6px;
-  margin-left: 100px;
+  grid-area: ruler;
+  display: block;
+  position: relative;
+  overflow: hidden;
+  background: #222;
+  background: linear-gradient(to bottom, #282828 0%, #161616 100%);
+  height: var(--ruler-height);
+}
+.tc.ruler .units {
   display: block;
   white-space: nowrap;
-  overflow: visible;
-  border-bottom: solid 2px white;
+  position: absolute;
+  top: 0;
+  bottom: 0;
 }
 .tc.ruler .second {
-  display: inline-block;
+  height: var(--ruler-height);
   font-size: 10px;
-  line-height: 10px;
-  border-left: solid 1px white;
-  padding: 2px 4px;
+  vertical-align: top;
+  display: inline-block;
+  border-left: solid 1px #666;
+  border-bottom: solid 1px #999;
+  padding: 6px 4px 3px 4px;
 }
 
 

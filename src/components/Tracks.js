@@ -3,7 +3,10 @@ import React from "react";
 import { observer } from "mobx-react";
 import { action, computed, makeObservable } from "mobx";
 import "./Tracks.less";
-import { Draggable, Wheelable } from "./Utils";
+import { Draggable, onResize, onWheel, Wheelable } from "./Utils";
+import { Scroller } from "./Scroller";
+import { Overlay, Ruler } from "./Overlay";
+
 const COLORS = [
   '#FF695E',
   '#FF851B',
@@ -36,19 +39,13 @@ const COLORS = [
 export class Tracks extends React.Component {
 
   componentDidMount() {
+    onResize(this.ref,this.onResize);
+    onWheel(this.ref,this.onWheel);
+  }
+  onResize = e => {
     const { app } = this.props;
-    var ro = new ResizeObserver(entries => {
-      for (let entry of entries) {
-        const cr = entry.contentRect;
-        app.scrollWidth = cr.width;
-        app.scrollHeight = cr.height;
-      }
-    });
-
-    ro.observe(this.ref);
-
-    this.ref.addEventListener('wheel', this.onWheel, { passive: false })
-
+    app.viewWidth = e.width;
+    app.scrollHeight = e.height;
   }
   onWheel = e => {
     const { app } = this.props;
@@ -69,7 +66,7 @@ export class Tracks extends React.Component {
       e.preventDefault();
     }
     if (!e.ctrlKey && !e.shiftKey) {
-      app.moveScrollX(e.deltaY);
+      app.moveViewLeft(e.deltaY);
       e.stopPropagation();
       e.preventDefault();
     }
@@ -82,29 +79,10 @@ export class Tracks extends React.Component {
       <>
         <Scroller app={app} />
         <div className="tc tracks" ref={ref => this.ref = ref} >
-          <View app={app} >
-            <Ruler app={app} />
-            <TrackList app={app} />
-            <Overlay app={app} />
-          </View>
+          <TrackHeaders app={app}/>
+          <View app={app}/>
         </div>
       </>
-    )
-  }
-}
-
-@observer
-export class View extends React.Component {
-  render() {
-    const { app } = this.props;
-    console.log('render', this.constructor.name)
-    //const tracks = app.tracks.filter(({ events }) => events.length);
-    return (
-      <div className="view" style={{ left: -app.scrollX }}>
-        <Ruler app={app} />
-        <TrackList app={app} />
-        <Overlay app={app} />
-      </div>
     )
   }
 }
@@ -126,245 +104,17 @@ export class TrackList extends React.Component {
   }
 }
 
-
 @observer
-export class Overlay extends React.Component {
-
+export class TrackHeaders extends React.Component {
   render() {
     const { app } = this.props;
     console.log('render', this.constructor.name)
+    //const tracks = app.tracks.filter(({ events }) => events.length);
     return (
-      <div className="overlay"
-        ref={ref => this.ref = ref}
-        onMouseDown={e => {
-          if (e.buttons === 1) {
-            app.player.hold();
-            app.player.seek(app.mouseTime);
-          }
-        }}
-        onMouseUp={e => {
-          app.player.unhold();
-        }}
-        onMouseMove={action(e => {
-          const { app } = this.props;
-          const x = e.pageX - this.ref.getBoundingClientRect().left;
-          app.mouseX = x;
-
-          if (e.buttons === 1) {
-            app.player.seek(app.mouseTime)
-          } else if (e.buttons === 4) {
-            app.moveScrollX(-e.movementX);
-          }
-        })}
-        onMouseLeave={action(e => {
-          app.mouseLeave();
-        })}
-      >
-        <LoopRegion app={app} />
-        <MouseCursor app={app} />
-        <SeekCursor app={app} />
-      </div>
-    )
-  }
-}
-
-
-@observer
-export class Ruler extends React.Component {
-  constructor(...args) {
-    super(...args);
-    makeObservable(this);
-  }
-
-  @computed get seconds() {
-    return this.props.app.tune?.length | 0;
-  }
-  render() {
-    const { app } = this.props;
-    //if (!app.tune) return null;
-    const seconds = [];
-    let step = Math.ceil(64 / app.zoomX)
-    for (let i = 0; i <= this.seconds; i += step) {
-      seconds.push(<div key={i} className="second" style={{ width: app.zoomX * step }}>{i}</div>)
-    }
-    return (
-      <div className="tc ruler">
-        {seconds}
-      </div>
-    )
-  }
-}
-
-@observer
-export class Scroller extends React.Component {
-  constructor(...args) {
-    super(...args);
-    makeObservable(this);
-  }
-
-  componentDidMount() {
-    if(!this.ref) return;
-    const { app } = this.props;
-    var ro = new ResizeObserver(action(entries => {
-      for (let entry of entries) {
-        const cr = entry.contentRect;
-        app.scrollerWidth = cr.width;
-      }
-    }));
-
-    ro.observe(this.ref);
-
-    //this.ref.addEventListener('wheel', this.onWheel, { passive: false })
-
-  }
-
-  @computed
-  get scrollerImage() {
-    const canvas = document.createElement('canvas');
-    const { app } = this.props;
-    const { tracks } = app;
-
-
-    canvas.height = tracks.length * 4;
-    canvas.width = 32 * app.tune.length;
-    const ctx = canvas.getContext('2d');
-    //ctx.fillStyle = "#111";
-    //ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    for (let idx in tracks) {
-      let track = tracks[idx];
-      let color = COLORS[idx % COLORS.length];
-      drawNotes(ctx, track.events, { color, min: 0, max: tracks.length, zoomX: 32, zoomY: 2, fixedY: idx * 2, gap: 0 });
-    }
-
-    return canvas.toDataURL("image/png");
-  }
-
-
-  render() {
-    if (!this.props.app.tune?.length) return null;
-    return (
-      <div className="tc scroller" ref={ref => this.ref = ref}>
-        <img style={{ imageRendering: "pixelated" }} className="track" src={this.scrollerImage} />
-        <LoopRegion app={app} />
-        <ScrollerSeekCursor app={app} />
-        <ScrollerViewRegion app={app} />
-      </div>
-    )
-  }
-}
-
-@observer
-export class ScrollerSeekCursor extends React.Component {
-  @computed get X() {
-    const { player } = app;
-    if (!player) return 0;
-    return Math.round(player.playbackTime * app.scrollerZoom);
-
-  }
-  render() {
-    return <div className="tc seek-cursor" style={{ left: this.X }} />
-  }
-}
-
-
-
-@observer
-export class ScrollerViewRegion extends React.Component {
-  constructor(...args) {
-    super(...args);
-    makeObservable(this);
-  }
-
-  @computed get X() {
-    const { app } = this.props;
-    return app.scrollTime * app.scrollerZoom;
-  }
-  @computed get W() {
-    const { app } = this.props;
-    return app.scrollDuration * app.scrollerZoom;
-  }
-  render() {
-    const { app } = this.props;
-    return (
-      <div className="tc view-region" style={{ left: this.X, width: this.W }} />
-    )
-  }
-}
-
-
-
-@observer
-export class SeekCursor extends React.Component {
-  constructor(...args) {
-    super(...args);
-    makeObservable(this);
-  }
-  @computed get X2() {
-    const { app } = this.props;
-    const { player } = app;
-    if (!player) return 0;
-    return (player.playbackTime / player.totalTime * 100).toFixed(4) + '%';
-  }
-
-  @computed get visible() {
-    const { app } = this.props;
-    const { X } = this;
-    return X >= app.scrollX && X <= app.scrollX + app.scrollWidth;
-  }
-
-  @computed get X() {
-    const { player } = app;
-    if (!player) return 0;
-    return Math.round(player.playbackTime * app.zoomX);
-
-  }
-  render() {
-    if (!this.visible) return null;
-    const { app } = this.props;
-    return <div ref={ref => false && app.player.playing && ref?.scrollIntoView({ block: 'nearest', inline: app.player?.holding ? 'nearest' : 'center' })} className="tc seek-cursor" style={{ left: this.X }} />
-  }
-}
-
-@observer
-export class MouseCursor extends React.Component {
-  constructor(...args) {
-    super(...args);
-    makeObservable(this);
-  }
-  @computed get X() {
-    const { app } = this.props;
-    return Math.round(app.mouseTime * app.zoomX);
-  }
-  render() {
-    //return null;
-    if (this.props.app.mouseTime === null) return null;
-    return <div ref={ref => ref?.scrollIntoView({ block: 'nearest', inline: 'nearest' })} className="tc mouse-cursor" style={{ left: this.X }} />
-  }
-}
-
-@observer
-export class LoopRegion extends React.Component {
-  constructor(...args) {
-    super(...args);
-    makeObservable(this);
-  }
-
-  @computed get X() {
-    const { app } = this.props;
-    return (app.loopIn / app.player.totalTime * 100).toFixed(4) + '%';
-  }
-  @computed get W() {
-    const { app } = this.props;
-    return ((app.loopOut - app.loopIn) / app.player.totalTime * 100).toFixed(4) + '%';
-  }
-  render() {
-    const { app } = this.props;
-    if (!app.hasLoop) return null;
-    return (
-      <div className="tc loop-region" style={{ left: this.X, width: this.W }}>
-        <Draggable className="in splitter" onDrag={e => app.moveLoopIn(e.movementX / app.zoomX)} />
-        <Draggable className="out splitter" onDrag={e => app.moveLoopOut(e.movementX / app.zoomX)} />
+      <div className="tc track-headers" >
+        {app.trackKeys.map((idx) =>
+          <TrackHeader key={idx} app={app} idx={idx} color={COLORS[idx % COLORS.length]} />
+        )}
       </div>
     )
   }
@@ -377,6 +127,11 @@ export class Track extends React.Component {
     makeObservable(this);
   }
 
+  componentDidMount() {
+    onResize(this.ref, e=>{
+      this.props.app.trackHeights[this.props.idx] = e.height;
+    })
+  }
 
   @computed
   get trackImage() {
@@ -434,18 +189,45 @@ export class Track extends React.Component {
   render() {
     const { app } = this.props;
     return (
-      <div className="tc track">
-        <Wheelable className="header" onWheel={e => {
-          e.stopPropagation();
-        }}>
-          {this.track.id}
-        </Wheelable>
-        <img draggable={false} src={this.trackImage}
-        />
-      </div >
+      <div className="tc track" ref={ref=>this.ref=ref}>
+        <img draggable={false} src={this.trackImage}/>
+      </div>
     )
   }
 }
+
+@observer
+export class TrackHeader extends React.Component {
+  constructor(...args) {
+    super(...args);
+    makeObservable(this);
+  }
+  @computed get track() {
+    return this.props.app.tracks[this.props.idx];
+  }
+  @computed get height() {
+    if (this.props.app.trackHeights.length<=this.props.idx) return 0;
+    return this.props.app.trackHeights[this.props.idx];
+  }
+  render() {
+    return (
+        <div 
+          className="tc track-header"
+          style={{
+            height:this.height,
+            "--track-color":this.props.color
+          }}
+          ref={ref => ref && onWheel(ref,e=>{
+            e.stopPropagation();
+          })}>
+          <span className="track-id">
+            {this.track.id}
+          </span>
+        </div>
+    )
+  }
+}
+
 
 
 function drawNotes(ctx, events, { color, max, min, zoomX, zoomY, fixedY, gap = 2 }) {

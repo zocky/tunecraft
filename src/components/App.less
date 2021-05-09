@@ -7,24 +7,26 @@
   left:0;
   bottom:0;
   right:0;
-  display:flex;
-  flex-flow:row;
+  display:grid;
+  grid-template-areas: "left splitter right";
+  grid-template-columns: 1fr 0 max-content;
   background:#000;
   color:white;
   font-family:Roboto,sans-serif;
   user-select: none;
-  
+  overflow:hidden;
   >.left {
-    flex:1;
-    display:flex;
-    flex-flow:column;
+    grid-area:left;
     overflow:hidden;
+    position:relative;
+  }
+  >.splitter {
+    grid-area:splitter;
   }
   >.right {
-    max-width:80%;
-    display:flex;
-    flex-flow:column;
+    grid-area:right;
     overflow:hidden;
+    position:relative;
   }
 }
 
@@ -40,8 +42,24 @@
   overflow:auto;
 }
 
-
 .tc.splitter {
   width:12px;
+  position:relative;
+  z-index:100;
   cursor:col-resize;
+  margin:0 -6px;
+}
+
+.tc.logo {
+  position:relative;
+  background:#364e59ff;
+  border-bottom: solid 1px #999;
+  overflow:hidden;
+  img {
+    position:absolute;
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
+  }
 }
