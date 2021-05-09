@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.html",
   "scripts": {
-    "start": "(cd $INIT_CWD; parcel serve ./src/index.html)",
+    "start": "(cd $INIT_CWD; parcel serve ./src/index.html --public-url='./')",
     "build": "(cd $INIT_CWD; parcel build ./src/index.html)"
   },
   "author": "",
