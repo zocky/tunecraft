@@ -30,7 +30,6 @@ export class PlayerState {
   offsetTime = 0;
 
   @computed get tune() {
-    console.log('tune');
     return this.app.tune;
   }
 
@@ -38,14 +37,13 @@ export class PlayerState {
     this.ac = app.context;
     this.app = app;
     makeObservable(this);
-    reaction(() => {this.tune;this.instruments;this.soundfonts}, x=>{
-    }) ;
   }
 
   timerID = null;
   queueTime = 0;
 
-  @computed get notes() {
+  @computed({keepAlive:true})
+  get notes() {
     const notes = this.app.tune.events.filter(e => {
       if (e.event !== 'N') return false;
       if (e.at + e.duration <= this.beginTime) return false;
@@ -194,7 +192,8 @@ export class PlayerState {
   }
 
 
-  @computed get soundfonts() {
+  @computed({keepAlive:true})
+  get soundfonts() {
     if (!this.app.tune) return {};
     return {
       default: "FatBoy",
@@ -202,7 +201,8 @@ export class PlayerState {
     }
   }
 
-  @computed get instruments() {
+  @computed({keepAlive:true})
+  get instruments() {
     console.log('instruments');
     const tune = this.app.tune;
     const ret = {};

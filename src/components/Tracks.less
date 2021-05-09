@@ -1,10 +1,16 @@
-.tc.tracks {
+/*.tc.tracks {
   position       : relative;
   height         : 100%;
   width          : 100%;
   overflow-y     : auto;
   overflow-x     : hidden;
   //padding-right:100px;
+  display:flex;
+  >.headers {
+    margin-top:28px;
+    background:black;
+    z-index:3;
+  }
 
   >.view {
     min-height: 100%;
@@ -12,11 +18,13 @@
     display   : inline-block;
     overflow  : visible;
 
+
     >.tracks {
       width     : auto;
       display   : inline-block;
       border-top: solid 1px white;
       min-height: 100%;
+      margin-top: 20px;
       position  : relative;
     }
   }
@@ -24,148 +32,53 @@
   .overlay {
     position: absolute;
     top     : 0;
-    left    : 100px;
     bottom  : 0;
     right   : 0;
     z-index : 1;
   }
 }
+*/
+
+.track() {
+  background   : #000400;
+  background   : linear-gradient(to bottom, #181818 0%,  #111 60%, #060606 100%);
+
+  &:nth-child(even) {
+    //background   : linear-gradient(to bottom, #282828 0%,  #222 10%, #161616 100%);
+  }
+}
 
 .tc.track {
-  background   : #333;
-  display      : flex;
-  flex-flow    : row;
-  border-bottom: solid 1px white;
-
-  >.header {
-    pointer-events: all;
-    flex          : 0 0 100px;
-    width         : 100px;
-    overflow      : hidden;
-    background    : #222;
-    padding       : 2px 4px;
-    display       : block;
-    position      : sticky;
-    font-weight   : 400;
-    font-size     : 13px;
-    left          : 0;
-    top           : 0;
-    overflow      : hidden;
-    text-overflow : ellipsis;
-    z-index       : 2;
-  }
-
-}
-
-.tc.seek-cursor {
-  pointer-events  : none;
-  position        : absolute;
-  top             : 0;
-  height          : 100%;
-  width           : 0;
-  margin-left     : -1.5px;
-  //margin-left   : 100px;
-  border-left     : solid 1px white;
-}
-
-.tc.mouse-cursor {
-  pointer-events  : none;
-  position        : absolute;
-  top             : 0;
-  height          : 100%;
-  width           : 0;
-  //margin-left   : 100px;
-  margin-left     : -1.5px;
-  border-left     : solid 1px #6cc;
-}
-
-.tc.loop-region {
-  pointer-events  : none;
-  position        : absolute;
-  top             : 0;
-  bottom          : 0;
-  //margin-left   : 100px;
-  background      : #fff2;
-
-  >.splitter {
-    pointer-events: all;
-    position      : absolute;
-    top           : 0;
-    bottom        : 0;
-    width         : 12px;
-    cursor        : col-resize;
-
-    &.in {
-      left: -6px;
-    }
-
-    &.out {
-      right: -6px;
-    }
-
-    &.dragging {
-      background: #ff02;
-    }
-
-    &:hover {
-      &::after {
-        content    : "";
-        position   : absolute;
-        top        : 0;
-        bottom     : 0;
-        left       : 6px;
-        border-left: solid 1px yellow;
-
-      }
-
-
-    }
-  }
-
-}
-
-.tc.scroller {
-  flex    : 1;
-  display : flex;
-  position: relative;
-  background:#333;
-  margin:6px 12px;
-  height:44px;
-  .track {
-    flex: 1;
-    opacity:0.5;
-  }
-
-  .tc.loop-region {
-    background: #fff4;
-  }
-
-  .tc.view-region {
-    pointer-events  : none;
-    position        : absolute;
-    top             : 0px;
-    bottom          : 0px;
-    border:solid 1px #ccc;
-    //margin-left   : 100px;
-
-  }
-}
-
-.tc.ruler {
-  background   : #333;
-  padding-top  : 6px;
-  margin-left  : 100px;
   display      : block;
-  white-space  : nowrap;
-  overflow     : visible;
-  border-bottom: solid 2px white;
-
-  .second {
-    display    : inline-block;
-    font-size  : 10px;
-    line-height: 10px;
-    border-left: solid 1px white;
-    padding    : 2px 4px;
-  }
+  .track();
+  //box-shadow:0 1px 0 0 #f806 inset;
 }
 
+.tc.track-headers {
+  grid-area: headers;
+  overflow : hidden;
+  position : relative;
+  box-shadow:0px 0 6px 0 #0008;
+  background: #222;
+}
+
+
+.tc.track-header {
+  pointer-events: all;
+  overflow      : hidden;
+  padding       : 4px 8px 4px 8px;
+  display       : block;
+  font-weight   : 400;
+  font-size     : 13px;
+  text-overflow : ellipsis;
+  white-space: nowrap;
+  .track();
+  .track-id:before {
+    content:"";
+    display:inline-block;
+    width:8px;
+    height:8px;
+    background: var(--track-color);
+    margin-right:4px;
+  }
+}

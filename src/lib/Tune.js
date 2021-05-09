@@ -3,12 +3,13 @@ import { TempoTrack } from "./TempoTrack";
 import { Track } from "./Track";
 
 import Midi from "jsmidgen";
+import { findClosest } from "./utils";
 
 export class Tune {
   @observable
   tracksById = {};
 
-  @computed get
+  @computed({keepAlive:true}) get
     tracks() {
     return Object.values(this.tracksById);
   }
@@ -18,17 +19,30 @@ export class Tune {
   timeAtTick(tick) {
     return this.tempoTrack.timeAtTick(tick);
   }
-  @computed get
+
+  @computed({keepAlive:true})
+  get
     events() {
+      console.log('evens')
     let events = this.tracks
       .flatMap(t => t.events)
       .sort((a, b) => a.tick - b.tick);
     return events;
   }
 
+  @computed({keepAlive:true})
+  get uniqueTimes() {
+    console.log('uniqu')
+    let ret = new Set();
+    for (const e of this.events) ret.add(e.at);
+    return [...ret];
+  }
+
+
   @observable ticks = 0;
 
   snapTime(time) {
+    return findClosest(time,this.uniqueTimes);
     let mt = 0;
     const {events} = this;
     let lower = 0;
@@ -66,16 +80,6 @@ export class Tune {
       bytes[i] = midi.charCodeAt(i);
     }
     return bytes;
-  }
-
-  downloadMidiFile() {
-    var blob = new Blob([this.toMidiBuffer], { type: "audio/midi" });
-    var link = document.createElement('a');
-    const url = URL.createObjectURL(blob);
-    link.href = url;
-    link.download = 'tune.mid';
-    link.click();
-    URL.revokeObjectURL(url);
   }
 
   @computed get length() {
