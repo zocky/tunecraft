@@ -17,7 +17,7 @@ $scale = 1 (2 3) 4 (5 6)
 ````
 ### Advanced
 ````
-  $pattern = 1 3 5 3
+  $pattern = 1 3 5 3 1 3 5 3
   $part =[ 
     | C
     | I $pattern
@@ -26,16 +26,13 @@ $scale = 1 (2 3) 4 (5 6)
     | V $pattern
   ]
 
-  ["acoustic_grand_piano"|[$part]]
+  ["acoustic_grand_piano" V100|[$part]]
 
   {
     $chord = 1 & 3 & 5
     $pattern = ($chord $chord) $chord
-    ["rock_organ"|[$part]]
+    ["rock_organ" V50|[$part]]
   }
-
-  // Will play appreggio on the piano and chords on the organ
-  // both in C, Am, F and G for one measure each
 ````
 
 
