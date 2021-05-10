@@ -4,6 +4,7 @@ import {observer} from "mobx-react";
 import {action} from "mobx";
 import Monaco from "@monaco-editor/react";
 import {debounce} from "../lib/utils";
+import "./Editor.less"
 
 export class Editor extends React.Component {
   

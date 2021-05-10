@@ -267,7 +267,7 @@ class InstrumentState {
   }
 
   play(note, at, options = {}) {
-    if(!this.instrument) console.log('no',this.name)
+//    if(!this.instrument) console.log('no',this.name)
     this.instrument?.play(note, at, { ...this.options, ...options });
   }
 
