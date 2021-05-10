@@ -30,7 +30,7 @@ $scale = 1 (2 3) 4 (5 6)
 
   {
     $chord = 1 & 3 & 5
-    $measure = ($chord $chord) $chord
+    $pattern = ($chord $chord) $chord
     ["rock_organ"|[$part]]
   }
 
