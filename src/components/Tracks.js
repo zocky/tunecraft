@@ -148,14 +148,15 @@ export class TrackHeaderList extends React.Component {
             color={COLORS[idx % COLORS.length]}
           />
         ))}
-        <div>{app.mouseTrack}</div>
+        <div>{app.mouseTrackIndex}</div>
         <div>{app.mouseTrackY}</div>
         <div>{app.mouseTrackPitch}</div>
+        <div>{app.mouseNote?.note}</div>
       </div>
     );
   }
 }
-
+ 
 @observer
 export class Track extends React.Component {
   constructor(...args) {
@@ -245,12 +246,12 @@ export class Track extends React.Component {
 
   @action.bound onMouseEnter(e) {
     const { app } = this.props;
-    app.mouseTrack = this;
+    app.mouseTrackIndex = this;
   }
 
   @action.bound onMouseLeave(e) {
     const { app } = this.props;
-    app.mouseTrack = null;
+    app.mouseTrackIndex = null;
     app.mouseTrackPitch = null;
   }
 

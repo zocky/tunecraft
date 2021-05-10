@@ -216,13 +216,23 @@ export class AppState {
   _mouseOver = false;
 
   @computed
-  get mouseTrack() {
+  get mouseTrackIndex() {
     let sum = 0
     for(const i in this.trackHeights) {
       sum += this.trackHeights[i]
       if(sum > this.mouseY) return i; 
     }
-    return "?full";
+    return null;
+  }
+
+  @computed
+  get mouseTrack() { return this.tracks[this.mouseTrackIndex] }
+
+  @computed
+  get mouseNote() {
+    const t = this.mouseTrack
+    if(!t) return;
+    return t.events.find(e=>e.event='N' && e.at==this.mouseTime && e.note==this.mouseTrackPitch)
   }
 
   @computed
@@ -233,16 +243,16 @@ export class AppState {
       if(sum > this.mouseY) return this.mouseY - last
       last = sum
     }
-    return "?null";
+    return null;
   }
 
   @computed
   get mouseTrackPitch() {
     console.log('trac')
-    if (!this.mouseTrack) return null;
-    const trackComponent = this.trackComponents[this.mouseTrack];
+    if (!this.mouseTrackIndex) return null;
+    const trackComponent = this.trackComponents[this.mouseTrackIndex];
     if (!trackComponent) {
-      console.log('no trac',this.mouseTrack,this.trackComponents[this.mouseTrack])
+      console.log('no trac',this.mouseTrackIndex,this.trackComponents[this.mouseTrackIndex])
       return;
     }
     return trackComponent.max - Math.floor(this.mouseTrackY/this.zoomY)
