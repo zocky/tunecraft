@@ -61,6 +61,14 @@
   height: 100%;
 }
 
+.monaco-editor .tc.error.margin {
+  background-color: red;
+}
+.monaco-editor .tc.error.inline {
+  text-decoration: underline dotted;
+  color: red;
+}
+
 .tc.controls {
   grid-area: controls;
   height: var(--top-height);
@@ -71,7 +79,7 @@
   padding: 4px 2px;
   gap: 4px;
   grid-template-rows: 20px 20px;
-  grid-template-columns: 48px 48px 60px 60px;
+  grid-template-columns: 48px 48px max-content max-content;
 }
 .tc.controls > .play {
   grid-area: play;
@@ -144,7 +152,6 @@
   color: #ccc;
 }
 .tc.led-button {
-  padding: 0 16px 0 8px;
   color: #818181;
   background: linear-gradient(to bottom, #282828 0%, #0F0F0F 5%, #060606 100%);
   box-shadow: 0 0 1px 1px #0a0a0a, 0 0 2px 2px #fff2;
@@ -158,6 +165,7 @@
   vertical-align: middle;
   line-height: 20px;
   min-height: 20px;
+  padding: 0 16px 0 8px;
 }
 .tc.led-button:hover {
   color: #ccc;
@@ -166,10 +174,11 @@
   position: absolute;
   content: '';
   right: 4px;
-  top: 6px;
+  top: 7px;
   width: 6px;
   height: 6px;
   background: #646464;
+  background: #542;
   border-radius: 50%;
   box-shadow: 0 0 4px #1C1C17;
   transition: all 0.2s ease;
@@ -193,51 +202,14 @@
   border-radius: 4px;
   position: relative;
 }
+.tc.control-button:hover {
+  color: white;
+}
 .tc.control-button.active {
   color: goldenrod;
   box-shadow: 0 0 1px 1px #0a0a0a, 0 0 2px 2px #ff04;
 }
 
-/*.tc.tracks {
-  position       : relative;
-  height         : 100%;
-  width          : 100%;
-  overflow-y     : auto;
-  overflow-x     : hidden;
-  //padding-right:100px;
-  display:flex;
-  >.headers {
-    margin-top:28px;
-    background:black;
-    z-index:3;
-  }
-
-  >.view {
-    min-height: 100%;
-    position  : relative;
-    display   : inline-block;
-    overflow  : visible;
-
-
-    >.tracks {
-      width     : auto;
-      display   : inline-block;
-      border-top: solid 1px white;
-      min-height: 100%;
-      margin-top: 20px;
-      position  : relative;
-    }
-  }
-
-  .overlay {
-    position: absolute;
-    top     : 0;
-    bottom  : 0;
-    right   : 0;
-    z-index : 1;
-  }
-}
-*/
 .tc.track {
   display: block;
   background: #000400;
@@ -249,16 +221,24 @@
   position: relative;
   box-shadow: 0px 0 6px 0 #0008;
   background: #222;
+  width: 140px;
+}
+.tc.track-headers > .headers {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: auto;
+  top: var(--tc-view-top);
 }
 .tc.track-header {
   pointer-events: all;
-  overflow: hidden;
-  padding: 4px 8px 4px 8px;
+  padding: 4px 2px 4px 8px;
   display: block;
   font-weight: 400;
   font-size: 13px;
-  text-overflow: ellipsis;
   white-space: nowrap;
+  position: relative;
+  display: flex;
   background: #000400;
   background: linear-gradient(to bottom, #181818 0%, #111 60%, #060606 100%);
 }
@@ -270,7 +250,48 @@
   background: var(--track-color);
   margin-right: 4px;
 }
+.tc.track-header .track-id {
+  overflow: hidden;
+  flex: 1 1;
+  text-overflow: ellipsis;
+}
+.tc.track-button {
+  vertical-align: middle;
+  color: #818181;
+  background: linear-gradient(to bottom, #282828 0%, #0F0F0F 5%, #060606 100%);
+  box-shadow: 0 0 1px 1px #0a0a0a, 0 0 2px 2px #fff2;
+  border: none;
+  height: 20px;
+  width: 20px;
+  text-align: center;
+  font-size: 11px;
+  font-weight: 400;
+  border-radius: 4px;
+  margin-left: 3px;
+  position: relative;
+  padding: 0;
+}
+.tc.track-button:hover {
+  color: white;
+}
+.tc.track-button.active {
+  color: black;
+  box-shadow: 0 0 1px 1px #0a0a0a, 0 0 2px 2px #ff04;
+}
+.tc.track-button.solo.active {
+  background: #fc0;
+}
+.tc.track-button.mute.active {
+  background: #800;
+  color: white;
+}
 
+body {
+  --transition-x: left 0.1s;
+}
+body.zooming {
+  --transition-x: none;
+}
 .tc.viewer {
   --top-height: 52px;
   --scroller-height: 48px;
@@ -282,7 +303,7 @@
   right: 0;
   display: grid;
   grid-template-areas: "logo splitter controls time links" "logo splitter scroller scroller scroller" "logo splitter ruler ruler ruler" "headers splitter viewport viewport viewport";
-  grid-template-columns: 120px 0px 1fr max-content 1fr;
+  grid-template-columns: max-content 0px 1fr max-content 1fr;
   grid-template-rows: var(--top-height) var(--scroller-height) var(--ruler-height) 1fr;
 }
 .tc.viewer > .logo {
@@ -294,25 +315,28 @@
 .tc.viewport {
   grid-area: viewport;
   overflow: hidden;
+  position: relative;
 }
 .tc.viewport > .view {
-  min-height: 100%;
-  position: relative;
+  transition: var(--transition-x);
+  position: absolute;
   display: inline-block;
   overflow: visible;
+  left: var(--tc-view-left);
 }
 .tc.viewport > .view > .tracks {
   width: auto;
   display: inline-block;
-  min-height: 100%;
-  position: relative;
+  top: var(--tc-view-top);
+  position: absolute;
+  left: 0;
 }
-.tc.viewport > .view .overlay {
+.tc.viewport > .overlay {
+  left: var(--tc-view-left);
   position: absolute;
   top: 0;
   bottom: 0;
   right: 0;
-  left: 0;
   z-index: 1;
 }
 .tc.seek-cursor {
@@ -419,11 +443,13 @@
   height: var(--ruler-height);
 }
 .tc.ruler .units {
+  left: var(--tc-view-left);
   display: block;
   white-space: nowrap;
   position: absolute;
   top: 0;
   bottom: 0;
+  transition: var(--transition-x);
 }
 .tc.ruler .second {
   height: var(--ruler-height);

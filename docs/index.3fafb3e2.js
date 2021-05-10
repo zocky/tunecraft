@@ -26271,7 +26271,7 @@ try {
   Object.defineProperty(exports, "__esModule", {
     value: true
   });
-  exports.Status = exports.Output = exports.App = void 0;
+  exports.Status = exports.Output = exports.MainView = exports.App = void 0;
   var _react = _interopRequireDefault(require("react"));
   var _mobxReact = require("mobx-react");
   var _mobx = require("mobx");
@@ -26282,7 +26282,7 @@ try {
   var _Utils = require("./Utils");
   var _Viewer = require("./Viewer");
   var _jsxRuntime = require("react/jsx-runtime");
-  var _class, _class2, _class3;
+  var _class, _class2, _class3, _class4;
   function _interopRequireDefault(obj) {
     return obj && obj.__esModule ? obj : {
       default: obj
@@ -26298,8 +26298,25 @@ try {
     render() {
       const {app} = this.props;
       return (
-        /*#__PURE__*/(0, _jsxRuntime.jsxs)("div", {
+        /*#__PURE__*/(0, _jsxRuntime.jsx)("div", {
           className: "tc app",
+          style: {
+            "--tc-view-top": -app.viewTop + 'px',
+            "--tc-view-left": -app.viewLeft + 'px'
+          },
+          children: /*#__PURE__*/(0, _jsxRuntime.jsx)(MainView, {
+            app: app
+          })
+        })
+      );
+    }
+  }) || _class;
+  exports.App = App;
+  let MainView = (0, _mobxReact.observer)(_class2 = class MainView extends _react.default.Component {
+    render() {
+      const {app} = this.props;
+      return (
+        /*#__PURE__*/(0, _jsxRuntime.jsxs)(_jsxRuntime.Fragment, {
           children: [/*#__PURE__*/(0, _jsxRuntime.jsx)("div", {
             className: "left",
             children: /*#__PURE__*/(0, _jsxRuntime.jsx)(_Viewer.Viewer, {
@@ -26324,9 +26341,9 @@ try {
         })
       );
     }
-  }) || _class;
-  exports.App = App;
-  let Output = (0, _mobxReact.observer)(_class2 = class Output extends _react.default.Component {
+  }) || _class2;
+  exports.MainView = MainView;
+  let Output = (0, _mobxReact.observer)(_class3 = class Output extends _react.default.Component {
     render() {
       var _app$tune, _app$tune2;
       const {app} = this.props;
@@ -26346,9 +26363,9 @@ try {
           );
       }
     }
-  }) || _class2;
+  }) || _class3;
   exports.Output = Output;
-  let Status = (0, _mobxReact.observer)(_class3 = class Status extends _react.default.Component {
+  let Status = (0, _mobxReact.observer)(_class4 = class Status extends _react.default.Component {
     render() {
       const {app} = this.props;
       if (app.error) {
@@ -26367,7 +26384,7 @@ try {
         })
       );
     }
-  }) || _class3;
+  }) || _class4;
   exports.Status = Status;
   helpers.postlude(module);
 } finally {
@@ -32726,13 +32743,59 @@ try {
   var _mobx = require("mobx");
   var _react2 = _interopRequireDefault(require("@monaco-editor/react"));
   var _utils = require("../lib/utils");
+  require("./Editor.less");
   var _jsxRuntime = require("react/jsx-runtime");
   function _interopRequireDefault(obj) {
     return obj && obj.__esModule ? obj : {
       default: obj
     };
   }
+  function _defineProperty(obj, key, value) {
+    if ((key in obj)) {
+      Object.defineProperty(obj, key, {
+        value: value,
+        enumerable: true,
+        configurable: true,
+        writable: true
+      });
+    } else {
+      obj[key] = value;
+    }
+    return obj;
+  }
   class Editor extends _react.default.Component {
+    constructor(...args) {
+      super(...args);
+      _defineProperty(this, "handleEditorDidMount", (editor, monaco) => {
+        const {app} = this.props;
+        app.editor = editor;
+        app.monaco = monaco;
+        // here is another way to get monaco instance
+        // you can also store it in `useRef` for further usage
+        // monacoRef.current = editor;
+        editor.addAction({
+          // An unique identifier of the contributed action.
+          id: 'my-play',
+          // A label of the action that will be presented to the user.
+          label: 'Play',
+          // An optional array of keybindings for the action.
+          keybindings: [monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter],
+          // A precondition for this action.
+          precondition: null,
+          // A rule to evaluate on top of the precondition in order to dispatch the keybindings.
+          keybindingContext: null,
+          contextMenuGroupId: 'transport',
+          contextMenuOrder: 1.5,
+          // Method that will be executed when the action is triggered.
+          // @param editor The editor instance is passed in as a convinience
+          run: function (ed) {
+            console.log("Play");
+            app.player.toggle();
+            return null;
+          }
+        });
+      });
+    }
     handleEditorWillMount(monaco) {
       var _monaco$languages, _monaco$languages2;
       if (!monaco) return;
@@ -32743,10 +32806,6 @@ try {
         id: 'tunecraft'
       });
       (_monaco$languages2 = monaco.languages) === null || _monaco$languages2 === void 0 ? void 0 : _monaco$languages2.setMonarchTokensProvider('tunecraft', tokenizer());
-    }
-    handleEditorDidMount(editor, monaco) {
-      app.editor = editor;
-      app.monaco = monaco;
     }
     render() {
       const {app} = this.props;
@@ -32840,7 +32899,7 @@ try {
   window.$RefreshSig$ = prevRefreshSig;
 }
 
-},{"react":"3b2NM","mobx-react":"27J27","mobx":"2yJsB","@monaco-editor/react":"6rQYb","../lib/utils":"1XhVI","react/jsx-runtime":"7jBZW","../../node_modules/@parcel/transformer-react-refresh-wrap/lib/helpers/helpers.js":"4Jj4f"}],"6rQYb":[function(require,module,exports) {
+},{"react":"3b2NM","mobx-react":"27J27","mobx":"2yJsB","@monaco-editor/react":"6rQYb","../lib/utils":"1XhVI","./Editor.less":"2XjwR","react/jsx-runtime":"7jBZW","../../node_modules/@parcel/transformer-react-refresh-wrap/lib/helpers/helpers.js":"4Jj4f"}],"6rQYb":[function(require,module,exports) {
 'use strict';
 
 Object.defineProperty(exports, '__esModule', { value: true });
@@ -35180,7 +35239,7 @@ http://jedwatson.github.io/classnames
   }
 })();
 
-},{}],"7jBZW":[function(require,module,exports) {
+},{}],"2XjwR":[function() {},{}],"7jBZW":[function(require,module,exports) {
 "use strict";
 if ("development" === 'production') {
   module.exports = require('./cjs/react-jsx-runtime.production.min.js');
@@ -36417,39 +36476,39 @@ try {
         /*#__PURE__*/(0, _jsxRuntime.jsxs)("div", {
           className: "tc controls",
           children: [/*#__PURE__*/(0, _jsxRuntime.jsx)("button", {
-            onClick: player.toggle,
+            onMouseDown: player.toggle,
             className: (0, _utils.classes)('tc control-button play', {
               active: player.playing
             }),
             children: "⏯"
           }), /*#__PURE__*/(0, _jsxRuntime.jsx)("button", {
-            onClick: player.stop,
+            onMouseDown: player.stop,
             className: "tc control-button stop",
             children: "⏹"
           }), /*#__PURE__*/(0, _jsxRuntime.jsx)("button", {
-            onClick: (0, _mobx.action)(() => player.looping = !player.looping),
+            onMouseDown: (0, _mobx.action)(() => player.looping = !player.looping),
             className: (0, _utils.classes)('tc led-button loop', {
               active: player.looping
             }),
             children: "LOOP"
           }), /*#__PURE__*/(0, _jsxRuntime.jsx)("button", {
-            onClick: app.toggleLoop,
+            onMouseDown: app.toggleLoop,
             className: (0, _utils.classes)('tc led-button sel', {
               active: app.hasLoop
             }),
             children: "SEL"
           }), /*#__PURE__*/(0, _jsxRuntime.jsx)("button", {
-            onClick: app.toggleSnapping,
+            onMouseDown: app.toggleSnapping,
             className: (0, _utils.classes)('tc led-button snap', {
               active: app.snapping
             }),
             children: "SNAP"
           }), /*#__PURE__*/(0, _jsxRuntime.jsx)("button", {
-            onClick: app.scroller.toggle,
+            onMouseDown: app.toggleFollowing,
             className: (0, _utils.classes)('tc led-button scroll', {
-              active: app.scroller.show
+              active: app.following
             }),
-            children: "SCR"
+            children: "FOLLOW"
           })]
         })
       );
@@ -36502,6 +36561,7 @@ try {
             children: "OPEN TUNE"
           }), /*#__PURE__*/(0, _jsxRuntime.jsx)("button", {
             className: "tc small-button save",
+            onClick: e => app.saveTune(),
             children: "SAVE TUNE"
           }), /*#__PURE__*/(0, _jsxRuntime.jsx)("button", {
             className: "tc small-button midi",
@@ -36551,7 +36611,7 @@ try {
   Object.defineProperty(exports, "__esModule", {
     value: true
   });
-  exports.TrackHeader = exports.Track = exports.TrackHeaders = exports.TrackList = exports.Tracks = void 0;
+  exports.TrackHeader = exports.Track = exports.TrackHeaderList = exports.TrackHeaders = exports.TrackList = exports.Tracks = void 0;
   var _react = _interopRequireDefault(require("react"));
   var _mobxReact = require("mobx-react");
   var _mobx = require("mobx");
@@ -36559,8 +36619,9 @@ try {
   var _Utils = require("./Utils");
   var _Scroller = require("./Scroller");
   var _Overlay = require("./Overlay");
+  var _utils = require("../lib/utils");
   var _jsxRuntime = require("react/jsx-runtime");
-  var _class, _class3, _class4, _dec, _class5, _class6, _class7, _class8;
+  var _class, _class3, _class4, _class5, _class6, _class7, _class8, _class9;
   function _interopRequireDefault(obj) {
     return obj && obj.__esModule ? obj : {
       default: obj
@@ -36670,6 +36731,7 @@ try {
       return (
         /*#__PURE__*/(0, _jsxRuntime.jsx)("div", {
           className: "tracks",
+          ref: ref => (0, _Utils.onResize)(ref, e => app.totalTrackHeight = e.height),
           children: app.trackKeys.map(idx => /*#__PURE__*/(0, _jsxRuntime.jsx)(Track, {
             app: app,
             idx: idx,
@@ -36688,6 +36750,24 @@ try {
       return (
         /*#__PURE__*/(0, _jsxRuntime.jsx)("div", {
           className: "tc track-headers",
+          ref: ref => ref && (0, _Utils.onWheel)(ref, e => {
+            e.stopPropagation();
+            app.moveViewTop(e.deltaY);
+            e.preventDefault();
+          }),
+          children: /*#__PURE__*/(0, _jsxRuntime.jsx)(TrackHeaderList, {
+            app: app
+          })
+        })
+      );
+    }
+  }) || _class4;
+  exports.TrackHeaders = TrackHeaders;
+  let TrackHeaderList = (0, _mobxReact.observer)(_class5 = class TrackHeaderList extends _react.default.Component {
+    render() {
+      return (
+        /*#__PURE__*/(0, _jsxRuntime.jsx)("div", {
+          className: "headers",
           children: app.trackKeys.map(idx => /*#__PURE__*/(0, _jsxRuntime.jsx)(TrackHeader, {
             app: app,
             idx: idx,
@@ -36696,9 +36776,9 @@ try {
         })
       );
     }
-  }) || _class4;
-  exports.TrackHeaders = TrackHeaders;
-  let Track = (_dec = _mobx.computed.struct, (0, _mobxReact.observer)(_class5 = (_class6 = class Track extends _react.default.Component {
+  }) || _class5;
+  exports.TrackHeaderList = TrackHeaderList;
+  let Track = (0, _mobxReact.observer)(_class6 = (_class7 = class Track extends _react.default.Component {
     constructor(...args) {
       super(...args);
       (0, _mobx.makeObservable)(this);
@@ -36708,8 +36788,12 @@ try {
         this.props.app.trackHeights[this.props.idx] = e.height;
       });
     }
+    get canvasWidth() {
+      const {app} = this.props;
+      return app.zoomX * app.tune.length;
+    }
     get trackImage() {
-      // console.log('drawing', this.track.id)
+      // console.time('drawing');
       const canvas = document.createElement('canvas');
       const {app, color} = this.props;
       const zoomX = app.zoomX;
@@ -36718,7 +36802,7 @@ try {
       const min = Math.min(48, ...notes.map(e => e.note - 4));
       const max = Math.max(72, ...notes.map(e => e.note + 2));
       canvas.height = zoomY * (max - min);
-      canvas.width = zoomX * app.tune.length;
+      canvas.width = this.canvasWidth;
       const ctx = canvas.getContext('2d');
       if (zoomY >= 4) {
         for (let i = min; i <= max; i++) {
@@ -36748,17 +36832,23 @@ try {
         zoomX,
         zoomY
       });
-      return canvas.toDataURL("image/png");
+      const ret = canvas.toDataURL("image/png");
+      // console.timeEnd('drawing');
+      return ret;
     }
     get events() {
+      return JSON.parse(this.eventsJSON);
+    }
+    get eventsJSON() {
       var _this$track;
-      return (_this$track = this.track) === null || _this$track === void 0 ? void 0 : _this$track.events;
+      return JSON.stringify((0, _mobx.toJS)((_this$track = this.track) === null || _this$track === void 0 ? void 0 : _this$track.events));
     }
     get track() {
       return this.props.app.tracks[this.props.idx];
     }
     render() {
       const {app} = this.props;
+      // console.log('render track',this.props.idx)
       return (
         /*#__PURE__*/(0, _jsxRuntime.jsx)("div", {
           className: "tc track",
@@ -36770,9 +36860,9 @@ try {
         })
       );
     }
-  }, (_applyDecoratedDescriptor(_class6.prototype, "trackImage", [_mobx.computed], Object.getOwnPropertyDescriptor(_class6.prototype, "trackImage"), _class6.prototype), _applyDecoratedDescriptor(_class6.prototype, "events", [_dec], Object.getOwnPropertyDescriptor(_class6.prototype, "events"), _class6.prototype), _applyDecoratedDescriptor(_class6.prototype, "track", [_mobx.computed], Object.getOwnPropertyDescriptor(_class6.prototype, "track"), _class6.prototype)), _class6)) || _class5);
+  }, (_applyDecoratedDescriptor(_class7.prototype, "canvasWidth", [_mobx.computed], Object.getOwnPropertyDescriptor(_class7.prototype, "canvasWidth"), _class7.prototype), _applyDecoratedDescriptor(_class7.prototype, "trackImage", [_mobx.computed], Object.getOwnPropertyDescriptor(_class7.prototype, "trackImage"), _class7.prototype), _applyDecoratedDescriptor(_class7.prototype, "events", [_mobx.computed], Object.getOwnPropertyDescriptor(_class7.prototype, "events"), _class7.prototype), _applyDecoratedDescriptor(_class7.prototype, "eventsJSON", [_mobx.computed], Object.getOwnPropertyDescriptor(_class7.prototype, "eventsJSON"), _class7.prototype), _applyDecoratedDescriptor(_class7.prototype, "track", [_mobx.computed], Object.getOwnPropertyDescriptor(_class7.prototype, "track"), _class7.prototype)), _class7)) || _class6;
   exports.Track = Track;
-  let TrackHeader = (0, _mobxReact.observer)(_class7 = (_class8 = class TrackHeader extends _react.default.Component {
+  let TrackHeader = (0, _mobxReact.observer)(_class8 = (_class9 = class TrackHeader extends _react.default.Component {
     constructor(...args) {
       super(...args);
       (0, _mobx.makeObservable)(this);
@@ -36785,26 +36875,44 @@ try {
       return this.props.app.trackHeights[this.props.idx];
     }
     render() {
+      const {app} = this.props;
+      const {id} = this.track;
       return (
-        /*#__PURE__*/(0, _jsxRuntime.jsx)("div", {
+        /*#__PURE__*/(0, _jsxRuntime.jsxs)("div", {
           className: "tc track-header",
           style: {
             height: this.height,
             "--track-color": this.props.color
           },
-          ref: ref => ref && (0, _Utils.onWheel)(ref, e => {
-            e.stopPropagation();
-          }),
-          children: /*#__PURE__*/(0, _jsxRuntime.jsx)("span", {
+          children: [/*#__PURE__*/(0, _jsxRuntime.jsx)("span", {
             className: "track-id",
             children: this.track.id
-          })
+          }), /*#__PURE__*/(0, _jsxRuntime.jsxs)("span", {
+            className: "buttons",
+            children: [/*#__PURE__*/(0, _jsxRuntime.jsx)("button", {
+              className: (0, _utils.classes)("tc track-button mute", {
+                active: app.isTrackMuted(id)
+              }),
+              onMouseDown: () => app.toggleMuteTrack(id),
+              children: "M"
+            }), /*#__PURE__*/(0, _jsxRuntime.jsx)("button", {
+              className: (0, _utils.classes)("tc track-button solo", {
+                active: app.isTrackSolo(id)
+              }),
+              onMouseDown: () => app.toggleSoloTrack(id),
+              children: "S"
+            })]
+          })]
         })
       );
     }
-  }, (_applyDecoratedDescriptor(_class8.prototype, "track", [_mobx.computed], Object.getOwnPropertyDescriptor(_class8.prototype, "track"), _class8.prototype), _applyDecoratedDescriptor(_class8.prototype, "height", [_mobx.computed], Object.getOwnPropertyDescriptor(_class8.prototype, "height"), _class8.prototype)), _class8)) || _class7;
+  }, (_applyDecoratedDescriptor(_class9.prototype, "track", [_mobx.computed], Object.getOwnPropertyDescriptor(_class9.prototype, "track"), _class9.prototype), _applyDecoratedDescriptor(_class9.prototype, "height", [_mobx.computed], Object.getOwnPropertyDescriptor(_class9.prototype, "height"), _class9.prototype)), _class9)) || _class8;
   exports.TrackHeader = TrackHeader;
   function drawNotes(ctx, events, {color, max, min, zoomX, zoomY, fixedY, gap = 2}) {
+    let n = 0;
+    // const now = performance.now();
+    ctx.beginPath();
+    // let _events = events.filter(e=>e.event==='N')
     for (const e of events) {
       if (e.event === 'N') {
         ctx.fillStyle = color;
@@ -36812,16 +36920,30 @@ try {
         let y = (fixedY ?? max - e.note) * zoomY;
         let w = Math.max(1, Math.floor(e.duration * zoomX - gap));
         let h = zoomY;
-        ctx.fillRect(x, y, w, h);
-      } else if (e.event === 'B') {
-        ctx.fillStyle = "#000";
-        let x = Math.round(e.at * zoomX) - 2;
+        ctx.rect(x, y, w, h);
+        n++;
+        if (n == 1000) {
+          ctx.fillStyle = color;
+          ctx.fill();
+          ctx.beginPath();
+          n = 0;
+        }
+      }
+    }
+    ctx.fillStyle = color;
+    ctx.fill();
+    ctx.beginPath();
+    for (const e of events) {
+      if (e.event === 'B') {
+        let x = Math.round(e.at * zoomX) - 2 + 0.5;
         let y = 0;
         let w = 1;
         let h = zoomY * (max - min);
-        ctx.fillRect(x, y, w, h);
+        ctx.rect(x, y, w, h);
       }
     }
+    ctx.fillStyle = "#444";
+    ctx.fill();
   }
   helpers.postlude(module);
 } finally {
@@ -36829,7 +36951,7 @@ try {
   window.$RefreshSig$ = prevRefreshSig;
 }
 
-},{"react":"3b2NM","mobx-react":"27J27","mobx":"2yJsB","./Tracks.less":"2LpkN","./Utils":"7t1Qy","./Scroller":"4M8hf","./Overlay":"2z5pj","react/jsx-runtime":"7jBZW","../../node_modules/@parcel/transformer-react-refresh-wrap/lib/helpers/helpers.js":"4Jj4f"}],"2LpkN":[function() {},{}],"7t1Qy":[function(require,module,exports) {
+},{"react":"3b2NM","mobx-react":"27J27","mobx":"2yJsB","./Tracks.less":"2LpkN","./Utils":"7t1Qy","./Scroller":"4M8hf","./Overlay":"2z5pj","../lib/utils":"1XhVI","react/jsx-runtime":"7jBZW","../../node_modules/@parcel/transformer-react-refresh-wrap/lib/helpers/helpers.js":"4Jj4f"}],"2LpkN":[function() {},{}],"7t1Qy":[function(require,module,exports) {
 "use strict";
 var helpers = require("../../node_modules/@parcel/transformer-react-refresh-wrap/lib/helpers/helpers.js");
 var prevRefreshReg = window.$RefreshReg$;
@@ -36961,6 +37083,7 @@ try {
   }) || _class5;
   exports.Resizable = Resizable;
   function onResize(element, handler) {
+    if (!element) return;
     const onResize = (0, _mobx.action)(handler);
     const observer = new ResizeObserver((0, _mobx.action)(entries => {
       for (let entry of entries) {
@@ -37235,8 +37358,11 @@ try {
           },
           onMouseMove: (0, _mobx.action)(e => {
             const {app} = this.props;
-            const x = e.pageX - this.ref.getBoundingClientRect().left;
+            const rect = this.ref.getBoundingClientRect();
+            const x = e.pageX - rect.left;
+            const y = e.pageY - rect.top;
             app.mouseX = x;
+            app.mouseY = y;
             if (e.buttons === 1) {
               app.player.seek(app.mouseTime);
             } else if (e.buttons === 4) {
@@ -37286,9 +37412,6 @@ try {
           className: "tc ruler",
           children: /*#__PURE__*/(0, _jsxRuntime.jsx)("div", {
             className: "units",
-            style: {
-              left: -app.viewLeft
-            },
             children: seconds
           })
         })
@@ -37482,21 +37605,18 @@ try {
   }) || _class;
   exports.Viewer = Viewer;
   let View = (0, _mobxReact.observer)(_class2 = class View extends _react.default.Component {
+    componentDidUpdate() {
+      console.log('rendered view');
+      document.body.classList.remove('zooming');
+    }
     render() {
       const {app} = this.props;
-      console.log('render', this.constructor.name);
-      // const tracks = app.tracks.filter(({ events }) => events.length);
       return (
-        /*#__PURE__*/(0, _jsxRuntime.jsxs)("div", {
+        /*#__PURE__*/(0, _jsxRuntime.jsx)("div", {
           className: "view",
-          style: {
-            left: -app.viewLeft
-          },
-          children: [/*#__PURE__*/(0, _jsxRuntime.jsx)(_Tracks.TrackList, {
+          children: /*#__PURE__*/(0, _jsxRuntime.jsx)(_Tracks.TrackList, {
             app: app
-          }), /*#__PURE__*/(0, _jsxRuntime.jsx)(_Overlay.Overlay, {
-            app: app
-          })]
+          })
         })
       );
     }
@@ -37541,12 +37661,14 @@ try {
     }
     render() {
       return (
-        /*#__PURE__*/(0, _jsxRuntime.jsx)("div", {
+        /*#__PURE__*/(0, _jsxRuntime.jsxs)("div", {
           className: "tc viewport",
           ref: ref => this.ref = ref,
-          children: /*#__PURE__*/(0, _jsxRuntime.jsx)(View, {
+          children: [/*#__PURE__*/(0, _jsxRuntime.jsx)(View, {
             app: app
-          })
+          }), /*#__PURE__*/(0, _jsxRuntime.jsx)(_Overlay.Overlay, {
+            app: app
+          })]
         })
       );
     }
@@ -37614,13 +37736,12 @@ Object.defineProperty(exports, "__esModule", {
 exports.AppState = void 0;
 var _mobx = require("mobx");
 var _tunecraft = require("./tunecraft");
-var _soundfontPlayer = _interopRequireDefault(require("soundfont-player"));
 var _PlayerState = require("./PlayerState");
 var _Tune = require("./Tune");
 var _utils = require("./utils");
 var _ScrollerState = require("./ScrollerState");
 var _dayjs = _interopRequireDefault(require("dayjs"));
-var _dec, _dec2, _dec3, _dec4, _dec5, _dec6, _dec7, _dec8, _dec9, _dec10, _class, _descriptor, _descriptor2, _descriptor3, _descriptor4, _descriptor5, _descriptor6, _descriptor7, _descriptor8, _descriptor9, _descriptor10, _descriptor11, _descriptor12, _descriptor13, _descriptor14, _descriptor15;
+var _dec, _dec2, _dec3, _dec4, _dec5, _dec6, _dec7, _dec8, _dec9, _dec10, _dec11, _class, _descriptor, _descriptor2, _descriptor3, _descriptor4, _descriptor5, _descriptor6, _descriptor7, _descriptor8, _descriptor9, _descriptor10, _descriptor11, _descriptor12, _descriptor13, _descriptor14, _descriptor15, _descriptor16, _descriptor17;
 function _interopRequireDefault(obj) {
   return obj && obj.__esModule ? obj : {
     default: obj
@@ -37674,7 +37795,55 @@ function _applyDecoratedDescriptor(target, property, decorators, descriptor, con
 function _initializerWarningHelper(descriptor, context) {
   throw new Error('Decorating class property failed. Please ensure that ' + 'proposal-class-properties is enabled and runs after the decorators transform.');
 }
-let AppState = (_dec = _mobx.action.bound, _dec2 = _mobx.action.bound, _dec3 = _mobx.action.bound, _dec4 = _mobx.action.bound, _dec5 = _mobx.action.bound, _dec6 = _mobx.action.bound, _dec7 = _mobx.action.bound, _dec8 = _mobx.action.bound, _dec9 = _mobx.action.bound, _dec10 = _mobx.computed.struct, (_class = class AppState {
+let AppState = (_dec = _mobx.action.bound, _dec2 = _mobx.action.bound, _dec3 = _mobx.action.bound, _dec4 = _mobx.action.bound, _dec5 = _mobx.action.bound, _dec6 = _mobx.action.bound, _dec7 = _mobx.action.bound, _dec8 = _mobx.action.bound, _dec9 = _mobx.action.bound, _dec10 = _mobx.action.bound, _dec11 = _mobx.computed.struct, (_class = class AppState {
+  muteTrack(id) {
+    this.settings.mutedTracks[id] = true;
+  }
+  unmuteTrack(id) {
+    delete this.settings.mutedTracks[id];
+  }
+  toggleMuteTrack(id) {
+    this.settings.mutedTracks[id] = !this.settings.mutedTracks[id];
+  }
+  unmuteAll() {
+    this.settings.mutedTracks = {};
+  }
+  isTrackMuted(id) {
+    return !!this.settings.mutedTracks[id];
+  }
+  get mutedTracks() {
+    return this.tracks.filter(track => this.isTrackMuted(track.id));
+  }
+  soloTrack(id) {
+    this.settings.soloTracks[id] = true;
+  }
+  unsoloTrack(id) {
+    delete this.settings.soloTracks[id];
+  }
+  toggleSoloTrack(id) {
+    this.settings.soloTracks[id] = !this.settings.soloTracks[id];
+  }
+  unsoloAll() {
+    this.settings.soloTracks = {};
+  }
+  isTrackSolo(id) {
+    return !!this.settings.soloTracks[id];
+  }
+  get soloTracks() {
+    return this.tracks.filter(track => this.isTrackSolo(track.id));
+  }
+  get playingTracks() {
+    let ret = {};
+    for (const {id} of this.tracks) {
+      if (this.soloTracks.length && this.isTrackSolo(id) || !this.soloTracks.length && !this.isTrackMuted(id)) {
+        ret[id] = true;
+      }
+    }
+    return ret;
+  }
+  isTrackPlaying(id) {
+    return !!this.playingTracks[id];
+  }
   getTime(x) {
     return x / this.zoomX;
   }
@@ -37690,14 +37859,25 @@ let AppState = (_dec = _mobx.action.bound, _dec2 = _mobx.action.bound, _dec3 = _
   toggleSnapping() {
     this.snapping = !this.snapping;
   }
+  get following() {
+    return this.settings.following;
+  }
+  set following(value) {
+    this.settings.following = !!value;
+  }
+  toggleFollowing() {
+    this.following = !this.following;
+  }
   get maxViewBeginTime() {
     var _this$tune;
     const totalTime = ((_this$tune = this.tune) === null || _this$tune === void 0 ? void 0 : _this$tune.length) || 0;
     const time = totalTime - this.viewDuration;
-    return Math.max(0, time);
+    return Math.max(0, time) + 1;
   }
   clampViewBeginTime(time) {
-    return (0, _utils.clamp)(time, 0, this.maxViewBeginTime);
+    var _this$tune2;
+    const totalTime = ((_this$tune2 = this.tune) === null || _this$tune2 === void 0 ? void 0 : _this$tune2.length) || 0;
+    return (0, _utils.clamp)(time, -this.viewDuration + 1, totalTime - 1);
   }
   get viewBeginTime() {
     return this.clampViewBeginTime(this.settings.viewBeginTime);
@@ -37723,6 +37903,18 @@ let AppState = (_dec = _mobx.action.bound, _dec2 = _mobx.action.bound, _dec3 = _
   set viewLeft(value) {
     this.viewBeginTime = this.getTime(value);
   }
+  get viewTop() {
+    return this.clampViewTop(this.settings.viewTop);
+  }
+  clampViewTop(y) {
+    return (0, _utils.clamp)(y, 0, this.totalTrackHeight - 100);
+  }
+  set viewTop(value) {
+    this.settings.viewTop = this.clampViewTop(value);
+  }
+  moveViewTop(value) {
+    this.viewTop += value;
+  }
   moveViewLeft(value) {
     this.viewLeft += value;
   }
@@ -37737,13 +37929,21 @@ let AppState = (_dec = _mobx.action.bound, _dec2 = _mobx.action.bound, _dec3 = _
     this._mouseOver = true;
     this._mouseX = value - this.viewLeft;
   }
+  get mouseY() {
+    if (!this._mouseOver) return null;
+    return this._mouseY + this.viewTop;
+  }
+  set mouseY(value) {
+    this._mouseOver = true;
+    this._mouseY = value;
+  }
   mouseLeave() {
     this._mouseOver = false;
   }
   get mouseTime() {
-    var _this$tune2;
+    var _this$tune3;
     if (!this._mouseOver) return null;
-    if (this.snapping) return (_this$tune2 = this.tune) === null || _this$tune2 === void 0 ? void 0 : _this$tune2.snapTime(this.mouseX / this.zoomX);
+    if (this.snapping) return (_this$tune3 = this.tune) === null || _this$tune3 === void 0 ? void 0 : _this$tune3.snapTime(this.mouseX / this.zoomX);
     return +(this.mouseX / this.zoomX).toFixed(6);
   }
   get zoomX() {
@@ -37753,13 +37953,24 @@ let AppState = (_dec = _mobx.action.bound, _dec2 = _mobx.action.bound, _dec3 = _
     return this.settings.zoomY;
   }
   zoomInY() {
-    if (this.settings.zoomY < 8) this.settings.zoomY++;
+    if (this.settings.zoomY < 8) {
+      let y = this.mouseY - this.viewTop;
+      let t = this.mouseY / this.zoomY;
+      this.settings.zoomY++;
+      this.viewTop = t * this.zoomY - y;
+    }
   }
   zoomOutY() {
-    if (this.settings.zoomY > 1) this.settings.zoomY--;
+    if (this.settings.zoomY > 1) {
+      let y = this.mouseY - this.viewTop;
+      let t = this.mouseY / this.zoomY;
+      this.settings.zoomY--;
+      this.viewTop = t * this.zoomY - y;
+    }
   }
   zoomInX() {
     if (this.settings.zoomX < 16) {
+      document.body.classList.add("zooming");
       let x = this.mouseX - this.viewLeft;
       let time = this.mouseTime;
       this.settings.zoomX++;
@@ -37768,6 +37979,7 @@ let AppState = (_dec = _mobx.action.bound, _dec2 = _mobx.action.bound, _dec3 = _
   }
   zoomOutX() {
     if (this.settings.zoomX > 1) {
+      document.body.classList.add("zooming");
       let x = this.mouseX - this.viewLeft;
       let time = this.mouseTime;
       this.settings.zoomX--;
@@ -37775,8 +37987,8 @@ let AppState = (_dec = _mobx.action.bound, _dec2 = _mobx.action.bound, _dec3 = _
     }
   }
   get loopIn() {
-    var _this$tune3;
-    return this.settings.hasLoop ? (_this$tune3 = this.tune) === null || _this$tune3 === void 0 ? void 0 : _this$tune3.snapTime(this.settings.loopIn) : null;
+    var _this$tune4;
+    return this.settings.hasLoop ? (_this$tune4 = this.tune) === null || _this$tune4 === void 0 ? void 0 : _this$tune4.snapTime(this.settings.loopIn) : null;
   }
   set loopIn(value) {
     this.settings.loopIn = (0, _utils.clamp)(value, 0, this.settings.loopOut - 0.25);
@@ -37785,8 +37997,8 @@ let AppState = (_dec = _mobx.action.bound, _dec2 = _mobx.action.bound, _dec3 = _
     this.settings.loopIn = (0, _utils.clamp)(this.settings.loopIn + value, 0, this.settings.loopOut - 0.25);
   }
   get loopOut() {
-    var _this$tune4;
-    return this.settings.hasLoop ? (_this$tune4 = this.tune) === null || _this$tune4 === void 0 ? void 0 : _this$tune4.snapTime(this.settings.loopOut) : null;
+    var _this$tune5;
+    return this.settings.hasLoop ? (_this$tune5 = this.tune) === null || _this$tune5 === void 0 ? void 0 : _this$tune5.snapTime(this.settings.loopOut) : null;
   }
   set loopOut(value) {
     this.settings.loopOut = (0, _utils.clamp)(value, this.settings.loopIn + 0.25, Infinity);
@@ -37805,11 +38017,39 @@ let AppState = (_dec = _mobx.action.bound, _dec2 = _mobx.action.bound, _dec3 = _
   }
   get result() {
     try {
-      return {
+      const ret = {
         result: (0, _tunecraft.compile)(this.source)
       };
+      if (this.editor) {
+        var _this$monaco;
+        this.editorDecorations = this.editor.deltaDecorations(this.editorDecorations, []);
+        (_this$monaco = this.monaco) === null || _this$monaco === void 0 ? void 0 : _this$monaco.editor.setModelMarkers(this.editor.getModel(), "tc", []);
+      }
+      return ret;
     } catch (error) {
       console.error(error);
+      const {start, end} = error.location;
+      if (this.editor) {
+        var _this$monaco2;
+        this.editorDecorations = this.editor.deltaDecorations(this.editorDecorations, [{
+          range: new monaco.Range(start.line, start.column, end.line, end.column),
+          options: {
+            isWholeLine: false,
+            inlineClassName: "tc error inline",
+            marginClassName: "tc error margin"
+          }
+        }]);
+        (_this$monaco2 = this.monaco) === null || _this$monaco2 === void 0 ? void 0 : _this$monaco2.editor.setModelMarkers(this.editor.getModel(), "tc", [{
+          startLineNumber: start.line,
+          startColumn: start.column,
+          endLineNumber: end.line,
+          endColumn: end.column,
+          owner: "tc",
+          code: "?Syntax error",
+          message: error === null || error === void 0 ? void 0 : error.message,
+          severity: 8
+        }]);
+      }
       return {
         error: error
       };
@@ -37819,8 +38059,8 @@ let AppState = (_dec = _mobx.action.bound, _dec2 = _mobx.action.bound, _dec3 = _
     return this.result.error;
   }
   get tracks() {
-    var _this$tune5;
-    return Object.values(((_this$tune5 = this.tune) === null || _this$tune5 === void 0 ? void 0 : _this$tune5.tracks) || []);
+    var _this$tune6;
+    return Object.values(((_this$tune6 = this.tune) === null || _this$tune6 === void 0 ? void 0 : _this$tune6.tracks) || []);
   }
   get trackKeys() {
     return Object.keys(this.tracks);
@@ -37829,10 +38069,10 @@ let AppState = (_dec = _mobx.action.bound, _dec2 = _mobx.action.bound, _dec3 = _
     var blob = new Blob([this.tune.toMidiBuffer], {
       type: "audio/midi"
     });
-    var link = document.createElement('a');
+    var link = document.createElement("a");
     const url = URL.createObjectURL(blob);
     link.href = url;
-    link.download = this.fileName + (0, _dayjs.default)().format('-YYYY-MM-DD-HH-MM') + ".mid";
+    link.download = this.fileName + (0, _dayjs.default)().format(" YYYY-MM-DD-HH-mm") + ".mid";
     link.click();
     URL.revokeObjectURL(url);
   }
@@ -37840,10 +38080,10 @@ let AppState = (_dec = _mobx.action.bound, _dec2 = _mobx.action.bound, _dec3 = _
     var blob = new Blob([this.source], {
       type: "text/plain"
     });
-    var link = document.createElement('a');
+    var link = document.createElement("a");
     const url = URL.createObjectURL(blob);
     link.href = url;
-    link.download = this.fileName + (0, _dayjs.default)().format(' YYYY-MM-DD-HH-MM') + ".tune";
+    link.download = this.fileName + (0, _dayjs.default)().format(" YYYY-MM-DD-HH-mm") + ".tune";
     link.click();
     URL.revokeObjectURL(url);
   }
@@ -37851,7 +38091,7 @@ let AppState = (_dec = _mobx.action.bound, _dec2 = _mobx.action.bound, _dec3 = _
     var fr = new FileReader();
     fr.onload = (0, _mobx.action)(() => {
       // this.source = fr.result;
-      this.fileName = file.name.replace(/[0-9\-]+\..*$/, '');
+      this.fileName = file.name.replace(/[0-9\-]+\..*$/, "");
       this.editor.getModel().setValue(fr.result);
     });
     fr.readAsText(file);
@@ -37865,14 +38105,17 @@ let AppState = (_dec = _mobx.action.bound, _dec2 = _mobx.action.bound, _dec3 = _
     _initializerDefineProperty(this, "trackHeights", _descriptor5, this);
     _initializerDefineProperty(this, "viewWidth", _descriptor6, this);
     _initializerDefineProperty(this, "scrollHeight", _descriptor7, this);
-    _initializerDefineProperty(this, "_mouseX", _descriptor8, this);
-    _initializerDefineProperty(this, "_mouseOver", _descriptor9, this);
-    _initializerDefineProperty(this, "moveLoopOut", _descriptor10, this);
-    _initializerDefineProperty(this, "viewerMode", _descriptor11, this);
-    _initializerDefineProperty(this, "source", _descriptor12, this);
-    _initializerDefineProperty(this, "tune", _descriptor13, this);
-    _initializerDefineProperty(this, "fileName", _descriptor14, this);
-    _initializerDefineProperty(this, "editor", _descriptor15, this);
+    _initializerDefineProperty(this, "totalTrackHeight", _descriptor8, this);
+    _initializerDefineProperty(this, "_mouseX", _descriptor9, this);
+    _initializerDefineProperty(this, "_mouseY", _descriptor10, this);
+    _initializerDefineProperty(this, "_mouseOver", _descriptor11, this);
+    _initializerDefineProperty(this, "moveLoopOut", _descriptor12, this);
+    _initializerDefineProperty(this, "viewerMode", _descriptor13, this);
+    _initializerDefineProperty(this, "source", _descriptor14, this);
+    _defineProperty(this, "editorDecorations", []);
+    _initializerDefineProperty(this, "tune", _descriptor15, this);
+    _initializerDefineProperty(this, "fileName", _descriptor16, this);
+    _initializerDefineProperty(this, "editor", _descriptor17, this);
     top.app = this;
     let lastResult;
     (0, _mobx.makeObservable)(this);
@@ -37886,8 +38129,20 @@ let AppState = (_dec = _mobx.action.bound, _dec2 = _mobx.action.bound, _dec3 = _
       lastResult = result;
       localStorage.tunecraft_save = this.source;
       if (result) {
+        console.time("new tune");
         this.tune = new _Tune.Tune(result);
+        console.timeEnd("new tune");
       }
+    });
+    (0, _mobx.reaction)(() => this.player.playing && this.following && this.player.playbackTime, time => {
+      if (typeof time !== "number") return;
+      const b = this.viewBeginTime;
+      if (time < b + 1) {
+        this.viewBeginTime = time - 1;
+        return;
+      }
+      const e = this.viewEndTime;
+      if (time > e - 1) this.viewBeginTime = time - 1;
     });
     this.init();
   }
@@ -37928,10 +38183,14 @@ let AppState = (_dec = _mobx.action.bound, _dec2 = _mobx.action.bound, _dec3 = _
       hasLoop: false,
       looping: false,
       snapping: true,
-      viewBeginTime: 0
+      following: true,
+      viewBeginTime: 0,
+      viewTop: 0,
+      mutedTracks: {},
+      soloTracks: {}
     };
   }
-}), _descriptor5 = _applyDecoratedDescriptor(_class.prototype, "trackHeights", [_mobx.observable], {
+}), _applyDecoratedDescriptor(_class.prototype, "muteTrack", [_mobx.action], Object.getOwnPropertyDescriptor(_class.prototype, "muteTrack"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "unmuteTrack", [_mobx.action], Object.getOwnPropertyDescriptor(_class.prototype, "unmuteTrack"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "toggleMuteTrack", [_mobx.action], Object.getOwnPropertyDescriptor(_class.prototype, "toggleMuteTrack"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "unmuteAll", [_mobx.action], Object.getOwnPropertyDescriptor(_class.prototype, "unmuteAll"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "mutedTracks", [_mobx.computed], Object.getOwnPropertyDescriptor(_class.prototype, "mutedTracks"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "soloTrack", [_mobx.action], Object.getOwnPropertyDescriptor(_class.prototype, "soloTrack"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "unsoloTrack", [_mobx.action], Object.getOwnPropertyDescriptor(_class.prototype, "unsoloTrack"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "toggleSoloTrack", [_mobx.action], Object.getOwnPropertyDescriptor(_class.prototype, "toggleSoloTrack"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "unsoloAll", [_mobx.action], Object.getOwnPropertyDescriptor(_class.prototype, "unsoloAll"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "soloTracks", [_mobx.computed], Object.getOwnPropertyDescriptor(_class.prototype, "soloTracks"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "playingTracks", [_mobx.computed], Object.getOwnPropertyDescriptor(_class.prototype, "playingTracks"), _class.prototype), _descriptor5 = _applyDecoratedDescriptor(_class.prototype, "trackHeights", [_mobx.observable], {
   configurable: true,
   enumerable: true,
   writable: true,
@@ -37952,21 +38211,33 @@ let AppState = (_dec = _mobx.action.bound, _dec2 = _mobx.action.bound, _dec3 = _
   initializer: function () {
     return 0;
   }
-}), _applyDecoratedDescriptor(_class.prototype, "snapping", [_mobx.computed], Object.getOwnPropertyDescriptor(_class.prototype, "snapping"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "toggleSnapping", [_dec], Object.getOwnPropertyDescriptor(_class.prototype, "toggleSnapping"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "maxViewBeginTime", [_mobx.computed], Object.getOwnPropertyDescriptor(_class.prototype, "maxViewBeginTime"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "viewBeginTime", [_mobx.computed], Object.getOwnPropertyDescriptor(_class.prototype, "viewBeginTime"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "viewCenterTime", [_mobx.computed], Object.getOwnPropertyDescriptor(_class.prototype, "viewCenterTime"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "viewDuration", [_mobx.computed], Object.getOwnPropertyDescriptor(_class.prototype, "viewDuration"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "viewEndTime", [_mobx.computed], Object.getOwnPropertyDescriptor(_class.prototype, "viewEndTime"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "viewLeft", [_mobx.computed], Object.getOwnPropertyDescriptor(_class.prototype, "viewLeft"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "moveViewLeft", [_mobx.action], Object.getOwnPropertyDescriptor(_class.prototype, "moveViewLeft"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "moveViewTime", [_mobx.action], Object.getOwnPropertyDescriptor(_class.prototype, "moveViewTime"), _class.prototype), _descriptor8 = _applyDecoratedDescriptor(_class.prototype, "_mouseX", [_mobx.observable], {
+}), _applyDecoratedDescriptor(_class.prototype, "snapping", [_mobx.computed], Object.getOwnPropertyDescriptor(_class.prototype, "snapping"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "toggleSnapping", [_dec], Object.getOwnPropertyDescriptor(_class.prototype, "toggleSnapping"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "following", [_mobx.computed], Object.getOwnPropertyDescriptor(_class.prototype, "following"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "toggleFollowing", [_dec2], Object.getOwnPropertyDescriptor(_class.prototype, "toggleFollowing"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "maxViewBeginTime", [_mobx.computed], Object.getOwnPropertyDescriptor(_class.prototype, "maxViewBeginTime"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "viewBeginTime", [_mobx.computed], Object.getOwnPropertyDescriptor(_class.prototype, "viewBeginTime"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "viewCenterTime", [_mobx.computed], Object.getOwnPropertyDescriptor(_class.prototype, "viewCenterTime"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "viewDuration", [_mobx.computed], Object.getOwnPropertyDescriptor(_class.prototype, "viewDuration"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "viewEndTime", [_mobx.computed], Object.getOwnPropertyDescriptor(_class.prototype, "viewEndTime"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "viewLeft", [_mobx.computed], Object.getOwnPropertyDescriptor(_class.prototype, "viewLeft"), _class.prototype), _descriptor8 = _applyDecoratedDescriptor(_class.prototype, "totalTrackHeight", [_mobx.observable], {
+  configurable: true,
+  enumerable: true,
+  writable: true,
+  initializer: null
+}), _applyDecoratedDescriptor(_class.prototype, "viewTop", [_mobx.computed], Object.getOwnPropertyDescriptor(_class.prototype, "viewTop"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "moveViewLeft", [_mobx.action], Object.getOwnPropertyDescriptor(_class.prototype, "moveViewLeft"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "moveViewTime", [_mobx.action], Object.getOwnPropertyDescriptor(_class.prototype, "moveViewTime"), _class.prototype), _descriptor9 = _applyDecoratedDescriptor(_class.prototype, "_mouseX", [_mobx.observable], {
   configurable: true,
   enumerable: true,
   writable: true,
   initializer: function () {
     return 0;
   }
-}), _descriptor9 = _applyDecoratedDescriptor(_class.prototype, "_mouseOver", [_mobx.observable], {
+}), _descriptor10 = _applyDecoratedDescriptor(_class.prototype, "_mouseY", [_mobx.observable], {
+  configurable: true,
+  enumerable: true,
+  writable: true,
+  initializer: function () {
+    return 0;
+  }
+}), _descriptor11 = _applyDecoratedDescriptor(_class.prototype, "_mouseOver", [_mobx.observable], {
   configurable: true,
   enumerable: true,
   writable: true,
   initializer: function () {
     return false;
   }
-}), _applyDecoratedDescriptor(_class.prototype, "mouseX", [_mobx.computed], Object.getOwnPropertyDescriptor(_class.prototype, "mouseX"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "mouseLeave", [_mobx.action], Object.getOwnPropertyDescriptor(_class.prototype, "mouseLeave"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "mouseTime", [_mobx.computed], Object.getOwnPropertyDescriptor(_class.prototype, "mouseTime"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "zoomX", [_mobx.computed], Object.getOwnPropertyDescriptor(_class.prototype, "zoomX"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "zoomY", [_mobx.computed], Object.getOwnPropertyDescriptor(_class.prototype, "zoomY"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "zoomInY", [_dec2], Object.getOwnPropertyDescriptor(_class.prototype, "zoomInY"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "zoomOutY", [_dec3], Object.getOwnPropertyDescriptor(_class.prototype, "zoomOutY"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "zoomInX", [_dec4], Object.getOwnPropertyDescriptor(_class.prototype, "zoomInX"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "zoomOutX", [_dec5], Object.getOwnPropertyDescriptor(_class.prototype, "zoomOutX"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "loopIn", [_mobx.computed], Object.getOwnPropertyDescriptor(_class.prototype, "loopIn"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "moveLoopIn", [_mobx.action], Object.getOwnPropertyDescriptor(_class.prototype, "moveLoopIn"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "loopOut", [_mobx.computed], Object.getOwnPropertyDescriptor(_class.prototype, "loopOut"), _class.prototype), _descriptor10 = _applyDecoratedDescriptor(_class.prototype, "moveLoopOut", [_dec6], {
+}), _applyDecoratedDescriptor(_class.prototype, "mouseX", [_mobx.computed], Object.getOwnPropertyDescriptor(_class.prototype, "mouseX"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "mouseY", [_mobx.computed], Object.getOwnPropertyDescriptor(_class.prototype, "mouseY"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "mouseLeave", [_mobx.action], Object.getOwnPropertyDescriptor(_class.prototype, "mouseLeave"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "mouseTime", [_mobx.computed], Object.getOwnPropertyDescriptor(_class.prototype, "mouseTime"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "zoomX", [_mobx.computed], Object.getOwnPropertyDescriptor(_class.prototype, "zoomX"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "zoomY", [_mobx.computed], Object.getOwnPropertyDescriptor(_class.prototype, "zoomY"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "zoomInY", [_dec3], Object.getOwnPropertyDescriptor(_class.prototype, "zoomInY"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "zoomOutY", [_dec4], Object.getOwnPropertyDescriptor(_class.prototype, "zoomOutY"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "zoomInX", [_dec5], Object.getOwnPropertyDescriptor(_class.prototype, "zoomInX"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "zoomOutX", [_dec6], Object.getOwnPropertyDescriptor(_class.prototype, "zoomOutX"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "loopIn", [_mobx.computed], Object.getOwnPropertyDescriptor(_class.prototype, "loopIn"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "moveLoopIn", [_mobx.action], Object.getOwnPropertyDescriptor(_class.prototype, "moveLoopIn"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "loopOut", [_mobx.computed], Object.getOwnPropertyDescriptor(_class.prototype, "loopOut"), _class.prototype), _descriptor12 = _applyDecoratedDescriptor(_class.prototype, "moveLoopOut", [_dec7], {
   configurable: true,
   enumerable: true,
   writable: true,
@@ -37975,35 +38246,35 @@ let AppState = (_dec = _mobx.action.bound, _dec2 = _mobx.action.bound, _dec3 = _
       this.settings.loopOut = (0, _utils.clamp)(this.settings.loopOut + value, this.settings.loopIn + 0.25, Infinity);
     };
   }
-}), _applyDecoratedDescriptor(_class.prototype, "hasLoop", [_mobx.computed], Object.getOwnPropertyDescriptor(_class.prototype, "hasLoop"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "showLoop", [_dec7], Object.getOwnPropertyDescriptor(_class.prototype, "showLoop"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "hideLoop", [_dec8], Object.getOwnPropertyDescriptor(_class.prototype, "hideLoop"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "toggleLoop", [_dec9], Object.getOwnPropertyDescriptor(_class.prototype, "toggleLoop"), _class.prototype), _descriptor11 = _applyDecoratedDescriptor(_class.prototype, "viewerMode", [_mobx.observable], {
+}), _applyDecoratedDescriptor(_class.prototype, "hasLoop", [_mobx.computed], Object.getOwnPropertyDescriptor(_class.prototype, "hasLoop"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "showLoop", [_dec8], Object.getOwnPropertyDescriptor(_class.prototype, "showLoop"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "hideLoop", [_dec9], Object.getOwnPropertyDescriptor(_class.prototype, "hideLoop"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "toggleLoop", [_dec10], Object.getOwnPropertyDescriptor(_class.prototype, "toggleLoop"), _class.prototype), _descriptor13 = _applyDecoratedDescriptor(_class.prototype, "viewerMode", [_mobx.observable], {
   configurable: true,
   enumerable: true,
   writable: true,
   initializer: function () {
     return "tracks";
   }
-}), _descriptor12 = _applyDecoratedDescriptor(_class.prototype, "source", [_mobx.observable], {
+}), _descriptor14 = _applyDecoratedDescriptor(_class.prototype, "source", [_mobx.observable], {
   configurable: true,
   enumerable: true,
   writable: true,
   initializer: function () {
     return "";
   }
-}), _applyDecoratedDescriptor(_class.prototype, "result", [_mobx.computed], Object.getOwnPropertyDescriptor(_class.prototype, "result"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "error", [_mobx.computed], Object.getOwnPropertyDescriptor(_class.prototype, "error"), _class.prototype), _descriptor13 = _applyDecoratedDescriptor(_class.prototype, "tune", [_mobx.observable], {
+}), _applyDecoratedDescriptor(_class.prototype, "result", [_mobx.computed], Object.getOwnPropertyDescriptor(_class.prototype, "result"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "error", [_mobx.computed], Object.getOwnPropertyDescriptor(_class.prototype, "error"), _class.prototype), _descriptor15 = _applyDecoratedDescriptor(_class.prototype, "tune", [_mobx.observable], {
   configurable: true,
   enumerable: true,
   writable: true,
   initializer: function () {
     return null;
   }
-}), _applyDecoratedDescriptor(_class.prototype, "tracks", [_mobx.computed], Object.getOwnPropertyDescriptor(_class.prototype, "tracks"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "trackKeys", [_dec10], Object.getOwnPropertyDescriptor(_class.prototype, "trackKeys"), _class.prototype), _descriptor14 = _applyDecoratedDescriptor(_class.prototype, "fileName", [_mobx.observable], {
+}), _applyDecoratedDescriptor(_class.prototype, "tracks", [_mobx.computed], Object.getOwnPropertyDescriptor(_class.prototype, "tracks"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "trackKeys", [_dec11], Object.getOwnPropertyDescriptor(_class.prototype, "trackKeys"), _class.prototype), _descriptor16 = _applyDecoratedDescriptor(_class.prototype, "fileName", [_mobx.observable], {
   configurable: true,
   enumerable: true,
   writable: true,
   initializer: function () {
     return "tune";
   }
-}), _descriptor15 = _applyDecoratedDescriptor(_class.prototype, "editor", [_mobx.observable], {
+}), _descriptor17 = _applyDecoratedDescriptor(_class.prototype, "editor", [_mobx.observable], {
   configurable: true,
   enumerable: true,
   writable: true,
@@ -38013,7 +38284,7 @@ let AppState = (_dec = _mobx.action.bound, _dec2 = _mobx.action.bound, _dec3 = _
 }), _applyDecoratedDescriptor(_class.prototype, "init", [_mobx.action], Object.getOwnPropertyDescriptor(_class.prototype, "init"), _class.prototype)), _class));
 exports.AppState = AppState;
 
-},{"mobx":"2yJsB","./tunecraft":"1KSkd","soundfont-player":"7IOtV","./PlayerState":"2iluj","./Tune":"55noZ","./utils":"1XhVI","./ScrollerState":"OFDF3","dayjs":"DpABt"}],"1KSkd":[function(require,module,exports) {
+},{"mobx":"2yJsB","./tunecraft":"1KSkd","./PlayerState":"2iluj","./Tune":"55noZ","./utils":"1XhVI","./ScrollerState":"OFDF3","dayjs":"DpABt"}],"1KSkd":[function(require,module,exports) {
 "use strict";
 Object.defineProperty(exports, "__esModule", {
   value: true
@@ -38275,6 +38546,7 @@ const nodeProcessor = new (class {
     state.scale = scale(state.base, state.mode);
   }
   tempo(node, state) {
+    console.log('tempo', node.tempo);
     const {tempo} = node;
     return {
       $$: 'tempo',
@@ -38432,13 +38704,13 @@ const nodeScheduler = new (class {
   bar(node, state) {
     if (node.divisions > 0) {
       state.scheduleEvent(node.track, state.tick, 'B');
-      const factor = state.factor * node.divisions / node.length;
-      const measure = node.measure;
-      node.sub.forEach(s => schedule(s, state, {
-        factor,
-        measure
-      }));
     }
+    const factor = state.factor * node.divisions / node.length;
+    const measure = node.measure;
+    node.sub.forEach(s => schedule(s, state, {
+      factor,
+      measure
+    }));
   }
   seq(node, state) {
     const factor = state.factor * node.divisions / node.length;
@@ -38456,6 +38728,7 @@ const nodeScheduler = new (class {
     state.setTick(null, lastTick);
   }
   tempo(node, state) {
+    console.log('found tempo', node.tempo);
     state.tempo.push({
       event: "T",
       tick: Math.round(state.tick),
@@ -38475,7 +38748,7 @@ const nodeScheduler = new (class {
       note: node.note,
       ticks: Math.round(ticks)
     });
-    state.scheduleEvent(node.track, state.tick, "OFF", {
+    state.scheduleEvent(node.track, state.tick + ticks, "OFF", {
       velocity: node.velocity,
       note: node.note
     });
@@ -42133,7 +42406,359 @@ module.exports = {
   parse: peg$parse
 };
 
-},{}],"7IOtV":[function(require,module,exports) {
+},{}],"2iluj":[function(require,module,exports) {
+"use strict";
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.PlayerState = void 0;
+var _mobx = require("mobx");
+var _soundfontPlayer = _interopRequireDefault(require("soundfont-player"));
+var _dec, _dec2, _dec3, _dec4, _dec5, _dec6, _dec7, _dec8, _dec9, _dec10, _dec11, _dec12, _dec13, _class, _descriptor, _descriptor2, _descriptor3, _descriptor4, _descriptor5, _descriptor6, _descriptor7;
+function _interopRequireDefault(obj) {
+  return obj && obj.__esModule ? obj : {
+    default: obj
+  };
+}
+function _initializerDefineProperty(target, property, descriptor, context) {
+  if (!descriptor) return;
+  Object.defineProperty(target, property, {
+    enumerable: descriptor.enumerable,
+    configurable: descriptor.configurable,
+    writable: descriptor.writable,
+    value: descriptor.initializer ? descriptor.initializer.call(context) : void 0
+  });
+}
+function _defineProperty(obj, key, value) {
+  if ((key in obj)) {
+    Object.defineProperty(obj, key, {
+      value: value,
+      enumerable: true,
+      configurable: true,
+      writable: true
+    });
+  } else {
+    obj[key] = value;
+  }
+  return obj;
+}
+function _applyDecoratedDescriptor(target, property, decorators, descriptor, context) {
+  var desc = {};
+  Object.keys(descriptor).forEach(function (key) {
+    desc[key] = descriptor[key];
+  });
+  desc.enumerable = !!desc.enumerable;
+  desc.configurable = !!desc.configurable;
+  if (('value' in desc) || desc.initializer) {
+    desc.writable = true;
+  }
+  desc = decorators.slice().reverse().reduce(function (desc, decorator) {
+    return decorator(target, property, desc) || desc;
+  }, desc);
+  if (context && desc.initializer !== void 0) {
+    desc.value = desc.initializer ? desc.initializer.call(context) : void 0;
+    desc.initializer = undefined;
+  }
+  if (desc.initializer === void 0) {
+    Object.defineProperty(target, property, desc);
+    desc = null;
+  }
+  return desc;
+}
+function _initializerWarningHelper(descriptor, context) {
+  throw new Error('Decorating class property failed. Please ensure that ' + 'proposal-class-properties is enabled and runs after the decorators transform.');
+}
+let PlayerState = (_dec = (0, _mobx.computed)({
+  keepAlive: true
+}), _dec2 = _mobx.action.bound, _dec3 = _mobx.action.bound, _dec4 = _mobx.action.bound, _dec5 = _mobx.action.bound, _dec6 = _mobx.action.bound, _dec7 = _mobx.action.bound, _dec8 = _mobx.action.bound, _dec9 = _mobx.action.bound, _dec10 = _mobx.action.bound, _dec11 = _mobx.action.bound, _dec12 = (0, _mobx.computed)({
+  keepAlive: true
+}), _dec13 = (0, _mobx.computed)({
+  keepAlive: true
+}), (_class = class PlayerState {
+  get beginTime() {
+    return this.app.loopIn ?? 0;
+  }
+  get endTime() {
+    return this.app.loopOut ?? this.totalTime;
+  }
+  get loopTime() {
+    return this.endTime - this.beginTime;
+  }
+  get totalTime() {
+    var _this$app$tune;
+    return ((_this$app$tune = this.app.tune) === null || _this$app$tune === void 0 ? void 0 : _this$app$tune.length) ?? 0;
+  }
+  get tune() {
+    return this.app.tune;
+  }
+  constructor(app) {
+    _initializerDefineProperty(this, "ready", _descriptor, this);
+    _initializerDefineProperty(this, "playbackTime", _descriptor2, this);
+    _initializerDefineProperty(this, "app", _descriptor3, this);
+    _initializerDefineProperty(this, "playing", _descriptor4, this);
+    _initializerDefineProperty(this, "looping", _descriptor5, this);
+    _initializerDefineProperty(this, "offsetTime", _descriptor6, this);
+    _defineProperty(this, "timerID", null);
+    _defineProperty(this, "queueTime", 0);
+    _initializerDefineProperty(this, "holding", _descriptor7, this);
+    this.ac = app.context;
+    this.app = app;
+    (0, _mobx.makeObservable)(this);
+  }
+  get notes() {
+    const notes = this.app.tune.events.filter(e => {
+      if (!this.app.isTrackPlaying(e.track)) return false;
+      if (e.event !== 'N') return false;
+      if (e.at + e.duration <= this.beginTime) return false;
+      if (e.at >= this.endTime) return false;
+      return true;
+    }).map(e => ({
+      ...e
+    }));
+    for (const e of notes) {
+      if (e.at + e.duration > this.endTime) e.duration = this.endTime - e.at;
+    }
+    /*
+    for (const e of notes) {
+    
+    if (e.at > this.beginTime + 1) break;
+    notes.push({
+    ...e,
+    at: e.at + this.loopTime
+    })
+    }*/
+    return notes;
+  }
+  loop() {
+    const now = this.currentTime;
+    const time = now - this.offsetTime;
+    const doneTime = time + 1;
+    for (const e of this.notes) {
+      const {event, at, duration, track, note, velocity} = e;
+      if (event !== 'N') continue;
+      // if (at < this.beginTime) continue;
+      // if (at > this.endTime) continue;
+      if (at < this.queueTime) continue;
+      if (at + duration < time) continue;
+      if (at < time) continue;
+      if (at > doneTime) continue;
+      const offset = at - time;
+      this.instruments[track].play(note, now + offset, {
+        duration: duration,
+        gain: velocity / 100
+      });
+    }
+    this.queueTime = doneTime;
+    // this.beginTime + (doneTime - this.beginTime) % this.loopTime;
+    if (time >= this.endTime) {
+      if (this.looping) {
+        this.seek(this.beginTime);
+      } else {
+        this.stop(true);
+      }
+    } else {
+      this.playbackTime = time;
+    }
+  }
+  hold() {
+    if (this.playing) {
+      console.log('holding');
+      this.holding = true;
+      this.stop(false);
+    } else {
+      console.log('not holding');
+      this.holding = false;
+    }
+  }
+  unhold() {
+    if (this.holding) {
+      console.log('unholding');
+      this.start();
+      this.holding = false;
+    } else {
+      console.log('not unholding');
+    }
+  }
+  async play() {
+    await this.app.context.resume();
+    this.start();
+  }
+  start() {
+    if (!this.ready) return;
+    if (this.playing) return;
+    this.offsetTime = this.currentTime - this.playbackTime;
+    this.queueTime = 0;
+    this.playing = true;
+    this.holding = false;
+    this.loop();
+    if (!this.timerID) {
+      this.timerID = setInterval(this.loop, 50);
+    }
+  }
+  pause() {
+    this.stop(false);
+  }
+  seek(time) {
+    if (this.playing) {
+      // this.silence();
+      this.playbackTime = time;
+      this.playing = false;
+      this.start();
+    } else {
+      this.playbackTime = time;
+    }
+  }
+  silence() {
+    for (const id in this.instruments) this.instruments[id].stop();
+  }
+  stop(reset = true) {
+    clearInterval(this.timerID);
+    this.timerID = null;
+    this.playing = false;
+    this.silence();
+    this.queueTime = 0;
+    if (reset) this.playbackTime = this.beginTime;
+  }
+  toggle() {
+    if (this.playing) this.pause(); else this.play();
+  }
+  get currentTime() {
+    return this.ac.currentTime;
+  }
+  get soundfonts() {
+    if (!this.app.tune) return {};
+    return {
+      default: "FatBoy",
+      ...this.app.tune.soundfonts
+    };
+  }
+  get instruments() {
+    console.log('get instruments');
+    const tune = this.app.tune;
+    const ret = {};
+    if (!tune) return {};
+    for (const track of tune.tracks) {
+      const {font, instrument, id, ...rest} = track;
+      const options = {};
+      if (rest.attack) options.attack = rest.attack / 1000;
+      if (rest.decay) options.decay = rest.decay / 1000;
+      if (rest.sustain) options.sustain = rest.sustain / 100;
+      if (rest.release) options.release = rest.release / 1000;
+      ret[id] = InstrumentState.create(this.app.context, this.soundfonts[font], instrument, options);
+    }
+    return ret;
+  }
+}, (_descriptor = _applyDecoratedDescriptor(_class.prototype, "ready", [_mobx.observable], {
+  configurable: true,
+  enumerable: true,
+  writable: true,
+  initializer: function () {
+    return true;
+  }
+}), _descriptor2 = _applyDecoratedDescriptor(_class.prototype, "playbackTime", [_mobx.observable], {
+  configurable: true,
+  enumerable: true,
+  writable: true,
+  initializer: function () {
+    return 0;
+  }
+}), _descriptor3 = _applyDecoratedDescriptor(_class.prototype, "app", [_mobx.observable], {
+  configurable: true,
+  enumerable: true,
+  writable: true,
+  initializer: function () {
+    return null;
+  }
+}), _applyDecoratedDescriptor(_class.prototype, "beginTime", [_mobx.computed], Object.getOwnPropertyDescriptor(_class.prototype, "beginTime"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "endTime", [_mobx.computed], Object.getOwnPropertyDescriptor(_class.prototype, "endTime"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "loopTime", [_mobx.computed], Object.getOwnPropertyDescriptor(_class.prototype, "loopTime"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "totalTime", [_mobx.computed], Object.getOwnPropertyDescriptor(_class.prototype, "totalTime"), _class.prototype), _descriptor4 = _applyDecoratedDescriptor(_class.prototype, "playing", [_mobx.observable], {
+  configurable: true,
+  enumerable: true,
+  writable: true,
+  initializer: function () {
+    return false;
+  }
+}), _descriptor5 = _applyDecoratedDescriptor(_class.prototype, "looping", [_mobx.observable], {
+  configurable: true,
+  enumerable: true,
+  writable: true,
+  initializer: function () {
+    return true;
+  }
+}), _descriptor6 = _applyDecoratedDescriptor(_class.prototype, "offsetTime", [_mobx.observable], {
+  configurable: true,
+  enumerable: true,
+  writable: true,
+  initializer: function () {
+    return 0;
+  }
+}), _applyDecoratedDescriptor(_class.prototype, "tune", [_mobx.computed], Object.getOwnPropertyDescriptor(_class.prototype, "tune"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "notes", [_dec], Object.getOwnPropertyDescriptor(_class.prototype, "notes"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "loop", [_dec2], Object.getOwnPropertyDescriptor(_class.prototype, "loop"), _class.prototype), _descriptor7 = _applyDecoratedDescriptor(_class.prototype, "holding", [_mobx.observable], {
+  configurable: true,
+  enumerable: true,
+  writable: true,
+  initializer: function () {
+    return false;
+  }
+}), _applyDecoratedDescriptor(_class.prototype, "hold", [_dec3], Object.getOwnPropertyDescriptor(_class.prototype, "hold"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "unhold", [_dec4], Object.getOwnPropertyDescriptor(_class.prototype, "unhold"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "play", [_dec5], Object.getOwnPropertyDescriptor(_class.prototype, "play"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "start", [_dec6], Object.getOwnPropertyDescriptor(_class.prototype, "start"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "pause", [_dec7], Object.getOwnPropertyDescriptor(_class.prototype, "pause"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "seek", [_dec8], Object.getOwnPropertyDescriptor(_class.prototype, "seek"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "silence", [_dec9], Object.getOwnPropertyDescriptor(_class.prototype, "silence"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "stop", [_dec10], Object.getOwnPropertyDescriptor(_class.prototype, "stop"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "toggle", [_dec11], Object.getOwnPropertyDescriptor(_class.prototype, "toggle"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "soundfonts", [_dec12], Object.getOwnPropertyDescriptor(_class.prototype, "soundfonts"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "instruments", [_dec13], Object.getOwnPropertyDescriptor(_class.prototype, "instruments"), _class.prototype)), _class));
+exports.PlayerState = PlayerState;
+class InstrumentState {
+  static create(context, font, name, options) {
+    return new InstrumentState(context, font, name, options);
+  }
+  static async loadInstrument(context, font, name) {
+    const id = font + '\n' + name;
+    if (!this._instruments[id]) {
+      console.log('loading', id);
+      try {
+        this._instruments[id] = await _soundfontPlayer.default.instrument(context, name, {
+          soundfont: font,
+          nameToUrl: (name, sf, format = 'mp3') => {
+            if (!sf.match(/^https?:/)) {
+              if (name === 'percussion') {
+                sf = "https://cdn.jsdelivr.net/gh/dave4mpls/midi-js-soundfonts-with-drums/FluidR3_GM";
+              } else {
+                sf = "https://gleitz.github.io/midi-js-soundfonts/" + sf;
+              }
+            }
+            return sf + '/' + name + '-' + format + '.js';
+          }
+        });
+      } catch (error) {
+        console.log(error);
+      }
+    }
+    return this._instruments[id];
+  }
+  constructor(context, font, name, options) {
+    _defineProperty(this, "instrument", null);
+    this.context = context;
+    this.font = font;
+    this.name = name;
+    this.options = options;
+    const id = font + '\n' + name;
+    this.instrument = this.constructor._instruments[id];
+    if (!this.instrument) {
+      this.load();
+    }
+    ;
+  }
+  async load() {
+    this.instrument = await this.constructor.loadInstrument(this.context, this.font, this.name);
+  }
+  play(note, at, options = {}) {
+    var _this$instrument;
+    // if(!this.instrument) console.log('no',this.name)
+    (_this$instrument = this.instrument) === null || _this$instrument === void 0 ? void 0 : _this$instrument.play(note, at, {
+      ...this.options,
+      ...options
+    });
+  }
+  stop() {
+    var _this$instrument2;
+    (_this$instrument2 = this.instrument) === null || _this$instrument2 === void 0 ? void 0 : _this$instrument2.stop();
+  }
+}
+_defineProperty(InstrumentState, "_instruments", {});
+
+},{"mobx":"2yJsB","soundfont-player":"7IOtV"}],"7IOtV":[function(require,module,exports) {
 'use strict'
 
 var load = require('audio-loader')
@@ -43506,352 +44131,7 @@ var define;
   (t.regex = o, t.parse = i, t.build = l, t.midi = p, t.freq = s, t.letter = d, t.acc = m, t.pc = h, t.step = v, t.alt = g, t.chroma = x, t.oct = y);
 });
 
-},{}],"2iluj":[function(require,module,exports) {
-"use strict";
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.PlayerState = void 0;
-var _mobx = require("mobx");
-var _soundfontPlayer = _interopRequireDefault(require("soundfont-player"));
-var _dec, _dec2, _dec3, _dec4, _dec5, _dec6, _dec7, _dec8, _dec9, _dec10, _dec11, _dec12, _dec13, _class, _descriptor, _descriptor2, _descriptor3, _descriptor4, _descriptor5, _descriptor6, _descriptor7;
-function _interopRequireDefault(obj) {
-  return obj && obj.__esModule ? obj : {
-    default: obj
-  };
-}
-function _initializerDefineProperty(target, property, descriptor, context) {
-  if (!descriptor) return;
-  Object.defineProperty(target, property, {
-    enumerable: descriptor.enumerable,
-    configurable: descriptor.configurable,
-    writable: descriptor.writable,
-    value: descriptor.initializer ? descriptor.initializer.call(context) : void 0
-  });
-}
-function _defineProperty(obj, key, value) {
-  if ((key in obj)) {
-    Object.defineProperty(obj, key, {
-      value: value,
-      enumerable: true,
-      configurable: true,
-      writable: true
-    });
-  } else {
-    obj[key] = value;
-  }
-  return obj;
-}
-function _applyDecoratedDescriptor(target, property, decorators, descriptor, context) {
-  var desc = {};
-  Object.keys(descriptor).forEach(function (key) {
-    desc[key] = descriptor[key];
-  });
-  desc.enumerable = !!desc.enumerable;
-  desc.configurable = !!desc.configurable;
-  if (('value' in desc) || desc.initializer) {
-    desc.writable = true;
-  }
-  desc = decorators.slice().reverse().reduce(function (desc, decorator) {
-    return decorator(target, property, desc) || desc;
-  }, desc);
-  if (context && desc.initializer !== void 0) {
-    desc.value = desc.initializer ? desc.initializer.call(context) : void 0;
-    desc.initializer = undefined;
-  }
-  if (desc.initializer === void 0) {
-    Object.defineProperty(target, property, desc);
-    desc = null;
-  }
-  return desc;
-}
-function _initializerWarningHelper(descriptor, context) {
-  throw new Error('Decorating class property failed. Please ensure that ' + 'proposal-class-properties is enabled and runs after the decorators transform.');
-}
-let PlayerState = (_dec = (0, _mobx.computed)({
-  keepAlive: true
-}), _dec2 = _mobx.action.bound, _dec3 = _mobx.action.bound, _dec4 = _mobx.action.bound, _dec5 = _mobx.action.bound, _dec6 = _mobx.action.bound, _dec7 = _mobx.action.bound, _dec8 = _mobx.action.bound, _dec9 = _mobx.action.bound, _dec10 = _mobx.action.bound, _dec11 = _mobx.action.bound, _dec12 = (0, _mobx.computed)({
-  keepAlive: true
-}), _dec13 = (0, _mobx.computed)({
-  keepAlive: true
-}), (_class = class PlayerState {
-  get beginTime() {
-    return this.app.loopIn ?? 0;
-  }
-  get endTime() {
-    return this.app.loopOut ?? this.totalTime;
-  }
-  get loopTime() {
-    return this.endTime - this.beginTime;
-  }
-  get totalTime() {
-    var _this$app$tune;
-    return ((_this$app$tune = this.app.tune) === null || _this$app$tune === void 0 ? void 0 : _this$app$tune.length) ?? 0;
-  }
-  get tune() {
-    return this.app.tune;
-  }
-  constructor(app) {
-    _initializerDefineProperty(this, "ready", _descriptor, this);
-    _initializerDefineProperty(this, "playbackTime", _descriptor2, this);
-    _initializerDefineProperty(this, "app", _descriptor3, this);
-    _initializerDefineProperty(this, "playing", _descriptor4, this);
-    _initializerDefineProperty(this, "looping", _descriptor5, this);
-    _initializerDefineProperty(this, "offsetTime", _descriptor6, this);
-    _defineProperty(this, "timerID", null);
-    _defineProperty(this, "queueTime", 0);
-    _initializerDefineProperty(this, "holding", _descriptor7, this);
-    this.ac = app.context;
-    this.app = app;
-    (0, _mobx.makeObservable)(this);
-  }
-  get notes() {
-    const notes = this.app.tune.events.filter(e => {
-      if (e.event !== 'N') return false;
-      if (e.at + e.duration <= this.beginTime) return false;
-      if (e.at >= this.endTime) return false;
-      return true;
-    }).map(e => ({
-      ...e
-    }));
-    for (const e of notes) {
-      if (e.at + e.duration > this.endTime) e.duration = this.endTime - e.at;
-    }
-    /*
-    for (const e of notes) {
-    
-    if (e.at > this.beginTime + 1) break;
-    notes.push({
-    ...e,
-    at: e.at + this.loopTime
-    })
-    }*/
-    return notes;
-  }
-  loop() {
-    const now = this.currentTime;
-    const time = now - this.offsetTime;
-    const doneTime = time + 1;
-    for (const e of this.notes) {
-      const {event, at, duration, track, note, velocity} = e;
-      if (event !== 'N') continue;
-      if (at < this.beginTime) continue;
-      if (at > this.endTime) continue;
-      if (at < this.queueTime) continue;
-      if (at + duration < time) continue;
-      if (at < time) continue;
-      if (at > doneTime) continue;
-      const offset = at - time;
-      // console.log(this.instruments,track)
-      this.instruments[track].play(note, now + offset, {
-        duration: duration,
-        gain: velocity / 100
-      });
-    }
-    this.queueTime = doneTime;
-    // this.beginTime + (doneTime - this.beginTime) % this.loopTime;
-    if (time >= this.endTime) {
-      if (this.looping) {
-        this.seek(this.beginTime);
-      } else {
-        this.stop(true);
-      }
-    } else {
-      this.playbackTime = time;
-    }
-  }
-  hold() {
-    if (this.playing) {
-      console.log('holding');
-      this.holding = true;
-      this.stop(false);
-    } else {
-      console.log('not holding');
-      this.holding = false;
-    }
-  }
-  unhold() {
-    if (this.holding) {
-      console.log('unholding');
-      this.start();
-      this.holding = false;
-    } else {
-      console.log('not unholding');
-    }
-  }
-  async play() {
-    await this.app.context.resume();
-    this.start();
-  }
-  start() {
-    if (!this.ready) return;
-    if (this.playing) return;
-    this.offsetTime = this.currentTime - this.playbackTime;
-    this.queueTime = 0;
-    this.playing = true;
-    this.holding = false;
-    this.loop();
-    if (!this.timerID) {
-      this.timerID = setInterval(this.loop, 50);
-    }
-  }
-  pause() {
-    this.stop(false);
-  }
-  seek(time) {
-    if (this.playing) {
-      // this.silence();
-      this.playbackTime = time;
-      this.playing = false;
-      this.start();
-    } else {
-      this.playbackTime = time;
-    }
-  }
-  silence() {
-    for (const id in this.instruments) this.instruments[id].stop();
-  }
-  stop(reset = true) {
-    clearInterval(this.timerID);
-    this.timerID = null;
-    this.playing = false;
-    this.silence();
-    this.queueTime = 0;
-    if (reset) this.playbackTime = this.beginTime;
-  }
-  toggle() {
-    if (this.playing) this.pause(); else this.play();
-  }
-  get currentTime() {
-    return this.ac.currentTime;
-  }
-  get soundfonts() {
-    if (!this.app.tune) return {};
-    return {
-      default: "FatBoy",
-      ...this.app.tune.soundfonts
-    };
-  }
-  get instruments() {
-    console.log('instruments');
-    const tune = this.app.tune;
-    const ret = {};
-    if (!tune) return {};
-    for (const track of tune.tracks) {
-      const {font, instrument, id, ...rest} = track;
-      const options = {};
-      if (rest.attack) options.attack = rest.attack / 1000;
-      if (rest.decay) options.decay = rest.decay / 1000;
-      if (rest.sustain) options.sustain = rest.sustain / 100;
-      if (rest.release) options.release = rest.release / 1000;
-      ret[id] = InstrumentState.create(this.app.context, this.soundfonts[font], instrument, options);
-    }
-    return ret;
-  }
-}, (_descriptor = _applyDecoratedDescriptor(_class.prototype, "ready", [_mobx.observable], {
-  configurable: true,
-  enumerable: true,
-  writable: true,
-  initializer: function () {
-    return true;
-  }
-}), _descriptor2 = _applyDecoratedDescriptor(_class.prototype, "playbackTime", [_mobx.observable], {
-  configurable: true,
-  enumerable: true,
-  writable: true,
-  initializer: function () {
-    return 0;
-  }
-}), _descriptor3 = _applyDecoratedDescriptor(_class.prototype, "app", [_mobx.observable], {
-  configurable: true,
-  enumerable: true,
-  writable: true,
-  initializer: function () {
-    return null;
-  }
-}), _applyDecoratedDescriptor(_class.prototype, "beginTime", [_mobx.computed], Object.getOwnPropertyDescriptor(_class.prototype, "beginTime"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "endTime", [_mobx.computed], Object.getOwnPropertyDescriptor(_class.prototype, "endTime"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "loopTime", [_mobx.computed], Object.getOwnPropertyDescriptor(_class.prototype, "loopTime"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "totalTime", [_mobx.computed], Object.getOwnPropertyDescriptor(_class.prototype, "totalTime"), _class.prototype), _descriptor4 = _applyDecoratedDescriptor(_class.prototype, "playing", [_mobx.observable], {
-  configurable: true,
-  enumerable: true,
-  writable: true,
-  initializer: function () {
-    return false;
-  }
-}), _descriptor5 = _applyDecoratedDescriptor(_class.prototype, "looping", [_mobx.observable], {
-  configurable: true,
-  enumerable: true,
-  writable: true,
-  initializer: function () {
-    return true;
-  }
-}), _descriptor6 = _applyDecoratedDescriptor(_class.prototype, "offsetTime", [_mobx.observable], {
-  configurable: true,
-  enumerable: true,
-  writable: true,
-  initializer: function () {
-    return 0;
-  }
-}), _applyDecoratedDescriptor(_class.prototype, "tune", [_mobx.computed], Object.getOwnPropertyDescriptor(_class.prototype, "tune"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "notes", [_dec], Object.getOwnPropertyDescriptor(_class.prototype, "notes"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "loop", [_dec2], Object.getOwnPropertyDescriptor(_class.prototype, "loop"), _class.prototype), _descriptor7 = _applyDecoratedDescriptor(_class.prototype, "holding", [_mobx.observable], {
-  configurable: true,
-  enumerable: true,
-  writable: true,
-  initializer: function () {
-    return false;
-  }
-}), _applyDecoratedDescriptor(_class.prototype, "hold", [_dec3], Object.getOwnPropertyDescriptor(_class.prototype, "hold"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "unhold", [_dec4], Object.getOwnPropertyDescriptor(_class.prototype, "unhold"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "play", [_dec5], Object.getOwnPropertyDescriptor(_class.prototype, "play"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "start", [_dec6], Object.getOwnPropertyDescriptor(_class.prototype, "start"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "pause", [_dec7], Object.getOwnPropertyDescriptor(_class.prototype, "pause"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "seek", [_dec8], Object.getOwnPropertyDescriptor(_class.prototype, "seek"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "silence", [_dec9], Object.getOwnPropertyDescriptor(_class.prototype, "silence"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "stop", [_dec10], Object.getOwnPropertyDescriptor(_class.prototype, "stop"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "toggle", [_dec11], Object.getOwnPropertyDescriptor(_class.prototype, "toggle"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "soundfonts", [_dec12], Object.getOwnPropertyDescriptor(_class.prototype, "soundfonts"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "instruments", [_dec13], Object.getOwnPropertyDescriptor(_class.prototype, "instruments"), _class.prototype)), _class));
-exports.PlayerState = PlayerState;
-class InstrumentState {
-  static create(context, font, name, options) {
-    return new InstrumentState(context, font, name, options);
-  }
-  static async loadInstrument(context, font, name) {
-    const id = font + '\n' + name;
-    if (!this._instruments[id]) {
-      try {
-        this._instruments[id] = await _soundfontPlayer.default.instrument(context, name, {
-          soundfont: font,
-          nameToUrl: (name, sf, format = 'mp3') => {
-            if (!sf.match(/^https?:/)) {
-              if (name === 'percussion') {
-                sf = "https://cdn.jsdelivr.net/gh/dave4mpls/midi-js-soundfonts-with-drums/FluidR3_GM";
-              } else {
-                sf = "https://gleitz.github.io/midi-js-soundfonts/" + sf;
-              }
-            }
-            return sf + '/' + name + '-' + format + '.js';
-          }
-        });
-      } catch (error) {
-        console.log(error);
-      }
-    }
-    return this._instruments[id];
-  }
-  constructor(context, font, name, options) {
-    _defineProperty(this, "instrument", null);
-    this.context = context;
-    this.font = font;
-    this.name = name;
-    this.options = options;
-    this.load();
-  }
-  async load() {
-    this.instrument = await this.constructor.loadInstrument(this.context, this.font, this.name);
-  }
-  play(note, at, options = {}) {
-    var _this$instrument;
-    (_this$instrument = this.instrument) === null || _this$instrument === void 0 ? void 0 : _this$instrument.play(note, at, {
-      ...this.options,
-      ...options
-    });
-  }
-  stop() {
-    var _this$instrument2;
-    (_this$instrument2 = this.instrument) === null || _this$instrument2 === void 0 ? void 0 : _this$instrument2.stop();
-  }
-}
-_defineProperty(InstrumentState, "_instruments", {});
-
-},{"mobx":"2yJsB","soundfont-player":"7IOtV"}],"55noZ":[function(require,module,exports) {
+},{}],"55noZ":[function(require,module,exports) {
 "use strict";
 Object.defineProperty(exports, "__esModule", {
   value: true
@@ -43924,18 +44204,20 @@ let Tune = (_dec = (0, _mobx.computed)({
   keepAlive: true
 }), (_class = class Tune {
   get tracks() {
+    // console.log('tracks')
     return Object.values(this.tracksById);
   }
   timeAtTick(tick) {
     return this.tempoTrack.timeAtTick(tick);
   }
   get events() {
-    console.log('evens');
+    // console.log('events');
+    console.time('events');
     let events = this.tracks.flatMap(t => t.events).sort((a, b) => a.tick - b.tick);
+    console.timeEnd('events');
     return events;
   }
   get uniqueTimes() {
-    console.log('uniqu');
     let ret = new Set();
     for (const e of this.events) ret.add(e.at);
     return [...ret];
@@ -43995,11 +44277,14 @@ let Tune = (_dec = (0, _mobx.computed)({
       ...soundfonts
     };
     this.TPQ = TPQ;
+    console.log('tune tempo', tempo);
     this.tempoTrack = new _TempoTrack.TempoTrack(this, {
       events: tempo,
       TPQ
     });
+    let channel = 0;
     for (const id in tracks) {
+      tracks[id].channel = channel++ % 16;
       this.tracksById[id] = new _Track.Track(this, tracks[id]);
     }
   }
@@ -44036,7 +44321,7 @@ exports.TempoTrack = void 0;
 var _mobx = require("mobx");
 var _Track = require("./Track");
 var _jsmidgen = _interopRequireDefault(require("jsmidgen"));
-var _class;
+var _dec, _dec2, _class;
 function _interopRequireDefault(obj) {
   return obj && obj.__esModule ? obj : {
     default: obj
@@ -44078,7 +44363,11 @@ function _applyDecoratedDescriptor(target, property, decorators, descriptor, con
   }
   return desc;
 }
-let TempoTrack = (_class = class TempoTrack extends _Track.BaseTrack {
+let TempoTrack = (_dec = (0, _mobx.computed)({
+  keepAlive: true
+}), _dec2 = (0, _mobx.computed)({
+  keepAlive: true
+}), (_class = class TempoTrack extends _Track.BaseTrack {
   get events() {
     return [{
       event: 'T',
@@ -44120,19 +44409,27 @@ let TempoTrack = (_class = class TempoTrack extends _Track.BaseTrack {
     return ret;
   }
   constructor(tune, {events, TPQ}) {
+    console.log('tempo', events);
     super(tune, {
       events
     });
+    _defineProperty(this, "timeCache", {});
+    _defineProperty(this, "hits", 0);
+    _defineProperty(this, "misses", 0);
     _defineProperty(this, "timeAtTick", tick => {
       // return this.ticksToSeconds(120,tick)
-      const offsets = this.tickOffsets;
-      for (const {tick: t, time, TPS} of offsets) {
-        if (tick >= t) {
-          return time + (tick - t) / TPS;
+      if (!((tick in this.timeCache))) {
+        const offsets = this.tickOffsets;
+        let ret = 0;
+        for (const {tick: t, time, TPS} of offsets) {
+          if (tick >= t) {
+            ret = time + (tick - t) / TPS;
+          }
+          ;
         }
-        ;
+        this.timeCache[tick] = ret;
       }
-      return 0;
+      return this.timeCache[tick];
     });
     _defineProperty(this, "isMidiEvent", event => {
       return ({
@@ -44143,7 +44440,7 @@ let TempoTrack = (_class = class TempoTrack extends _Track.BaseTrack {
     this._events = events;
     (0, _mobx.makeObservable)(this);
   }
-}, (_applyDecoratedDescriptor(_class.prototype, "events", [_mobx.computed], Object.getOwnPropertyDescriptor(_class.prototype, "events"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "tickOffsets", [_mobx.computed], Object.getOwnPropertyDescriptor(_class.prototype, "tickOffsets"), _class.prototype)), _class);
+}, (_applyDecoratedDescriptor(_class.prototype, "events", [_dec], Object.getOwnPropertyDescriptor(_class.prototype, "events"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "tickOffsets", [_dec2], Object.getOwnPropertyDescriptor(_class.prototype, "tickOffsets"), _class.prototype)), _class));
 exports.TempoTrack = TempoTrack;
 
 },{"mobx":"2yJsB","./Track":"3AQM8","jsmidgen":"7AWdF"}],"3AQM8":[function(require,module,exports) {
@@ -44155,7 +44452,7 @@ exports.Track = exports.BaseTrack = void 0;
 var _mobx = require("mobx");
 var _instruments = _interopRequireDefault(require("./instruments.json"));
 var _jsmidgen = _interopRequireDefault(require("jsmidgen"));
-var _class, _descriptor, _class2, _temp, _class3;
+var _dec, _class, _descriptor, _class3;
 function _interopRequireDefault(obj) {
   return obj && obj.__esModule ? obj : {
     default: obj
@@ -44209,18 +44506,18 @@ function _applyDecoratedDescriptor(target, property, decorators, descriptor, con
 function _initializerWarningHelper(descriptor, context) {
   throw new Error('Decorating class property failed. Please ensure that ' + 'proposal-class-properties is enabled and runs after the decorators transform.');
 }
-let BaseTrack = (_class = (_temp = _class2 = class BaseTrack {
+let BaseTrack = (_dec = _mobx.observable.shallow, (_class = class BaseTrack {
   get events() {
     return this._events;
   }
   get isMidiTrack() {
     return false;
   }
-  constructor(tune, {events}) {
+  constructor(tune, {events, channel}) {
     _initializerDefineProperty(this, "_events", _descriptor, this);
     _defineProperty(this, "isMidiEvent", event => false);
+    this.channel = channel;
     this._events = events;
-    (0, _mobx.makeObservable)(this);
   }
   diffEvents(events) {
     let lastTick = 0;
@@ -44239,13 +44536,13 @@ let BaseTrack = (_class = (_temp = _class2 = class BaseTrack {
     for (const event of this.eventsForMidi) {
       switch (event.event) {
         case 'ON':
-          midi.addNoteOn(0, event.note, event.wait | 0, event.velocity);
+          midi.addNoteOn(this.channel, event.note, event.wait | 0, event.velocity);
           break;
         case 'OFF':
-          midi.addNoteOff(0, event.note, event.wait | 0, event.velocity);
+          midi.addNoteOff(this.channel, event.note, event.wait | 0, event.velocity);
           break;
         case 'I':
-          midi.setInstrument(0, event.instrument, event.wait | 0);
+          midi.setInstrument(this.channel, event.instrument, event.wait | 0);
           break;
         case 'T':
           midi.setTempo(event.tempo, event.wait | 0);
@@ -44262,16 +44559,16 @@ let BaseTrack = (_class = (_temp = _class2 = class BaseTrack {
     }
     return midi;
   }
-}, _defineProperty(_class2, "midiEvents", new Set('ON', 'OFF')), _temp), (_descriptor = _applyDecoratedDescriptor(_class.prototype, "_events", [_mobx.observable], {
+}, (_descriptor = _applyDecoratedDescriptor(_class.prototype, "_events", [_dec], {
   configurable: true,
   enumerable: true,
   writable: true,
   initializer: null
-}), _applyDecoratedDescriptor(_class.prototype, "eventsForMidi", [_mobx.computed], Object.getOwnPropertyDescriptor(_class.prototype, "eventsForMidi"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "toMidi", [_mobx.computed], Object.getOwnPropertyDescriptor(_class.prototype, "toMidi"), _class.prototype)), _class);
+}), _applyDecoratedDescriptor(_class.prototype, "eventsForMidi", [_mobx.computed], Object.getOwnPropertyDescriptor(_class.prototype, "eventsForMidi"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "toMidi", [_mobx.computed], Object.getOwnPropertyDescriptor(_class.prototype, "toMidi"), _class.prototype)), _class));
 exports.BaseTrack = BaseTrack;
 let Track = (_class3 = class Track extends BaseTrack {
-  get events() {
-    return [{
+  makeEvents() {
+    this._events = [{
       event: 'ID',
       tick: 0,
       data: this.id
@@ -44279,7 +44576,8 @@ let Track = (_class3 = class Track extends BaseTrack {
       event: 'I',
       tick: 0,
       instrument: this.midiInstrument || 0
-    }, ...this.tune.tempoTrack.events, ...this._events].map(event => {
+    }, // ...this.tune.tempoTrack.events,
+    ...this._events].map(event => {
       const ret = {
         ...event
       };
@@ -44298,26 +44596,27 @@ let Track = (_class3 = class Track extends BaseTrack {
   get isMidiCompatible() {
     return this.midiInstrument >= 0;
   }
-  constructor(tune, {id, events, instrument, font}) {
+  constructor(tune, {id, instrument, font, ...rest}) {
     super(tune, {
-      events
+      ...rest
     });
     _defineProperty(this, "isMidiEvent", event => {
-      return ({
-        'I': true,
-        'ID': true,
-        'T': true,
-        'ON': true,
-        'OFF': true
-      })[event.event] || false;
+      switch (event.event) {
+        case 'I':
+        case 'ON':
+        case 'OFF':
+          return true;
+      }
+      return false;
     });
     this.tune = tune;
     this.id = id;
     this.font = font;
     this.instrument = instrument;
+    this.makeEvents();
     (0, _mobx.makeObservable)(this);
   }
-}, (_applyDecoratedDescriptor(_class3.prototype, "events", [_mobx.computed], Object.getOwnPropertyDescriptor(_class3.prototype, "events"), _class3.prototype), _applyDecoratedDescriptor(_class3.prototype, "midiInstrument", [_mobx.computed], Object.getOwnPropertyDescriptor(_class3.prototype, "midiInstrument"), _class3.prototype), _applyDecoratedDescriptor(_class3.prototype, "isMidiCompatible", [_mobx.computed], Object.getOwnPropertyDescriptor(_class3.prototype, "isMidiCompatible"), _class3.prototype)), _class3);
+}, (_applyDecoratedDescriptor(_class3.prototype, "midiInstrument", [_mobx.computed], Object.getOwnPropertyDescriptor(_class3.prototype, "midiInstrument"), _class3.prototype), _applyDecoratedDescriptor(_class3.prototype, "isMidiCompatible", [_mobx.computed], Object.getOwnPropertyDescriptor(_class3.prototype, "isMidiCompatible"), _class3.prototype)), _class3);
 exports.Track = Track;
 
 },{"mobx":"2yJsB","./instruments.json":"11adB","jsmidgen":"7AWdF"}],"11adB":[function(require,module,exports) {
