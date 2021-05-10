@@ -1,4 +1,11 @@
-import { trace, observable, computed, makeObservable, reaction, action } from "mobx";
+import {
+  trace,
+  observable,
+  computed,
+  makeObservable,
+  reaction,
+  action,
+} from "mobx";
 import { compile } from "./tunecraft";
 
 import { PlayerState } from "./PlayerState";
@@ -30,50 +37,53 @@ export class AppState {
     viewTop: 0,
     mutedTracks: {},
     soloTracks: {},
-  }
+  };
 
   @action muteTrack(id) {
-    this.settings.mutedTracks[id]=true;
+    this.settings.mutedTracks[id] = true;
   }
   @action unmuteTrack(id) {
-    delete this.settings.mutedTracks[id]
+    delete this.settings.mutedTracks[id];
   }
   @action toggleMuteTrack(id) {
-    this.settings.mutedTracks[id]=!this.settings.mutedTracks[id];
+    this.settings.mutedTracks[id] = !this.settings.mutedTracks[id];
   }
   @action unmuteAll() {
-    this.settings.mutedTracks={};
+    this.settings.mutedTracks = {};
   }
   isTrackMuted(id) {
     return !!this.settings.mutedTracks[id];
   }
   @computed get mutedTracks() {
-    return this.tracks.filter(track=>this.isTrackMuted(track.id));
+    return this.tracks.filter((track) => this.isTrackMuted(track.id));
   }
-  
+
   @action soloTrack(id) {
-    this.settings.soloTracks[id]=true;
+    this.settings.soloTracks[id] = true;
   }
   @action unsoloTrack(id) {
     delete this.settings.soloTracks[id];
   }
   @action toggleSoloTrack(id) {
-    this.settings.soloTracks[id]=!this.settings.soloTracks[id];
+    this.settings.soloTracks[id] = !this.settings.soloTracks[id];
   }
   @action unsoloAll() {
-    this.settings.soloTracks={};
+    this.settings.soloTracks = {};
   }
   isTrackSolo(id) {
     return !!this.settings.soloTracks[id];
   }
   @computed get soloTracks() {
-    return this.tracks.filter(track=>this.isTrackSolo(track.id));
+    return this.tracks.filter((track) => this.isTrackSolo(track.id));
   }
 
   @computed get playingTracks() {
     let ret = {};
-    for (const {id} of this.tracks) {
-      if (this.soloTracks.length && this.isTrackSolo(id) || !this.soloTracks.length && !this.isTrackMuted(id)) {
+    for (const { id } of this.tracks) {
+      if (
+        (this.soloTracks.length && this.isTrackSolo(id)) ||
+        (!this.soloTracks.length && !this.isTrackMuted(id))
+      ) {
         ret[id] = true;
       }
     }
@@ -81,9 +91,8 @@ export class AppState {
   }
 
   isTrackPlaying(id) {
-    return !!this.playingTracks[id]
+    return !!this.playingTracks[id];
   }
-  
 
   @observable trackHeights = [];
 
@@ -113,7 +122,6 @@ export class AppState {
     this.snapping = !this.snapping;
   }
 
-
   @computed
   get following() {
     return this.settings.following;
@@ -136,7 +144,7 @@ export class AppState {
 
   clampViewBeginTime(time) {
     const totalTime = this.tune?.length || 0;
-    return clamp(time, -this.viewDuration + 1, totalTime - 1)
+    return clamp(time, -this.viewDuration + 1, totalTime - 1);
   }
 
   @computed get viewBeginTime() {
@@ -155,7 +163,6 @@ export class AppState {
     this.viewBeginTime = time - this.viewDuration / 2;
   }
 
-
   @computed get viewDuration() {
     return this.viewWidth / this.zoomX;
   }
@@ -165,7 +172,7 @@ export class AppState {
   }
 
   @computed get viewLeft() {
-    return this.getX(this.viewBeginTime)
+    return this.getX(this.viewBeginTime);
   }
   set viewLeft(value) {
     this.viewBeginTime = this.getTime(value);
@@ -173,10 +180,10 @@ export class AppState {
 
   @observable totalTrackHeight;
   @computed get viewTop() {
-    return this.clampViewTop(this.settings.viewTop)
+    return this.clampViewTop(this.settings.viewTop);
   }
   clampViewTop(y) {
-    return clamp(y, 0, this.totalTrackHeight-100)
+    return clamp(y, 0, this.totalTrackHeight - 100);
   }
   set viewTop(value) {
     this.settings.viewTop = this.clampViewTop(value);
@@ -201,7 +208,6 @@ export class AppState {
   @observable
   _mouseY = 0;
 
-
   @observable
   _mouseOver = false;
 
@@ -218,7 +224,7 @@ export class AppState {
   @computed
   get mouseY() {
     if (!this._mouseOver) return null;
-    return this._mouseY  + this.viewTop;
+    return this._mouseY + this.viewTop;
   }
   set mouseY(value) {
     this._mouseOver = true;
@@ -237,11 +243,10 @@ export class AppState {
 
   @computed
   get zoomX() {
-    return 2 ** (this.settings.zoomX / 2)
+    return 2 ** (this.settings.zoomX / 2);
   }
 
-  @computed get
-  zoomY() {
+  @computed get zoomY() {
     return this.settings.zoomY;
   }
 
@@ -253,7 +258,7 @@ export class AppState {
       this.settings.zoomY++;
       this.viewTop = t * this.zoomY - y;
     }
-}
+  }
 
   @action.bound
   zoomOutY() {
@@ -268,7 +273,7 @@ export class AppState {
   @action.bound
   zoomInX() {
     if (this.settings.zoomX < 16) {
-      document.body.classList.add('zooming');
+      document.body.classList.add("zooming");
       let x = this.mouseX - this.viewLeft;
       let time = this.mouseTime;
       this.settings.zoomX++;
@@ -280,39 +285,50 @@ export class AppState {
   @action.bound
   zoomOutX() {
     if (this.settings.zoomX > 1) {
-      document.body.classList.add('zooming');
+      document.body.classList.add("zooming");
       let x = this.mouseX - this.viewLeft;
       let time = this.mouseTime;
       this.settings.zoomX--;
       this.viewLeft = this.getX(time) - x;
-
     }
   }
 
   @computed
   get loopIn() {
-    return this.settings.hasLoop ? this.tune?.snapTime(this.settings.loopIn) : null;
-  };
+    return this.settings.hasLoop
+      ? this.tune?.snapTime(this.settings.loopIn)
+      : null;
+  }
   set loopIn(value) {
     this.settings.loopIn = clamp(value, 0, this.settings.loopOut - 0.25);
   }
   @action
   moveLoopIn(value) {
-    this.settings.loopIn = clamp(this.settings.loopIn + value, 0, this.settings.loopOut - 0.25);
+    this.settings.loopIn = clamp(
+      this.settings.loopIn + value,
+      0,
+      this.settings.loopOut - 0.25
+    );
   }
 
   @computed
   get loopOut() {
-    return this.settings.hasLoop ? this.tune?.snapTime(this.settings.loopOut) : null;
-  };
+    return this.settings.hasLoop
+      ? this.tune?.snapTime(this.settings.loopOut)
+      : null;
+  }
   set loopOut(value) {
     this.settings.loopOut = clamp(value, this.settings.loopIn + 0.25, Infinity);
   }
 
   @action.bound
-  moveLoopOut = value => {
-    this.settings.loopOut = clamp(this.settings.loopOut + value, this.settings.loopIn + 0.25, Infinity);
-  }
+  moveLoopOut = (value) => {
+    this.settings.loopOut = clamp(
+      this.settings.loopOut + value,
+      this.settings.loopIn + 0.25,
+      Infinity
+    );
+  };
   @computed get hasLoop() {
     return this.settings.hasLoop;
   }
@@ -333,13 +349,52 @@ export class AppState {
 
   @observable source = "";
 
+  editorDecorations = [];
 
   @computed get result() {
     try {
-      return { result: compile(this.source) };
+      const ret = { result: compile(this.source) };
+      if (this.editor) {
+        this.editorDecorations = this.editor.deltaDecorations(this.editorDecorations,[]);
+        this.monaco?.editor.setModelMarkers(this.editor.getModel(), "tc", []);
+      }
+      return ret;
     } catch (error) {
       console.error(error);
-      return { error: error }
+      const { start, end } = error.location;
+      if (this.editor) {
+        this.editorDecorations = this.editor.deltaDecorations(
+          this.editorDecorations,
+          [
+            {
+              range: new monaco.Range(
+                start.line,
+                start.column,
+                end.line,
+                end.column
+              ),
+              options: {
+                isWholeLine: false,
+                inlineClassName: "tc error inline",
+                marginClassName: "tc error margin",
+              },
+            },
+          ]
+        );
+        this.monaco?.editor.setModelMarkers(this.editor.getModel(), "tc", [
+          {
+            startLineNumber: start.line,
+            startColumn: start.column,
+            endLineNumber: end.line,
+            endColumn: end.column,
+            owner: "tc",
+            code: "?Syntax error",
+            message: error?.message,
+            severity: 8,
+          },
+        ]);
+      }
+      return { error: error };
     }
   }
 
@@ -362,22 +417,24 @@ export class AppState {
   @observable editor = null;
   exportMidi() {
     var blob = new Blob([this.tune.toMidiBuffer], { type: "audio/midi" });
-    var link = document.createElement('a');
+    var link = document.createElement("a");
     const url = URL.createObjectURL(blob);
     link.href = url;
 
-    link.download = this.fileName + dayjs().format(' YYYY-MM-DD-HH-mm') + ".mid";
+    link.download =
+      this.fileName + dayjs().format(" YYYY-MM-DD-HH-mm") + ".mid";
     link.click();
     URL.revokeObjectURL(url);
   }
 
   saveTune() {
     var blob = new Blob([this.source], { type: "text/plain" });
-    var link = document.createElement('a');
+    var link = document.createElement("a");
     const url = URL.createObjectURL(blob);
     link.href = url;
 
-    link.download = this.fileName + dayjs().format(' YYYY-MM-DD-HH-mm') + ".tune";
+    link.download =
+      this.fileName + dayjs().format(" YYYY-MM-DD-HH-mm") + ".tune";
     link.click();
     URL.revokeObjectURL(url);
   }
@@ -386,12 +443,11 @@ export class AppState {
     var fr = new FileReader();
     fr.onload = action(() => {
       //this.source = fr.result;
-      this.fileName = file.name.replace(/[0-9\-]+\..*$/, '');
+      this.fileName = file.name.replace(/[0-9\-]+\..*$/, "");
       this.editor.getModel().setValue(fr.result);
-    })
+    });
     fr.readAsText(file);
   }
-
 
   constructor() {
     top.app = this;
@@ -400,35 +456,41 @@ export class AppState {
     this.player = new PlayerState(this);
     this.scroller = new ScrollerState(this);
 
-    reaction(() => {
-      this.tune; return this.result
-    }, ({ result, error }) => {
-      if (result === lastResult) return;
-      lastResult = result;
-      localStorage.tunecraft_save = this.source;
-      if (result) {
-        console.time('new tune');
-        this.tune = new Tune(result);
-        console.timeEnd('new tune');
+    reaction(
+      () => {
+        this.tune;
+        return this.result;
+      },
+      ({ result, error }) => {
+        if (result === lastResult) return;
+        lastResult = result;
+        localStorage.tunecraft_save = this.source;
+        if (result) {
+          console.time("new tune");
+          this.tune = new Tune(result);
+          console.timeEnd("new tune");
+        }
       }
-    })
+    );
 
-    reaction(() => (this.player.playing && this.following && this.player.playbackTime), (time) => {
-      if (typeof time !== 'number') return;
-      const b = this.viewBeginTime;
-      if (time < b + 1) {
-        this.viewBeginTime = time - 1;
-        return;
+    reaction(
+      () => this.player.playing && this.following && this.player.playbackTime,
+      (time) => {
+        if (typeof time !== "number") return;
+        const b = this.viewBeginTime;
+        if (time < b + 1) {
+          this.viewBeginTime = time - 1;
+          return;
+        }
+        const e = this.viewEndTime;
+
+        if (time > e - 1) this.viewBeginTime = time - 1;
       }
-      const e = this.viewEndTime;
-
-      if (time > e - 1)
-        this.viewBeginTime = time - 1;
-    })
+    );
 
     this.init();
   }
   @action init() {
-    this.source = localStorage.tunecraft_save || ""
+    this.source = localStorage.tunecraft_save || "";
   }
 }

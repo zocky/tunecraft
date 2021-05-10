@@ -103,6 +103,7 @@ export class Resizable extends React.Component {
 
 
 export function onResize(element,handler) {
+  if(!element) return;
   const onResize = action(handler);
   const observer = new ResizeObserver(action(entries => {
     for (let entry of entries) {
