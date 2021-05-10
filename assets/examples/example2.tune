@@ -1,0 +1,54 @@
+@soundfont default = FatBoy
+@soundfont fluid = https://cdn.jsdelivr.net/gh/dave4mpls/midi-js-soundfonts-with-drums/FluidR3_GM
+@track drums = default/percussion
+@track bells = default/tubular_bells R5000
+
+$T = 1 & 3 & 5
+$U = +1 & 3 & 1 
+$V = +1 & +3 & 5 
+
+$T7 = $T & 7
+$U7 = $U & 7
+$V7 = $V & 7
+$W7 = $T & -7
+
+[T180 V100 "string_ensemble_1" C
+| I $T -$V
+| II $T -$V
+| VI -$V -$U
+| V 1 & -5 & -7
+| I $T -$V
+| II $T -$V
+| VI -$V IV $T
+| V 1 & -5 & 7 & 3 &7  & -1 
+| I $T -$U
+| II $T -$V 
+]
+
+[T180 V100 "cello" C
+| I 1
+| II 1
+| VI -1
+| V -1
+| I 1
+| II 1
+| VI -1
+| V -1 
+| I 1
+| II 1
+]
+
+
+
+[T180 V100 "harpsichord" C
+| I 1 3 5 3 ; 5 3 1 3
+| II 1 3 5 3 ; 5 3 1 3
+| VI -5 1 3 1; -5 1 3 1
+| V 1 2 3 4; 5 3 2 1
+| I 1 3 5 3 ; 5 3 1 3
+| II 1 3 5 3 ; 5 3 1 3 
+| III 1 3 5 3; IV 1 3 5 3
+| V 1 2 3 4 ; 5. 2'
+| I 1 3 5 3 ; 5 3 1 3
+| II 1 3 5 3 ; 5 3 1 3
+]

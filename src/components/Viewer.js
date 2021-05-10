@@ -64,15 +64,8 @@ export class ViewPort extends React.Component {
   }
   onWheel = e => {
     const { app } = this.props;
+    
     if (e.shiftKey) {
-      if (e.deltaY > 0) {
-        app.zoomOutY()
-      } else {
-        app.zoomInY()
-      }
-      e.preventDefault();
-    }
-    if (e.ctrlKey) {
       if (e.deltaY > 0) {
         app.zoomOutX()
       } else {

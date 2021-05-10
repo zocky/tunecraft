@@ -23,9 +23,45 @@
 .tc.time {
   grid-area:time;
   text-align:center;
-  background:#222;
+  background:#111;
+  border:solid 4px #222;
   line-height    : var(--top-height);
-  width:200px;
+  box-shadow: 0 0 3px 1px #fff6 inset;
+  width:220px;
+  display: grid;
+  grid-template-areas: "a b c" "d b e";
+  grid-template-columns:1fr 2fr 1fr;
+  grid-template-rows:1fr 1fr;
+  font-size:14px;
+  color:#999;
+  time {
+    font-family:Oxanium;
+    line-height:0.5em;
+    position:absolute;
+    bottom:12px;
+    left:0px;
+    right:0px;
+    text-align:center;
+  }
+  >.playback {
+    position:relative;
+    grid-area:b;
+    font-size:32px;
+
+    font-weight:300;
+    color:white;
+  }
+  >.begin {
+    display:block;
+    grid-area:d;
+    font-weight:600;
+    position:relative;
+  }
+  >.end {
+    font-weight:600;
+    position:relative;
+    grid-area:e;
+  }
 }
 
 .tc.links {

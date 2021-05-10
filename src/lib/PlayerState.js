@@ -57,8 +57,8 @@ export class PlayerState {
       if (e.at >= this.endTime) return false;
       return true;
     })
-    
-      .map(e => ({ ...e }));
+    .map(e => ({ ...e }));
+    /*
     for (const e of notes) {
       if (e.at + e.duration > this.endTime) e.duration = this.endTime - e.at;
     }

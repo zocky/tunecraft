@@ -1,114 +1,94 @@
-export const tokenizer = {
-	keywords: [
-		'soundfont', 'instrument'
-	],
+// Difficulty: "Moderate"
+// This is the JavaScript tokenizer that is actually used to highlight
+// all code in the syntax definition editor and the documentation!
+//
+// This definition takes special care to highlight regular
+// expressions correctly, which is convenient when writing
+// syntax highlighter specifications.
+export const tokenizer =  {
+	// Set defaultToken to invalid to see what you do not tokenize yet
+	defaultToken: 'invalid',
+	tokenPostfix: '.js',
 
-	verifyKeywords: [
-		'requires', 'modifies', 'ensures', 'otherwise', 'satisfies', 'witness', 'invariant',
-	],
 
-	typeKeywords: [
-		'bool', 'byte', 'char', 'decimal', 'double', 'fixed', 'float',
-		'int', 'long', 'object', 'sbyte', 'short', 'string', 'uint', 'ulong',
-		'ushort', 'void'
-	],
 
-	keywordInType: [
-		'struct', 'new', 'where', 'class'
-	],
-
-	typeFollows: [
-		'as', 'class', 'interface', 'struct', 'enum', 'new', 'where',
-		':',
-	],
-
-	namespaceFollows: [
-		'namespace', 'using',
-	],
-
-	operators: [
-		'??', '||', '&&', '|', '^', '&', '==', '!=', '<=', '>=', '<<',
-		'+', '-', '*', '/', '%', '!', '~', '++', '--', '+=',
-		'-=', '*=', '/=', '%=', '&=', '|=', '^=', '<<=', '>>=', '>>', '=>'
-	],
-	variable: /[$][A-Za-z]\w*/,
-	assign: /[$][A-Za-z]\w*\s*=\s*/,
-
+	// we include these common regular expressions
 	symbols: /[=><!~?:&|+\-*\/\^%]+/,
-
-	// escape sequences
 	escapes: /\\(?:[abfnrtv\\"']|x[0-9A-Fa-f]{1,4}|u[0-9A-Fa-f]{4}|U[0-9A-Fa-f]{8})/,
+	digits: /\d+(_+\d+)*/,
+	octaldigits: /[0-7]+(_+[0-7]+)*/,
+	binarydigits: /[0-1]+(_+[0-1]+)*/,
+	hexdigits: /[[0-9a-fA-F]+(_+[0-9a-fA-F]+)*/,
+
+	regexpctl: /[(){}\[\]\$\^|\-*+?\.]/,
+	regexpesc: /\\(?:[bBdDfnrstvwWn0\\\/]|@regexpctl|c[A-Z]|x[0-9a-fA-F]{2}|u[0-9a-fA-F]{4})/,
 
 	// The main tokenizer for our languages
 	tokenizer: {
 		root: [
-			[/([@])([a-zA-Z]\w*)/, ['keyword', {
-				cases: {
-					'@keywords': 'keyword',
-					'@default': 'string.invalid'
-				}
-			}]],
-			[/@assign/, 'regexp', '@sequence'],
+			[/[{}]/, 'delimiter.bracket'],
+			{ include: 'common' }
+		],
 
+		common: [
+			// identifiers and keywords
+			[/[$][a-z_$][\w$]*/, {
+				cases: {
+					'@default': 'type.identifier'
+				}
+			}],
 			// whitespace
 			{ include: '@whitespace' },
 
-			/*
 			// delimiters and operators
-			[/[{}()\[\]]/, '@brackets'],
-			[/[<>](?!@symbols)/, '@brackets'],
-			[/@symbols/, {
-			  cases: {
-				'@operators': 'operator',
-				'@default': ''
-			  }
-			}],
-	  
-			// literal string
-			[/@"/, { token: 'string.quote', bracket: '@open', next: '@litstring' }],
-	  
-			// numbers
-			[/\d*\.\d+([eE][\-+]?\d+)?/, 'number.float'],
-			[/0[xX][0-9a-fA-F]+/, 'number.hex'],
-			[/\d+/, 'number'],
-	  
-			// delimiter: after number because of .\d floats
-			[/[;,.]/, 'delimiter'],
-	  
-			// strings
-			[/"([^"\\]|\\.)*$/, 'string.invalid'],  // non-teminated string
-			[/"/, { token: 'string.quote', bracket: '@open', next: '@string' }],
-	  
-			// characters
-			[/'[^\\']'/, 'string'],
-			[/(')(@escapes)(')/, ['string', 'string.escape', 'string']],
-			[/'/, 'string.invalid']
-			*/
-		],
-		sequence: [
-			{ include: '@whitespace' },
-			[/(?=@assign)/, '', '@pop'],
-			[/["][^"]+["]/,'string'],
-			[/@variable/, 'regexp'],
-			[/[TV]\d+/, 'keyword'],
-			[/[-+]*(?:II?I?|IV|VI?I?|[A-G])([#b]*)/, 'keyword'],
-			[/[-+]*[1-7a-g]{2;}[#b]*/, 'invalid'],
-			[/[-+]*[1-7a-g][#b]*/, 'string'],
+			[/[()\[\]\{\}]/, '@brackets'],
 			
+
+			// notes
+			[/[-+]*\b[1-7a-g](?:[#b]+|\b)/, 'keyword'],
+			
+			// delimiter: after number because of .\d floats
+			[/[;:.'& =]/, 'delimiter'],
+
+			// strings
+			[/"([^"\\]|\\.)*$/, 'invalid'],  // non-teminated string
+			[/"/, 'string', '@string_double'],
 		],
-		
-		comment: [
-			[/[^\/*]+/, 'comment'],
-			// [/\/\*/,    'comment', '@push' ],    // no nested comments :-(
-			["\\*/", 'comment', '@pop'],
-			[/[\/*]/, 'comment']
-		],
-		
+
 		whitespace: [
-			[/^[ \t\v\f]*#\w.*$/, 'namespace.cpp'],
-			[/[ \t\v\f\r\n]+/, 'white'],
+			[/[ \t\r\n]+/, ''],
+			[/\/\*\*(?!\/)/, 'comment.doc', '@jsdoc'],
 			[/\/\*/, 'comment', '@comment'],
 			[/\/\/.*$/, 'comment'],
 		],
+
+		comment: [
+			[/[^\/*]+/, 'comment'],
+			[/\*\//, 'comment', '@pop'],
+			[/[\/*]/, 'comment']
+		],
+
+		jsdoc: [
+			[/[^\/*]+/, 'comment.doc'],
+			[/\*\//, 'comment.doc', '@pop'],
+			[/[\/*]/, 'comment.doc']
+		],
+		string_double: [
+			[/[^\\"]+/, 'string'],
+			[/@escapes/, 'string.escape'],
+			[/\\./, 'string.escape.invalid'],
+			[/"/, 'string', '@pop']
+		],
+
+
+		bracketCounting: [
+			[/\{/, 'delimiter.bracket', '@bracketCounting'],
+			[/\}/, 'delimiter.bracket', '@pop'],
+			[/\[/, 'delimiter.bracket', '@bracketCounting'],
+			[/\]/, 'delimiter.bracket', '@pop'],
+			[/\(/, 'delimiter.bracket', '@bracketCounting'],
+			[/\)/, 'delimiter.bracket', '@pop'],
+			{ include: 'common' }
+		],
 	},
-}
+};

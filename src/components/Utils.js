@@ -118,3 +118,7 @@ export function onWheel(element,handler) {
   const onWheel = action(handler);
   element.addEventListener('wheel',onWheel,{passive:false});
 }
+
+export function formatTime(time) {
+   return `${0 | (time / 60)}:${(time % 60).toFixed(1).padStart(4, "0")}`;
+}

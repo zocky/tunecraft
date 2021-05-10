@@ -5,6 +5,7 @@ import { action } from "mobx";
 
 import './Player.less';
 import { classes } from "../lib/utils";
+import { formatTime } from "./Utils";
 
 @observer
 export class PlayerControls extends React.Component {
@@ -74,50 +75,60 @@ export class PlayerTime extends React.Component {
     const { app } = this.props;
     return this.formatTime(app.tune?.length);
   }
-  get playbackTime() {
-    const { playbackTime } = this.props.app.player;
-    return this.formatTime(playbackTime || 0);
-  }
+
   render() {
     return (<div className="tc time">
-      {this.playbackTime} /
-      {this.totalTime}
+      <Time object={app.player} prop="playbackTime" className="playback"/>
+      <Time object={app.player} prop="beginTime" className="begin"/>
+      <Time object={app.player} prop="endTime" className="end"/>
     </div>)
+  }
+}
+
+@observer
+export class Time extends React.Component {
+  render() {
+    const { object, prop, className } = this.props;
+    return (
+      <span className={className}>
+        <time>{formatTime(object[prop])}</time>
+      </span>
+    )
   }
 }
 
 
 @observer
 export class PlayerLinks extends React.Component {
-  
+
   render() {
     const { app } = this.props;
-    return(
+    return (
       <div className="tc links">
         <input type="file" id="open-tune" style={{
-          position:"fixed",
-          left:"-100vw"
+          position: "fixed",
+          left: "-100vw"
         }}
-        accept=".tune"
-        onChange={e=>{
-          app.openTune(e.target.files[0]);
-        }}
+          accept=".tune"
+          onChange={e => {
+            app.openTune(e.target.files[0]);
+          }}
 
         />
         <label className="tc small-button open" htmlFor="open-tune">
           OPEN TUNE
         </label>
         <button className="tc small-button save"
-          onClick={e=>app.saveTune()}
+          onClick={e => app.saveTune()}
         >
           SAVE TUNE
         </button>
         <button className="tc small-button midi"
-          onClick={e=>app.exportMidi()}
+          onClick={e => app.exportMidi()}
         >
           EXPORT MIDI
         </button>
-        
+
 
         <button className="tc small-button mp3 hidden">
           EXPORT MP3

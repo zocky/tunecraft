@@ -10,7 +10,7 @@ export class Editor extends React.Component {
     return (
         <Monaco
           height="100%"
-          theme="vs-dark"
+          theme="vs-light"
           defaultValue={app.source}
           defaultLanguage="tunecraft"
           onChange={app.editor.onChange}

@@ -36,57 +36,6 @@ const COLORS = [
   '#767676',
 ];
 
-@observer
-export class Tracks extends React.Component {
-
-  componentDidMount() {
-    onResize(this.ref, this.onResize);
-    onWheel(this.ref, this.onWheel);
-  }
-  onResize = e => {
-    const { app } = this.props;
-    app.viewWidth = e.width;
-    app.scrollHeight = e.height;
-  }
-  onWheel = e => {
-    const { app } = this.props;
-    if (e.shiftKey) {
-      if (e.deltaY > 0) {
-        app.zoomOutY()
-      } else {
-        app.zoomInY()
-      }
-      e.preventDefault();
-    }
-    if (e.ctrlKey) {
-      if (e.deltaY > 0) {
-        app.zoomOutX()
-      } else {
-        app.zoomInX()
-      }
-      e.preventDefault();
-    }
-    if (!e.ctrlKey && !e.shiftKey) {
-      app.moveViewLeft(e.deltaY);
-      e.stopPropagation();
-      e.preventDefault();
-    }
-  }
-  render() {
-    const { app } = this.props;
-    console.log('render', this.constructor.name)
-    //const tracks = app.tracks.filter(({ events }) => events.length);
-    return (
-      <>
-        <Scroller app={app} />
-        <div className="tc tracks" ref={ref => this.ref = ref} >
-          <TrackHeaders app={app} />
-          <View app={app} />
-        </div>
-      </>
-    )
-  }
-}
 
 
 @observer
@@ -115,9 +64,18 @@ export class TrackHeaders extends React.Component {
     //const tracks = app.tracks.filter(({ events }) => events.length);
     return (
       <div className="tc track-headers" ref={ref => ref && onWheel(ref, e => {
-        e.stopPropagation();
-        app.moveViewTop(e.deltaY);
         e.preventDefault();
+        e.stopPropagation();
+        if (e.shiftKey) {
+            if (e.deltaY > 0) {
+              app.zoomOutY()
+            } else {
+              app.zoomInY()
+            }
+        } 
+        if (!e.ctrlKey && !e.shiftKey) {
+          app.moveViewTop(e.deltaY);
+        }
       })}>
         <TrackHeaderList app={app} />
       </div>

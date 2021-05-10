@@ -94,8 +94,19 @@ export function findClosest(needle, haystack) {
   
 }
 
-// Method to compare which one is the more close
-// We find the closest by taking the difference
-//  between the target and both values. It assumes
-// that val2 is greater than val1 and target lies
-// between these two.
+
+export function storageGet(name, def = null) {
+  try {
+    return JSON.parse(localStorage[name]);
+  } catch (error) {
+    return def;
+  }
+}
+
+export function storageSet(name, value, def = null) {
+  try {
+    localStorage[name] = JSON.stringify(value);
+  } catch (error) {
+    localStorage[name] = JSON.stringify(def);
+  }
+}
