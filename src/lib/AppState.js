@@ -94,7 +94,11 @@ export class AppState {
     return !!this.playingTracks[id];
   }
 
-  @observable trackHeights = [];
+  @observable trackComponents = [];
+
+  @computed get trackHeights() {
+    return this.trackComponents.map(it=>it.height);
+  }
 
   @observable
   viewWidth = 0;
@@ -212,6 +216,39 @@ export class AppState {
   _mouseOver = false;
 
   @computed
+  get mouseTrack() {
+    let sum = 0
+    for(const i in this.trackHeights) {
+      sum += this.trackHeights[i]
+      if(sum > this.mouseY) return i; 
+    }
+    return "?full";
+  }
+
+  @computed
+  get mouseTrackY() {
+    let sum = 0,last = 0
+    for(const i in this.trackHeights) {
+      sum += this.trackHeights[i]
+      if(sum > this.mouseY) return this.mouseY - last
+      last = sum
+    }
+    return "?null";
+  }
+
+  @computed
+  get mouseTrackPitch() {
+    console.log('trac')
+    if (!this.mouseTrack) return null;
+    const trackComponent = this.trackComponents[this.mouseTrack];
+    if (!trackComponent) {
+      console.log('no trac',this.mouseTrack,this.trackComponents[this.mouseTrack])
+      return;
+    }
+    return trackComponent.max - Math.floor(this.mouseTrackY/this.zoomY)
+  }
+
+  @computed
   get mouseX() {
     if (!this._mouseOver) return null;
     return this._mouseX + this.viewLeft;
@@ -224,11 +261,11 @@ export class AppState {
   @computed
   get mouseY() {
     if (!this._mouseOver) return null;
-    return this._mouseY + this.viewTop;
+    return Math.round(this._mouseY + this.viewTop);
   }
   set mouseY(value) {
     this._mouseOver = true;
-    this._mouseY = value;
+    this._mouseY = Math.round(value);
   }
 
   @action mouseLeave() {
@@ -392,7 +429,7 @@ export class AppState {
             message: error?.message,
             severity: 8,
           },
-        ]);
+        ]); 
       }
       return { error: error };
     }
