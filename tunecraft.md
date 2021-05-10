@@ -31,7 +31,7 @@ $scale = 1 (2 3) 4 (5 6)
   {
     $chord = 1 & 3 & 5
     $measure = ($chord $chord) $chord
-    ["rock_organ|[$part]]
+    ["rock_organ"|[$part]]
   }
 
   // Will play appreggio on the piano and chords on the organ
