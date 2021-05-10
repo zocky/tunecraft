@@ -1,51 +1,9 @@
-/*.tc.tracks {
-  position       : relative;
-  height         : 100%;
-  width          : 100%;
-  overflow-y     : auto;
-  overflow-x     : hidden;
-  //padding-right:100px;
-  display:flex;
-  >.headers {
-    margin-top:28px;
-    background:black;
-    z-index:3;
-  }
-
-  >.view {
-    min-height: 100%;
-    position  : relative;
-    display   : inline-block;
-    overflow  : visible;
-
-
-    >.tracks {
-      width     : auto;
-      display   : inline-block;
-      border-top: solid 1px white;
-      min-height: 100%;
-      margin-top: 20px;
-      position  : relative;
-    }
-  }
-
-  .overlay {
-    position: absolute;
-    top     : 0;
-    bottom  : 0;
-    right   : 0;
-    z-index : 1;
-  }
-}
-*/
 
 .track() {
   background   : #000400;
   background   : linear-gradient(to bottom, #181818 0%,  #111 60%, #060606 100%);
 
-  &:nth-child(even) {
-    //background   : linear-gradient(to bottom, #282828 0%,  #222 10%, #161616 100%);
-  }
+
 }
 
 .tc.track {
@@ -60,18 +18,26 @@
   position : relative;
   box-shadow:0px 0 6px 0 #0008;
   background: #222;
+  width:140px;
+  >.headers {
+    position:absolute;
+    left:0;
+    right:0;
+    height:auto;
+    top:var(--tc-view-top)
+  }
 }
 
 
 .tc.track-header {
   pointer-events: all;
-  overflow      : hidden;
-  padding       : 4px 8px 4px 8px;
+  padding       : 4px 2px 4px 8px;
   display       : block;
   font-weight   : 400;
   font-size     : 13px;
-  text-overflow : ellipsis;
   white-space: nowrap;
+  position:relative;
+  display:flex;
   .track();
   .track-id:before {
     content:"";
@@ -80,5 +46,44 @@
     height:8px;
     background: var(--track-color);
     margin-right:4px;
+  }
+  .track-id {
+    overflow      : hidden;
+    flex: 1 1;
+    text-overflow : ellipsis;
+
+  }
+}
+
+
+.tc.track-button {
+  vertical-align:middle;
+  color        : #818181;
+  background   : linear-gradient(to bottom, #282828 0%, #0F0F0F 5%, #060606 100%);
+  box-shadow   : 0 0 1px 1px rgb(10, 10, 10), 0 0 2px 2px #fff2;
+  border       : none;
+   height       : 20px;
+   width    : 20px;
+  text-align   : center;
+  //margin       : 4px auto;
+  font-size    : 11px;
+  font-weight  : 400;
+  border-radius: 4px;
+  margin-left:3px;
+  position     : relative;
+  padding:0;
+  &:hover {
+    color:white;
+  }
+  &.active {
+    color: black;
+    box-shadow   : 0 0 1px 1px rgb(10, 10, 10), 0 0 2px 2px #ff04;
+  }
+  &.solo.active {
+    background:#fc0,
+  }
+  &.mute.active {
+    background:#800;
+    color:white;
   }
 }

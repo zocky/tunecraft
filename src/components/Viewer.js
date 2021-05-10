@@ -45,9 +45,8 @@ export class View extends React.Component {
   render() {
     const { app } = this.props;
     return (
-      <div className="view" style={{ left: -app.viewLeft }}>
+      <div className="view">
         <TrackList app={app} />
-        <Overlay app={app} />
       </div>
     )
   }
@@ -93,6 +92,7 @@ export class ViewPort extends React.Component {
     return (
       <div className="tc viewport" ref={ref => this.ref = ref} >
         <View app={app} />
+        <Overlay app={app} />
       </div>
     )
   }

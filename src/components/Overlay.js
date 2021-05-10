@@ -25,9 +25,12 @@ export class Overlay extends React.Component {
         }}
         onMouseMove={action(e => {
           const { app } = this.props;
-          const x = e.pageX - this.ref.getBoundingClientRect().left;
+          const rect = this.ref.getBoundingClientRect();
+          const x = e.pageX - rect.left;
+          const y = e.pageY - rect.top;
           app.mouseX = x;
-
+          app.mouseY = y;
+          
           if (e.buttons === 1) {
             app.player.seek(app.mouseTime)
           } else if (e.buttons === 4) {
@@ -69,9 +72,7 @@ export class Ruler extends React.Component {
     }
     return (
       <div className="tc ruler">
-        <div className="units" style={{
-          left: -app.viewLeft
-        }}>
+        <div className="units">
           {seconds}
         </div>
       </div>

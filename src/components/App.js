@@ -21,7 +21,24 @@ export class App extends React.Component {
     const { app } = this.props;
 
     return (
-      <div className="tc app">
+      <div className="tc app" style={{
+        "--tc-view-top": -app.viewTop+'px',
+        "--tc-view-left": -app.viewLeft+'px'
+      }}>
+        <MainView app={app}/>
+      </div>
+    )
+  }
+}
+
+
+@observer
+export class MainView extends React.Component {
+  render() {
+    const { app } = this.props;
+
+    return (
+      <>
         <div className="left">
           <Viewer app={app} />
         </div>
@@ -34,10 +51,11 @@ export class App extends React.Component {
           <Editor app={app} />
           <Status app={app} />
         </div>
-      </div>
+      </>
     )
   }
 }
+
 
 
 @observer

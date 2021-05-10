@@ -6,6 +6,7 @@ import "./Tracks.less";
 import { Draggable, onResize, onWheel, Wheelable } from "./Utils";
 import { Scroller } from "./Scroller";
 import { Overlay, Ruler } from "./Overlay";
+import { classes } from "../lib/utils";
 
 const COLORS = [
   '#FF695E',
@@ -39,8 +40,8 @@ const COLORS = [
 export class Tracks extends React.Component {
 
   componentDidMount() {
-    onResize(this.ref,this.onResize);
-    onWheel(this.ref,this.onWheel);
+    onResize(this.ref, this.onResize);
+    onWheel(this.ref, this.onWheel);
   }
   onResize = e => {
     const { app } = this.props;
@@ -79,8 +80,8 @@ export class Tracks extends React.Component {
       <>
         <Scroller app={app} />
         <div className="tc tracks" ref={ref => this.ref = ref} >
-          <TrackHeaders app={app}/>
-          <View app={app}/>
+          <TrackHeaders app={app} />
+          <View app={app} />
         </div>
       </>
     )
@@ -95,7 +96,9 @@ export class TrackList extends React.Component {
     console.log('render', this.constructor.name)
     //const tracks = app.tracks.filter(({ events }) => events.length);
     return (
-      <div className="tracks" >
+      <div className="tracks"
+        ref={ref => onResize(ref, e => app.totalTrackHeight = e.height)}
+      >
         {app.trackKeys.map((idx) =>
           <Track key={idx} app={app} idx={idx} color={COLORS[idx % COLORS.length]} />
         )}
@@ -111,14 +114,31 @@ export class TrackHeaders extends React.Component {
     console.log('render', this.constructor.name)
     //const tracks = app.tracks.filter(({ events }) => events.length);
     return (
-      <div className="tc track-headers" >
-        {app.trackKeys.map((idx) =>
-          <TrackHeader key={idx} app={app} idx={idx} color={COLORS[idx % COLORS.length]} />
-        )}
+      <div className="tc track-headers" ref={ref => ref && onWheel(ref, e => {
+        e.stopPropagation();
+        app.moveViewTop(e.deltaY);
+        e.preventDefault();
+      })}>
+        <TrackHeaderList app={app} />
       </div>
     )
   }
 }
+
+@observer
+export class TrackHeaderList extends React.Component {
+  render() {
+
+    return (
+      <div className="headers">
+        {app.trackKeys.map((idx) => (
+          <TrackHeader key={idx} app={app} idx={idx} color={COLORS[idx % COLORS.length]} />
+        ))}
+      </div>
+    )
+  }
+}
+
 
 @observer
 export class Track extends React.Component {
@@ -128,16 +148,16 @@ export class Track extends React.Component {
   }
 
   componentDidMount() {
-    onResize(this.ref, e=>{
+    onResize(this.ref, e => {
       this.props.app.trackHeights[this.props.idx] = e.height;
     })
   }
 
   @computed get canvasWidth() {
-    const {app} = this.props;
+    const { app } = this.props;
     return app.zoomX * app.tune.length;
   }
-  
+
 
   @computed
   get trackImage() {
@@ -202,8 +222,8 @@ export class Track extends React.Component {
     const { app } = this.props;
     //console.log('render track',this.props.idx)
     return (
-      <div className="tc track" ref={ref=>this.ref=ref}>
-        <img draggable={false} src={this.trackImage}/>
+      <div className="tc track" ref={ref => this.ref = ref}>
+        <img draggable={false} src={this.trackImage} />
       </div>
     )
   }
@@ -219,24 +239,36 @@ export class TrackHeader extends React.Component {
     return this.props.app.tracks[this.props.idx];
   }
   @computed get height() {
-    if (this.props.app.trackHeights.length<=this.props.idx) return 0;
+    if (this.props.app.trackHeights.length <= this.props.idx) return 0;
     return this.props.app.trackHeights[this.props.idx];
   }
   render() {
+    const { app } = this.props;
+    const { id } = this.track;
     return (
-        <div 
-          className="tc track-header"
-          style={{
-            height:this.height,
-            "--track-color":this.props.color
-          }}
-          ref={ref => ref && onWheel(ref,e=>{
-            e.stopPropagation();
-          })}>
-          <span className="track-id">
-            {this.track.id}
-          </span>
-        </div>
+      <div
+        className="tc track-header"
+        style={{
+          height: this.height,
+          "--track-color": this.props.color
+        }}
+      >
+        <span className="track-id">
+          {this.track.id}
+        </span>
+        <span className="buttons">
+          <button className={classes("tc track-button mute", {
+            active: app.isTrackMuted(id)
+          })}
+            onMouseDown={() => app.toggleMuteTrack(id)}
+          >M</button>
+          <button className={classes("tc track-button solo", {
+            active: app.isTrackSolo(id)
+          })}
+            onMouseDown={() => app.toggleSoloTrack(id)}
+          >S</button>
+        </span>
+      </div>
     )
   }
 }
@@ -257,27 +289,27 @@ function drawNotes(ctx, events, { color, max, min, zoomX, zoomY, fixedY, gap = 2
       let h = zoomY;
       ctx.rect(x, y, w, h);
       n++;
-      if (n==1000) {
+      if (n == 1000) {
         ctx.fillStyle = color;
         ctx.fill();
         ctx.beginPath();
-        n=0;
+        n = 0;
       }
-    } 
+    }
   }
   ctx.fillStyle = color;
   ctx.fill();
   ctx.beginPath();
   for (const e of events) {
     if (e.event === 'B') {
-      let x = Math.round(e.at * zoomX) - 2+0.5;
+      let x = Math.round(e.at * zoomX) - 2 + 0.5;
       let y = 0;
       let w = 1;
       let h = zoomY * (max - min);
       ctx.rect(x, y, w, h);
     }
   }
-  ctx.fillStyle="#444";
+  ctx.fillStyle = "#444";
   ctx.fill();
   //const spent = performance.now()-now;
   //console.log('per note',spent/events.length*1000000|0);

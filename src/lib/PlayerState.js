@@ -45,6 +45,7 @@ export class PlayerState {
   @computed({keepAlive:true})
   get notes() {
     const notes = this.app.tune.events.filter(e => {
+      if (!this.app.isTrackPlaying(e.track)) return false;
       if (e.event !== 'N') return false;
       if (e.at + e.duration <= this.beginTime) return false;
       if (e.at >= this.endTime) return false;

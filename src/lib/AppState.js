@@ -1,7 +1,6 @@
 import { trace, observable, computed, makeObservable, reaction, action } from "mobx";
 import { compile } from "./tunecraft";
 
-import Soundfont from "soundfont-player";
 import { PlayerState } from "./PlayerState";
 import { Tune } from "./Tune";
 import { clamp } from "./utils";
@@ -28,7 +27,63 @@ export class AppState {
     snapping: true,
     following: true,
     viewBeginTime: 0,
+    viewTop: 0,
+    mutedTracks: {},
+    soloTracks: {},
   }
+
+  @action muteTrack(id) {
+    this.settings.mutedTracks[id]=true;
+  }
+  @action unmuteTrack(id) {
+    delete this.settings.mutedTracks[id]
+  }
+  @action toggleMuteTrack(id) {
+    this.settings.mutedTracks[id]=!this.settings.mutedTracks[id];
+  }
+  @action unmuteAll() {
+    this.settings.mutedTracks={};
+  }
+  isTrackMuted(id) {
+    return !!this.settings.mutedTracks[id];
+  }
+  @computed get mutedTracks() {
+    return this.tracks.filter(track=>this.isTrackMuted(track.id));
+  }
+  
+  @action soloTrack(id) {
+    this.settings.soloTracks[id]=true;
+  }
+  @action unsoloTrack(id) {
+    delete this.settings.soloTracks[id];
+  }
+  @action toggleSoloTrack(id) {
+    this.settings.soloTracks[id]=!this.settings.soloTracks[id];
+  }
+  @action unsoloAll() {
+    this.settings.soloTracks={};
+  }
+  isTrackSolo(id) {
+    return !!this.settings.soloTracks[id];
+  }
+  @computed get soloTracks() {
+    return this.tracks.filter(track=>this.isTrackSolo(track.id));
+  }
+
+  @computed get playingTracks() {
+    let ret = {};
+    for (const {id} of this.tracks) {
+      if (this.soloTracks.length && this.isTrackSolo(id) || !this.soloTracks.length && !this.isTrackMuted(id)) {
+        ret[id] = true;
+      }
+    }
+    return ret;
+  }
+
+  isTrackPlaying(id) {
+    return !!this.playingTracks[id]
+  }
+  
 
   @observable trackHeights = [];
 
@@ -116,6 +171,20 @@ export class AppState {
     this.viewBeginTime = this.getTime(value);
   }
 
+  @observable totalTrackHeight;
+  @computed get viewTop() {
+    return this.clampViewTop(this.settings.viewTop)
+  }
+  clampViewTop(y) {
+    return clamp(y, 0, this.totalTrackHeight-100)
+  }
+  set viewTop(value) {
+    this.settings.viewTop = this.clampViewTop(value);
+  }
+  moveViewTop(value) {
+    this.viewTop += value;
+  }
+
   @action
   moveViewLeft(value) {
     this.viewLeft += value;
@@ -130,6 +199,10 @@ export class AppState {
   _mouseX = 0;
 
   @observable
+  _mouseY = 0;
+
+
+  @observable
   _mouseOver = false;
 
   @computed
@@ -141,6 +214,17 @@ export class AppState {
     this._mouseOver = true;
     this._mouseX = value - this.viewLeft;
   }
+
+  @computed
+  get mouseY() {
+    if (!this._mouseOver) return null;
+    return this._mouseY  + this.viewTop;
+  }
+  set mouseY(value) {
+    this._mouseOver = true;
+    this._mouseY = value;
+  }
+
   @action mouseLeave() {
     this._mouseOver = false;
   }
@@ -157,18 +241,28 @@ export class AppState {
   }
 
   @computed get
-    zoomY() {
+  zoomY() {
     return this.settings.zoomY;
   }
 
   @action.bound
   zoomInY() {
-    if (this.settings.zoomY < 8) this.settings.zoomY++;
-  }
+    if (this.settings.zoomY < 8) {
+      let y = this.mouseY - this.viewTop;
+      let t = this.mouseY / this.zoomY;
+      this.settings.zoomY++;
+      this.viewTop = t * this.zoomY - y;
+    }
+}
 
   @action.bound
   zoomOutY() {
-    if (this.settings.zoomY > 1) this.settings.zoomY--;
+    if (this.settings.zoomY > 1) {
+      let y = this.mouseY - this.viewTop;
+      let t = this.mouseY / this.zoomY;
+      this.settings.zoomY--;
+      this.viewTop = t * this.zoomY - y;
+    }
   }
 
   @action.bound
