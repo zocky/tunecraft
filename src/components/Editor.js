@@ -12,7 +12,6 @@ export class Editor extends React.Component {
     if(!monaco) return;
     // here is the monaco instance
     // do something before editor is mounted
-    console.log(monaco);
     monaco.languages?.register({ id: 'tunecraft' });
     monaco.languages?.setMonarchTokensProvider('tunecraft',tokenizer());
   }
@@ -49,7 +48,6 @@ export class Editor extends React.Component {
 			// Method that will be executed when the action is triggered.
 			// @param editor The editor instance is passed in as a convinience
 			run: function(ed) {
-				console.log("Play");
 				app.player.toggle();
 				return null;
 			}

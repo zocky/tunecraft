@@ -74,7 +74,6 @@ export class TempoTrack extends BaseTrack {
   }
 
   constructor(tune, { events, TPQ }) {
-    console.log('tempo',events)
     super(tune, { events });
     this.TPQ = TPQ;
     this._events = events;

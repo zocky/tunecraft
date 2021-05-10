@@ -39,7 +39,6 @@ export class Viewer extends React.Component {
 @observer
 export class View extends React.Component {
   componentDidUpdate() {
-    console.log('rendered view');
     document.body.classList.remove('zooming');
   }
   render() {

@@ -34,9 +34,7 @@ export function scheduleTree({ tree, tracks, soundfonts }) {
     ticks: 0,
     events: []
   }
-  for (const id in soundfonts) state.soundfonts[id] = {
-    ...soundfonts[id],
-  }
+  for (const id in soundfonts) state.soundfonts[id] = soundfonts[id];
   schedule(tree, state);
 
   for (const id in state.tracks) {
@@ -100,7 +98,6 @@ const nodeScheduler = new class {
     state.setTick(null, lastTick);
   }
   tempo(node, state) {
-    console.log('found tempo', node.tempo)
     state.tempo.push({
       event: "T",
       tick: Math.round(state.tick),

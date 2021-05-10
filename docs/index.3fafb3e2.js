@@ -32789,7 +32789,6 @@ try {
           // Method that will be executed when the action is triggered.
           // @param editor The editor instance is passed in as a convinience
           run: function (ed) {
-            console.log("Play");
             app.player.toggle();
             return null;
           }
@@ -32801,7 +32800,6 @@ try {
       if (!monaco) return;
       // here is the monaco instance
       // do something before editor is mounted
-      console.log(monaco);
       (_monaco$languages = monaco.languages) === null || _monaco$languages === void 0 ? void 0 : _monaco$languages.register({
         id: 'tunecraft'
       });
@@ -37606,7 +37604,6 @@ try {
   exports.Viewer = Viewer;
   let View = (0, _mobxReact.observer)(_class2 = class View extends _react.default.Component {
     componentDidUpdate() {
-      console.log('rendered view');
       document.body.classList.remove('zooming');
     }
     render() {
@@ -38546,7 +38543,6 @@ const nodeProcessor = new (class {
     state.scale = scale(state.base, state.mode);
   }
   tempo(node, state) {
-    console.log('tempo', node.tempo);
     const {tempo} = node;
     return {
       $$: 'tempo',
@@ -38588,7 +38584,6 @@ const nodeProcessor = new (class {
   }
   var(node, state) {
     if (!state.macros[node.name]) {
-      console.log(node, state);
       error('no such var ' + node.name);
     }
     return process(state.macros[node.name], state);
@@ -38597,7 +38592,6 @@ const nodeProcessor = new (class {
     state.soundfonts[node.name] = node.url;
   }
   def_track(node, state) {
-    state.soundfonts[node.name] = node.url;
     state.tracks[node.id] = {
       ...node
     };
@@ -38659,9 +38653,7 @@ function scheduleTree({tree, tracks, soundfonts}) {
     ticks: 0,
     events: []
   };
-  for (const id in soundfonts) state.soundfonts[id] = {
-    ...soundfonts[id]
-  };
+  for (const id in soundfonts) state.soundfonts[id] = soundfonts[id];
   schedule(tree, state);
   for (const id in state.tracks) {
     state.tracks[id].events.sort(function (a, b) {
@@ -38728,7 +38720,6 @@ const nodeScheduler = new (class {
     state.setTick(null, lastTick);
   }
   tempo(node, state) {
-    console.log('found tempo', node.tempo);
     state.tempo.push({
       event: "T",
       tick: Math.round(state.tick),
@@ -42562,22 +42553,17 @@ let PlayerState = (_dec = (0, _mobx.computed)({
   }
   hold() {
     if (this.playing) {
-      console.log('holding');
       this.holding = true;
       this.stop(false);
     } else {
-      console.log('not holding');
       this.holding = false;
     }
   }
   unhold() {
     if (this.holding) {
-      console.log('unholding');
       this.start();
       this.holding = false;
-    } else {
-      console.log('not unholding');
-    }
+    } else {}
   }
   async play() {
     await this.app.context.resume();
@@ -44277,7 +44263,6 @@ let Tune = (_dec = (0, _mobx.computed)({
       ...soundfonts
     };
     this.TPQ = TPQ;
-    console.log('tune tempo', tempo);
     this.tempoTrack = new _TempoTrack.TempoTrack(this, {
       events: tempo,
       TPQ
@@ -44409,7 +44394,6 @@ let TempoTrack = (_dec = (0, _mobx.computed)({
     return ret;
   }
   constructor(tune, {events, TPQ}) {
-    console.log('tempo', events);
     super(tune, {
       events
     });

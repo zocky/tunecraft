@@ -176,7 +176,6 @@ export function processTree(tree) {
       state.scale = scale(state.base, state.mode)
     }
     tempo(node, state) {
-      console.log('tempo',node.tempo)
       const { tempo } = node;
       return { $$: 'tempo', tempo }
     }
@@ -206,7 +205,6 @@ export function processTree(tree) {
     }
     var(node,state) {
       if (!state.macros[node.name]) {
-        console.log(node,state)
         error('no such var ' + node.name);
       }
       return process(state.macros[node.name], state);
@@ -215,7 +213,6 @@ export function processTree(tree) {
       state.soundfonts[node.name] = node.url;
     }
     def_track(node,state) {
-      state.soundfonts[node.name] = node.url;
       state.tracks[node.id] = {
         ...node
       }

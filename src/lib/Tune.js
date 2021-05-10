@@ -93,7 +93,6 @@ export class Tune {
     this.ticks = ticks;
     this.soundfonts = { default: "MusyngKite", ...soundfonts };
     this.TPQ = TPQ;
-    console.log('tune tempo',tempo);
     this.tempoTrack = new TempoTrack(this, { events: tempo, TPQ });
   
     let channel = 0;

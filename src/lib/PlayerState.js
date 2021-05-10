@@ -107,11 +107,9 @@ export class PlayerState {
   @action.bound
   hold() {
     if (this.playing) {
-      console.log('holding');
       this.holding = true;
       this.stop(false);
     } else {
-      console.log('not holding');
       this.holding = false;
     }
   }
@@ -119,11 +117,9 @@ export class PlayerState {
   @action.bound
   unhold() {
     if (this.holding) {
-      console.log('unholding');
       this.start();
       this.holding = false;
     } else {
-      console.log('not unholding');
     }
   }
 
