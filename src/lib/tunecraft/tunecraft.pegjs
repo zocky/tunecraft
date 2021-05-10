@@ -3,7 +3,7 @@ composition = _ h:statement t:_statement* _ { return {$:'composition',sub:[h].co
 _statement = cr e:statement { return e }
 statement = def_soundfont/def_track/scope/bars/assign
 
-def_soundfont = "@soundfont" __ name:ident _ "=" _ url:$([^ \n\t]+) {
+def_soundfont = "@soundfont" __ name:ident _ "=" _ url:$([^ \r\n\t]+) {
   return {
   	$: 'def_soundfont',
     name,
@@ -11,7 +11,7 @@ def_soundfont = "@soundfont" __ name:ident _ "=" _ url:$([^ \n\t]+) {
   }
 }
 
-def_track = "@track" __ id:ident _ "=" _ font:ident _ "/" _ instrument:$([^ \n\t]+) adsr:instr_ADSR {
+def_track = "@track" __ id:ident _ "=" _ font:ident _ "/" _ instrument:$([^ \r\n\t]+) adsr:instr_ADSR {
   return {
   	$: 'def_track',
     id,
@@ -202,8 +202,8 @@ integer = chars:$([0-9]+) { return +chars}
 
 _ident = __ i:ident { return i }
 
-WS = [ \t]
-WS2 = [ \t\n]
+WS = [ \t\r]
+WS2 = [ \t\r\n]
 comment1 = "//" [^\n]*
 comment2 = "/*" ("*"!"/"/[^*])* "*/"
 ws "whitespace" = WS/comment2
