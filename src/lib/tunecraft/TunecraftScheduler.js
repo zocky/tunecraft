@@ -112,6 +112,7 @@ const nodeScheduler = new class {
       note: node.note,
       velocity: node.velocity,
       ticks: Math.round(ticks),
+      location: node.location
     });
     state.scheduleEvent(node.track, state.tick, "ON", {
       velocity: node.velocity,
