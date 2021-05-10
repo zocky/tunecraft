@@ -43,6 +43,7 @@
 
 export function processTree(tree) {
     const state = {
+      throw: tree.throw,
       macros:{},
       tracks : {
         default: {
@@ -80,6 +81,7 @@ export function processTree(tree) {
     for (const i in extra) {
       [old[i],state[i]]=[state[i],extra[i]];
     }
+    if (!nodeProcessor[node.$]) console.error(node,state)
     const ret = nodeProcessor[node.$](node, state,extra);
     for (const i in old) state[i] = old[i];
     return ret; 
@@ -205,7 +207,7 @@ export function processTree(tree) {
     }
     var(node,state) {
       if (!state.macros[node.name]) {
-        error('no such var ' + node.name);
+        throw {message:'No such macro ' + node.name,location:node.location};
       }
       return process(state.macros[node.name], state);
     }

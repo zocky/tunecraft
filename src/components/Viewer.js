@@ -18,7 +18,6 @@ export class Viewer extends React.Component {
     //const tracks = app.tracks.filter(({ events }) => events.length);
     return (
       <div className="tc viewer">
-        <div className="tc splitter" />
         <PlayerControls app={app} />
         <PlayerTime app={app} />
         <PlayerLinks app={app} />

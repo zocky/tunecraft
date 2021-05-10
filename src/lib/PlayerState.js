@@ -37,6 +37,12 @@ export class PlayerState {
     this.ac = app.context;
     this.app = app;
     makeObservable(this);
+    reaction(()=>this.tune,tune=>this.instruments);
+    reaction(()=>app.playingTracks,tracks => {
+      for (const i in this.instruments) {
+        if (!tracks[i]) this.instruments[i].stop();
+      }
+    });
   }
 
   timerID = null;
@@ -214,8 +220,6 @@ export class PlayerState {
     }
     return ret;
   }
-
-
 }
 
 class InstrumentState {
@@ -257,6 +261,7 @@ class InstrumentState {
     const id = font + '\n' + name;
     this.instrument=this.constructor._instruments[id];
     if (!this.instrument) {this.load()};
+
   }
   async load() {
     this.instrument = await this.constructor.loadInstrument(this.context, this.font, this.name);

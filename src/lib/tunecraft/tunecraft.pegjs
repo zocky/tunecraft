@@ -1,6 +1,15 @@
-composition = _ h:statement t:_statement* _ { return {$:'composition',sub:[h].concat(t)} }
+composition = statements:statements { return {
+  $:'composition',
+  sub:statements,
+  throw: error
+}}
 
-_statement = cr e:statement { return e }
+
+statements = _ h:statement? t:_statement* _ { 
+  return [h].concat(t).filter(Boolean)
+}
+
+_statement = CR e:statement { return e }
 statement = def_soundfont/def_track/scope/bars/assign
 
 def_soundfont = "@soundfont" __ name:ident _ "=" _ url:$([^ \r\n\t]+) {
@@ -51,8 +60,13 @@ seq_bar = seq:seq {
 }
 
 repeat_bars 
-= times:$([0-9]+) [x×] _ arg:bars {
-	return { $:'repeat',times,arg }
+= times:TIMES _ arg:bars {
+	return {
+    $:'repeat',
+    times:+times,
+    arg,
+    location: location()
+  }
 }
 
 _bar = _ "|" _ e:bar { return e }
@@ -62,60 +76,74 @@ _seq2 = _ ";" _ e:seq2 { return e }
 seq2 = h:expr t:_expr* { return {$:'seq',sub:[h].concat(t)} }
 
 _expr = __ e:expr { return e }
-expr = track/signature/tempo/skip/velocity/key/shift/repeat/poly
+expr = track/signature/tempo/velocity/key/shift/repeat/poly
 
 repeat
-= times:$([0-9]+) [x×] _ arg:poly {
-	return { $:'repeat',times,arg }
+= times:TIMES _ arg:poly {
+	return {
+    $:'repeat',
+    times:+times,
+    arg,
+    location: location()
+  }
 }
+
 
 tempo
 = "T" tempo:$([0-9][0-9][0-9]?) {
-	return {$:"tempo",tempo}
+	return {
+    $:"tempo",
+    tempo:+tempo,
+    location: location()
+  }
 }
 
 velocity
 = "V" velocity:$([0-9][0-9]?[0-9]?) {
-	return {$:"velocity",velocity:+velocity}
+	return {
+    $:"velocity",
+    velocity:+velocity,
+    location: location()
+  }
 }
-
-skip
-= "S" skip:$([0-9][0-9]?[0-9]?) {
-	return {$:"skip",skip:+skip}
-}
-
 
 track
 = '"' track:$([^"]+) '"' {
-	return {$:"track",track}
+	return {
+    $:"track",
+    track,
+    location: location()
+  }
 }
 
-key = o:octave k:$([A-G]) t:accidental m:keymode {
-  var trans = 0;
-  trans+=o*12+t;
-  return {$:'key', transpose:trans, key:k,note:'CDEFGAB'.indexOf(k[0])+1, mode:m||1};
+key = o:octave note:KEY t:accidental mode:keymode {
+  var trans = o *12 +t;
+  return {
+    $: 'key', 
+    transpose: trans,
+    note,
+    mode: mode || 1,
+    location: location()
+  };
 }
 
-shift = o:octave k:shift_key t:accidental m:keymode {
+shift = o:octave note:ROMAN t:accidental mode:keymode {
   var trans =o*12+t;
-  const {note,mode} = k;
-  return {$:'shift', transpose:trans, note, mode:m};
-}
-
-shift_key
-= note:roman_uc {
-	return {note,mode:1}
-}
-/ note:roman_lc {
-	return {note,mode:6}
+  return {
+    $: 'shift',
+    transpose: trans,
+    note,
+    mode,
+    location: location()
+  };
 }
 
 keymode 
 = "m" { return 6 }
-/ "(" m:roman_uc ")" { return m }
+/ "(" m:ROMAN ")" { return m }
 / "" {return}
 
-letter_uc 
+KEY 
 = "C" { return 1 } 
 / "D" { return 2 } 
 / "E" { return 3 } 
@@ -125,7 +153,7 @@ letter_uc
 / "B" { return 7 } 
 
 
-roman_uc 
+ROMAN 
 = "III" { return 3 }
 / "II" { return 2 }
 / "IV" { return 4 }
@@ -134,14 +162,6 @@ roman_uc
 / "VI" { return 6 }
 / "V" { return 5 }
 
-roman_lc 
-= "iii" { return 3 }
-/ "ii" { return 2 }
-/ "iv" { return 4 }
-/ "i" { return 1 }
-/ "vii" { return 7 }
-/ "vi" { return 6 }
-/ "v" { return 5 }
 
 
 poly = h:poly2 t:_poly2* { if(!t.length) return h; return {$:'poly',sub:[h].concat(t)}}
@@ -149,21 +169,37 @@ _poly2 = _ "&" _ p:poly2 { return p}
 poly2 = dotted
 
 
-dotted = a:length m:("."+)? {
-  if (m && m[0] == ".") return {$:'length', length:2-0.5 ** m.length , arg:a};
-  return a;
-}
+dotted
+= arg:length length:DOTTED {
+  return {
+  	$:'length',
+    arg,
+    length,
+    location:location() 
+  };
+} / length
 
-length = a:transpose m:(":"+/"'"+)? {
-  if (m && m[0] == ":") return {$:'length', length: 2 ** m.length, arg:a};
-  if (m && m[0] == "'") return {$:'length', length: 2 ** -m.length, arg:a}
-  return a;
-}
+length 
+= arg:transpose length:LENGTH {
+  return {
+  	$:'length',
+    arg,
+    length,
+    location:location() 
+  };
+} / transpose
 
-transpose = m:octave a:atom n:accidental {
-  if (!m && !n) return a;
+
+
+transpose = m:octave arg:atom n:accidental {
+  if (!m && !n) return arg;
   var t = m*12+n;
-  return {$:'transpose', transpose:t, arg:a};
+  return { 
+  	$:'transpose', 
+    transpose:t, 
+    arg,
+    location:location()
+  };
 }
 
 signature = nom:$([0-9] [0-9]?) "/" denom:$("1"/"2"/"4"/"8"/"16"/"32"/"64"/"128") {
@@ -171,6 +207,7 @@ signature = nom:$([0-9] [0-9]?) "/" denom:$("1"/"2"/"4"/"8"/"16"/"32"/"64"/"128"
     $: 'signature',
     nom: +nom,
     denom: denom,
+    location: location()
   }
 }
 
@@ -187,14 +224,32 @@ accidental
 
 atom = var/brackets/tone/note/pause
 
-var = "$" i:ident !(_ "=") { return {$:'var',name:i} }
+var "macro expansion" = "$" i:ident !(_ "=") { return {
+  $:'var',
+  name:i,
+  location:location()
+}}
 
 brackets = "(" _ s:seq _ ")" {return {
-	$:'brackets',arg:s
+	$:'brackets',
+    arg:s,
+    location:location()
 }}
-note "note" = n:$[a-g] {return {$:'note',note:'cdefgab'.indexOf(n)+1}; }
-tone "tone" = n:$[1-7] {return {$:'tone',tone:+n}; }
-pause "pause" = ("p"/"0") {return {$:'pause'}; }
+note "note" = n:$[a-g] { return {
+  $:'note',
+  note:'cdefgab'.indexOf(n)+1,
+  location:location()
+}} 
+
+tone "tone" = n:$[1-7] { return {
+  $:'tone',
+  tone:+n,
+  location:location()
+}}  
+pause "pause" = ("p"/"0") { return {
+  $:'pause',
+  location:location()
+}}
 
 ident = $([a-z]i [a-z0-9]i*)
 
@@ -202,14 +257,28 @@ integer = chars:$([0-9]+) { return +chars}
 
 _ident = __ i:ident { return i }
 
-WS = [ \t\r]
-WS2 = [ \t\r\n]
-comment1 = "//" [^\n]*
-comment2 = "/*" ("*"!"/"/[^*])* "*/"
-ws "whitespace" = WS/comment2
-ws2 "whitespace2" = WS2/comment1/comment2
-EOF "end of file" = !.
-_ = (ws2)*
-__ = (ws2)+
 
-cr = __
+TIMES = times:$([0-9]+) _ [x×] {
+  return +times;
+}
+
+DOTTED
+= m:("."+) { return 2 - 0.5 ** m.length }
+
+
+LENGTH
+= m:(":"+) { return 2 ** m.length }
+/ m:("'"+) { return 0.5 ** m.length }
+
+
+WS = _WS/COMMENT2
+WS2 = _WS2/COMMENT1/COMMENT2
+_WS "whitespace" = [ \t\r]
+_WS2 "whitespace" = [ \t\r\n]
+COMMENT1 = "//" [^\n]*
+COMMENT2 = "/*" ("*"!"/"/[^*])* "*/"
+EOF "end of file"= !.
+_ = (WS2)*
+__ = (WS2)+
+
+CR = __

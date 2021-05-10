@@ -13,11 +13,13 @@ import { Tune } from "./Tune";
 import { clamp } from "./utils";
 import { ScrollerState } from "./ScrollerState";
 import dayjs from "dayjs";
+import { EditorState } from "./EditorState";
 
 export class AppState {
   context = new AudioContext();
 
   @observable player = null;
+  @observable editor = null;
   @observable scroller = null;
 
   @observable
@@ -345,55 +347,15 @@ export class AppState {
     this.settings.hasLoop = !this.settings.hasLoop;
   }
 
-  @observable viewerMode = "tracks";
-
   @observable source = "";
-
-  editorDecorations = [];
 
   @computed get result() {
     try {
-      const ret = { result: compile(this.source) };
-      if (this.editor) {
-        this.editorDecorations = this.editor.deltaDecorations(this.editorDecorations,[]);
-        this.monaco?.editor.setModelMarkers(this.editor.getModel(), "tc", []);
-      }
-      return ret;
+      this.editor.clearMarkers();
+      return { result: compile(this.source) };
     } catch (error) {
       console.error(error);
-      const { start, end } = error.location;
-      if (this.editor) {
-        this.editorDecorations = this.editor.deltaDecorations(
-          this.editorDecorations,
-          [
-            {
-              range: new monaco.Range(
-                start.line,
-                start.column,
-                end.line,
-                end.column
-              ),
-              options: {
-                isWholeLine: false,
-                inlineClassName: "tc error inline",
-                marginClassName: "tc error margin",
-              },
-            },
-          ]
-        );
-        this.monaco?.editor.setModelMarkers(this.editor.getModel(), "tc", [
-          {
-            startLineNumber: start.line,
-            startColumn: start.column,
-            endLineNumber: end.line,
-            endColumn: end.column,
-            owner: "tc",
-            code: "?Syntax error",
-            message: error?.message,
-            severity: 8,
-          },
-        ]);
-      }
+      this.editor.setErrorMarkers(error);
       return { error: error };
     }
   }
@@ -414,7 +376,6 @@ export class AppState {
 
   @observable fileName = "tune";
 
-  @observable editor = null;
   exportMidi() {
     var blob = new Blob([this.tune.toMidiBuffer], { type: "audio/midi" });
     var link = document.createElement("a");
@@ -444,7 +405,7 @@ export class AppState {
     fr.onload = action(() => {
       //this.source = fr.result;
       this.fileName = file.name.replace(/[0-9\-]+\..*$/, "");
-      this.editor.getModel().setValue(fr.result);
+      this.editor.value = fr.result
     });
     fr.readAsText(file);
   }
@@ -455,6 +416,7 @@ export class AppState {
     makeObservable(this);
     this.player = new PlayerState(this);
     this.scroller = new ScrollerState(this);
+    this.editor = new EditorState(this);
 
     reaction(
       () => {
