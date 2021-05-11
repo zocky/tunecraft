@@ -4,9 +4,55 @@ import { observer } from "mobx-react";
 import { action, computed, makeObservable } from "mobx";
 //import "./Tracks.less";
 import { Draggable, onResize, onWheel, Wheelable } from "./Utils";
+import { handleMouse, MOUSE } from "../lib/utils";
 
 @observer
 export class Overlay extends React.Component {
+
+  onMouseDown = handleMouse({
+    [MOUSE.LEFT]: e => {
+      const { app } = this.props;
+      app.player.hold();
+      app.player.seek(app.mouseTime);
+    },
+    [MOUSE.CTRL_LEFT]: e => {
+      const { app } = this.props;
+      app.selectedNotes = app.mouseNote ? [app.mouseNote] : [];
+    },
+    [MOUSE.CTRL_SHIFT_LEFT]: e => {
+      const { app } = this.props;
+      const note = app.mouseNote;
+      if (!note) return;
+      if (app.selectedNotes.includes(note)) app.selectedNotes.remove(note);
+      else app.selectedNotes.push(note);
+    }
+  })
+
+  onMouseUp = handleMouse({
+    [MOUSE.LEFT]: e => {
+      const { app } = this.props;
+      app.player.unhold();
+    }
+  })
+
+  onMouseMove = handleMouse({
+    before: e => {
+      const { app } = this.props;
+      const rect = this.ref.getBoundingClientRect();
+      const x = e.pageX - rect.left;
+      const y = e.pageY - rect.top;
+      app.mouseX = x;
+      app.mouseY = y;
+    },
+    [MOUSE.LEFT]: e => {
+      const { app } = this.props;
+      app.player.seek(app.mouseTime)
+    },
+    [MOUSE.MIDDLE]: e => {
+      const { app } = this.props;
+      app.moveViewLeft(-e.movementX, true);
+    }
+  })
 
   render() {
     const { app } = this.props;
@@ -14,29 +60,9 @@ export class Overlay extends React.Component {
     return (
       <div className="overlay"
         ref={ref => this.ref = ref}
-        onMouseDown={e => {
-          if (e.buttons === 1) {
-            app.player.hold();
-            app.player.seek(app.mouseTime);
-          }
-        }}
-        onMouseUp={e => {
-          app.player.unhold();
-        }}
-        onMouseMove={action(e => {
-          const { app } = this.props;
-          const rect = this.ref.getBoundingClientRect();
-          const x = e.pageX - rect.left;
-          const y = e.pageY - rect.top;
-          app.mouseX = x;
-          app.mouseY = y;
-          
-          if (e.buttons === 1) {
-            app.player.seek(app.mouseTime)
-          } else if (e.buttons === 4) {
-            app.moveViewLeft(-e.movementX);
-          }
-        })}
+        onMouseDown={this.onMouseDown}
+        onMouseUp={this.onMouseUp}
+        onMouseMove={this.onMouseMove}
         onMouseLeave={action(e => {
           app.mouseLeave();
         })}
@@ -59,8 +85,8 @@ export class Ruler extends React.Component {
   }
 
   @computed get seconds() {
-    const {app} = this.props;
-    return Math.max(app.player.totalTime,app.viewDuration);
+    const { app } = this.props;
+    return Math.max(app.player.totalTime, app.viewDuration);
   }
   render() {
     const { app } = this.props;
@@ -101,6 +127,7 @@ export class SeekCursor extends React.Component {
   }
 
   @computed get X() {
+    const { app } = this.props;
     const { player } = app;
     if (!player) return 0;
     return Math.round(player.playbackTime * app.zoomX);
@@ -116,18 +143,14 @@ export class SeekCursor extends React.Component {
 
 @observer
 export class MouseCursor extends React.Component {
-  constructor(...args) {
-    super(...args);
-    makeObservable(this);
-  }
-  @computed get X() {
-    const { app } = this.props;
-    return Math.round(app.mouseTime * app.zoomX);
-  }
   render() {
-    //return null;
-    if (this.props.app.mouseTime === null) return null;
-    return <div ref={ref => ref?.scrollIntoView({ block: 'nearest', inline: 'nearest' })} className="tc mouse-cursor" style={{ left: this.X }} />
+    const { app } = this.props;
+    if (app.mouseTime === null) return null;
+    return (
+      <>
+        <div className="tc mouse-cursor" style={{ left: app.mouseTime * app.zoomX }} />
+      </>
+    )
   }
 }
 

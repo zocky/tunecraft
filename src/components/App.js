@@ -1,12 +1,9 @@
 
 import React from "react";
 import { observer } from "mobx-react";
-import { action, computed, makeObservable } from "mobx";
 import "./App.less";
 
 import { Editor } from "./Editor";
-import { Player } from "./Player";
-import { Tracks } from "./Tracks";
 
 import {Draggable} from "./Utils";
 import { Viewer } from "./Viewer";
@@ -23,7 +20,7 @@ export class App extends React.Component {
     return (
       <div className="tc app" style={{
         "--tc-view-top": -app.viewTop+'px',
-        "--tc-view-left": -app.viewLeft+'px'
+        "--tc-view-left": -app.viewLeft+'px',
       }}>
         <MainView app={app}/>
       </div>
@@ -49,7 +46,6 @@ export class MainView extends React.Component {
           }} />
         <div className="right" style={{ width: app.editorWidth }}>
           <Editor app={app} />
-          <Status app={app} />
         </div>
       </>
     )
@@ -71,21 +67,3 @@ export class Output extends React.Component {
   }
 }
 
-
-@observer
-export class Status extends React.Component {
-  render() {
-    const { app } = this.props;
-
-    if (app.error) {
-      return <code>
-        <span>{app.error.location?.start.line}:{app.error.location?.start.column}</span>
-        {" "}
-        {app.error.message}
-      </code>
-    }
-    return (
-      <code>Parsed {app.source.length} chars. OK.</code>
-    )
-  }
-}

@@ -77,6 +77,7 @@ export class PlayerTime extends React.Component {
   }
 
   render() {
+    const { app } = this.props;
     return (<div className="tc time">
       <Time object={app.player} prop="playbackTime" className="playback"/>
       <Time object={app.player} prop="beginTime" className="begin"/>

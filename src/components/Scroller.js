@@ -88,6 +88,8 @@ export class Scroller extends React.Component {
   }
 
   render() {
+    const { app } = this.props;
+
     return (
       <div 
         className="tc scroller" 
@@ -105,6 +107,8 @@ export class Scroller extends React.Component {
 @observer
 export class ScrollerSeekCursor extends React.Component {
   @computed get X() {
+    const { app } = this.props;
+
     const { player } = app;
     if (!player) return 0;
     return Math.round(player.playbackTime * app.scroller.zoom);

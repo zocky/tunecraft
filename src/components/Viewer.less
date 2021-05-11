@@ -45,8 +45,25 @@ body.zooming {
   grid-area: status;
   overflow : hidden;
   position:relative;
-  background: gray;
-  span { padding: 1em 1em; }
+  background: #111;
+  display:flex;
+  border-top:solid 1px #333;
+  padding:0 8px;
+  gap:12px;
+  >.message { 
+    line-height:var(--status-height);
+    font-size: 13px;
+    >.label {
+      text-transform: uppercase;
+      font-size: 11px;
+      margin-right:2px;
+      font-weight:500;
+      color:#666;
+    }
+    >.value {
+      font-weight:400;
+    }
+  }
 }
 
 .tc.viewport {
@@ -89,6 +106,7 @@ body.zooming {
   //margin-left   : 100px;
   border-left     : solid 1px yellow;
   z-index         : 6;
+  transition: var(--transition-x);
 }
 
 .tc.mouse-cursor {
@@ -101,6 +119,16 @@ body.zooming {
   //margin-left   : 100px;
   margin-left     : -1.5px;
   border-left     : solid 1px #999;
+}
+
+.tc.mouse-horizontal {
+  pointer-events  : none;
+  position        : absolute;
+  left            : 0;
+  width           : 100%;
+  z-index         : 5;
+  height           : 0;
+  border-top     : solid 1px #999;
 }
 
 .tc.loop-region {

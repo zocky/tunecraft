@@ -90,6 +90,8 @@ export class TrackHeaders extends React.Component {
 @observer
 export class TrackHeaderList extends React.Component {
   render() {
+    const { app } = this.props;
+
     return (
       <div className="headers">
         {app.trackKeys.map((idx) => (
@@ -100,13 +102,6 @@ export class TrackHeaderList extends React.Component {
             color={COLORS[idx % COLORS.length]}
           />
         ))}
-        <div>{app.mouseTrackIndex}</div>
-        <div>{app.mouseTrackY}</div>
-        <div>{app.mouseTrackPitch}</div>
-        <div>{app.mouseNote?.location.start.line}</div>
-        <div>{app.mouseNote?.location.start.column}</div>
-        <div>{app.mouseNote?.location.end.line}</div>
-        <div>{app.mouseNote?.location.end.column}</div>
       </div>
     );
   }
@@ -116,11 +111,13 @@ export class TrackHeaderList extends React.Component {
 export class Track extends React.Component {
   constructor(...args) {
     super(...args);
-    this.props.app.trackComponents[this.props.idx] = this;
     makeObservable(this);
   }
 
+  @action
   componentDidMount() {
+    console.log('mounted')
+    this.props.app.trackComponents[this.props.idx] = this;
     onResize(this.ref, (e) => {
       //this.props.app.trackHeights[this.props.idx] = e.height;
       this.height = e.height;
@@ -142,7 +139,7 @@ export class Track extends React.Component {
 
   @computed
   get trackImage() {
-    //console.time('drawing');
+    console.log('drawing');
     const canvas = document.createElement("canvas");
     const { app, color } = this.props;
 

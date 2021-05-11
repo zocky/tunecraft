@@ -150,13 +150,13 @@ export function processTree(tree) {
     tone(node, state) {
       let { mode, length, track, velocity, transpose, base } = state;
       let note = base + scales[mode][node.tone - 1] + transpose;
-      return { $$: 'note', track, note, length, velocity }
+      return { $$: 'note', track, note, length, velocity, location:node.location }
     }
   
     note(node, state) {
       let { length, track, velocity, transpose, scale } = state;
       let note = scale[node.note - 1] + transpose;
-      return { $$: 'note', track, note, length, velocity }
+      return { $$: 'note', track, note, length, velocity, location: node.location }
     }
   
     pause(node, state) {

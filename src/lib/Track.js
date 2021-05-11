@@ -2,6 +2,7 @@ import { computed, makeObservable, observable } from "mobx";
 
 import instrumentNames from "./instruments.json";
 import Midi from "jsmidgen";
+import { findClosest } from "./utils";
 
 export class BaseTrack {
   @observable.shallow
@@ -98,18 +99,32 @@ export class Track extends BaseTrack {
     );
   }
 
-  @computed get _notesAtTime() {
+  @computed({keepAlive:true})
+  get uniqueTimes() {
+    let ret = new Set();
+    for (const e of this.events) ret.add(e.at);
+    return [...ret];
+  }
+
+  @computed({keepAlive:true})
+  get notes() {
+    return this.events.filter(e=>e.event==='N')
+  }
+
+  @computed({keepAlive:true})
+  get _notesAtTime() {
+    console.log('notes')
     const ret = {};
-    for (const e of events) {
-      if (e.event!=='N') continue;
-      ret[e.at]||=[];
-      ret[e.at].push(e);
+    const notes = this.notes;
+    for (const at of this.uniqueTimes) {
+      ret[at]=notes.filter(n=>n.at == at || n.at+n.duration == at)
     }
     return ret;
   }
 
   notesAtTime(time) {
-    return this._notesAtTime[time] || [];
+    const t = findClosest(time,this.uniqueTimes);
+    return this._notesAtTime[t] || [];
   }
 
 

@@ -5,7 +5,7 @@
 // This definition takes special care to highlight regular
 // expressions correctly, which is convenient when writing
 // syntax highlighter specifications.
-export const tokenizer =  {
+export const tokenizer = {
 	// Set defaultToken to invalid to see what you do not tokenize yet
 	defaultToken: 'invalid',
 	tokenPostfix: '.js',
@@ -13,50 +13,75 @@ export const tokenizer =  {
 
 
 	// we include these common regular expressions
-	symbols: /[=><!~?:&|+\-*\/\^%]+/,
-	escapes: /\\(?:[abfnrtv\\"']|x[0-9A-Fa-f]{1,4}|u[0-9A-Fa-f]{4}|U[0-9A-Fa-f]{8})/,
-	digits: /\d+(_+\d+)*/,
-	octaldigits: /[0-7]+(_+[0-7]+)*/,
-	binarydigits: /[0-1]+(_+[0-1]+)*/,
-	hexdigits: /[[0-9a-fA-F]+(_+[0-9a-fA-F]+)*/,
+	assign:	/[$][A-Za-z][\w]*\s*=\s*/, 
+	var:	/[$][A-Za-z][\w]*/,
 
-	regexpctl: /[(){}\[\]\$\^|\-*+?\.]/,
-	regexpesc: /\\(?:[bBdDfnrstvwWn0\\\/]|@regexpctl|c[A-Z]|x[0-9a-fA-F]{2}|u[0-9a-fA-F]{4})/,
+	defaultToken: "invalid",
 
 	// The main tokenizer for our languages
 	tokenizer: {
 		root: [
-			[/[{}]/, 'delimiter.bracket'],
-			{ include: 'common' }
+			//[/[\[\{\(\)\}\]]/, '@brackets'],
+			[/\[/, 'delimiter.bars', '@bars'],
+			[/\{/, 'delimiter', '@scope'],
+			[/\]/, 'invalid'],
+			[/\}/, 'invalid'],
+			[/@assign/, 'identifier.macro', '@macro_assign'],
+			{ include: '@whitespace' },
 		],
-
-		common: [
-			// identifiers and keywords
-			[/[$][a-z_$][\w$]*/, {
-				cases: {
-					'@default': 'type.identifier'
-				}
-			}],
+		scope: [
+			[/\}/, 'delimiter', '@pop'],
+			{include:'@root'}
+		],
+		macro_assign: [
+			[/\s*\[/, {token:'delimiter.bars', switchTo:'bars'}],
+			[/\s*\{/, {token:'delimiter.scrope', switchTo:'scope'}],
+			[/[\]\}]/, 'invalid.my'],
+			//[/(?=(?:@assign))/, 'identifier', '@pop'],
+			[/(?=.)/,{token:'',switchTo:'macro_seq'}]
+		],
+		macro_seq: [
+			[/(?=[\[\{])/, 'delimiter', '@pop'],
+			[/(?=(?:@assign))/, 'identifier', '@pop'],
+			[/[\]\}]/, 'invalid'],
+			{ include: '@seq' }
+		],
+		bars: [
+			[/\[/, 'delimiter.bars', '@bars'],
+			[/\]/, 'delimiter.bars', '@pop'],
+			{ include: '@seq' }
+		],
+		seq: [
+			[/@var/, 'identifier.macro'],
 			// whitespace
 			{ include: '@whitespace' },
-
-			// delimiters and operators
-			[/[()\[\]\{\}]/, '@brackets'],
-			
+			[/[|;]/, 'delimiter.bars'],
 
 			// notes
-			[/[-+]*\b[1-7a-g](?:[#b]+|\b)/, 'keyword'],
+			[/[-+]*[1-7](?:[#b]+|\b)/, 'keyword.note.numbered'],
+			[/[-+]*[a-g](?:[#b]+|\b)/, 'keyword.note.named'],
+			[/[-+]*[0p](?:[#b]+|\b)/, 'keyword.note.pause'],
+	
+			// keys
+			[/[-+]*[A-G](?:[#b]*)(?:m|\(IV|[VI]I?I?\)|\b)/, 'keyword.keys.key'],
+			[/[-+]*(?:IV|[VI]I?I?)(?:[#b]+|\b)/, 'keyword.keys.shift'],
 			
-			// delimiter: after number because of .\d floats
-			[/[;:.'& =]/, 'delimiter'],
 
+			//repeat
+			[/\d+[×x]/, 'delimiter.bars'],
+
+			[/[VT]\d+/, 'keyword.meta'],
+
+			[/[;:.'&()+\-]/, 'delimiter'],
+	
 			// strings
 			[/"([^"\\]|\\.)*$/, 'invalid'],  // non-teminated string
 			[/"/, 'string', '@string_double'],
 		],
 
+
 		whitespace: [
-			[/[ \t\r\n]+/, ''],
+			[/[ \t]+/, ''],
 			[/\/\*\*(?!\/)/, 'comment.doc', '@jsdoc'],
 			[/\/\*/, 'comment', '@comment'],
 			[/\/\/.*$/, 'comment'],
@@ -75,8 +100,6 @@ export const tokenizer =  {
 		],
 		string_double: [
 			[/[^\\"]+/, 'string'],
-			[/@escapes/, 'string.escape'],
-			[/\\./, 'string.escape.invalid'],
 			[/"/, 'string', '@pop']
 		],
 
@@ -88,7 +111,7 @@ export const tokenizer =  {
 			[/\]/, 'delimiter.bracket', '@pop'],
 			[/\(/, 'delimiter.bracket', '@bracketCounting'],
 			[/\)/, 'delimiter.bracket', '@pop'],
-			{ include: 'common' }
+			//{ include: 'bars' }
 		],
 	},
 };

@@ -10,7 +10,6 @@ import { TrackHeaders, TrackList } from "./Tracks";
 import logo from "url:../tunecraft.svg";
 import { PlayerControls, PlayerLinks, PlayerTime } from "./Player";
 import { pitchToText } from "../lib/utils";
-import { Status } from "./Status";
 
 @observer
 export class Viewer extends React.Component {
@@ -83,7 +82,6 @@ export class ViewPort extends React.Component {
     }
   }
   render() {
-    const { app } = this.props;
     return (
       <div className="tc viewport" ref={ref => this.ref = ref} >
         <View app={app} />
@@ -92,3 +90,36 @@ export class ViewPort extends React.Component {
     )
   }
 }
+
+@observer
+export class Status extends React.Component {
+  constructor(...args) {
+    super(...args);
+    this.props.app.trackComponents[this.props.idx] = this;
+    makeObservable(this);
+  }
+
+  @computed get messages() {
+    const { app } = this.props;
+    return {
+      time: formatTime(app.mouseTime),
+      track: app.mouseTrackIndex,
+      pitch: app.mouseTrackPitch && `${pitchToText(app.mouseTrackPitch)} (${app.mouseTrackPitch})`,
+      //note: app.mouseNote && `${pitchToText(app.mouseNote.note)}`
+    }
+  }
+  render() {
+    const { app } = this.props;
+    return (
+      <div className="tc status">
+        {Object.entries(this.messages).map(([key,value])=>(
+          <span key={key} className="message">
+            <span className="label">{key}</span>
+            <span className="value">{value}</span>
+          </span>
+        ))}
+      </div>
+    )
+  }
+}
+

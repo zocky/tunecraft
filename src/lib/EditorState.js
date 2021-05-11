@@ -1,6 +1,6 @@
 
-import { action, observable, computed, makeObservable, flow, reaction, when, autorun } from "mobx";
-import { debounce, storageGet } from "./utils";
+import { action, observable, computed, makeObservable, flow, reaction, when, autorun, toJS } from "mobx";
+import { debounce, pitchToText, storageGet } from "./utils";
 import { tokenizer } from "./tunecraft/tunecraft.monarch"
 
 import instrumentNames from "./instruments.json"
@@ -14,73 +14,9 @@ export class EditorState {
   }
 
   constructor(app) {
-    this.app = this;
+    this.app = app;
     makeObservable(this);
   }
-
-  @action.bound
-  willMount(monaco) {
-    if (!monaco) return;
-    this.monaco = monaco;
-    monaco.languages?.register({ id: 'tunecraft' });
-    monaco.languages?.setMonarchTokensProvider('tunecraft', tokenizer);
-    const instrumentSuggestions = instrumentNames.map(name => ({
-      label: name,
-      kind: monaco.languages.CompletionItemKind.Function,
-      insertText: name
-    }))
-
-    monaco.languages.registerCompletionItemProvider('tunecraft', {
-      provideCompletionItems: function (model, position) {
-        // find out if we are completing a property in the 'dependencies' object.
-        var textUntilPosition = model.getValueInRange({
-          startLineNumber: 1,
-          startColumn: 1,
-          endLineNumber:
-            position.lineNumber,
-          endColumn: position.column
-        });
-        var match = textUntilPosition.match(/"\w*$/);
-        if (!match) return { suggestions: [] };
-        var word = model.getWordUntilPosition(position);
-        var range = {
-          startLineNumber: position.lineNumber,
-          endLineNumber: position.lineNumber,
-          startColumn: word.startColumn,
-          endColumn: word.endColumn
-        };
-        return {
-          suggestions: instrumentSuggestions.map(s => ({ ...s, range }))
-        };
-      },
-      triggerCharacters: ['"']
-    });
-  }
-
-  @action.bound
-  didMount(editor, monaco) {
-    //console.log('did mount',editor)
-    this.instance = editor;
-    editor.addAction({
-      id: 'my-play',
-      label: 'Play',
-      keybindings: [
-        monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter
-      ],
-      precondition: null,
-      keybindingContext: null,
-      contextMenuGroupId: 'transport',
-      contextMenuOrder: 1.5,
-      run: function (ed) {
-        app.player.toggle();
-        return null;
-      }
-    });
-  }
-
-  onChange = debounce(action(value => {
-    app.source = value
-  }), 300)
 
 
   decorations = []
@@ -104,7 +40,7 @@ export class EditorState {
 
     this.monaco.editor.setModelMarkers(this.instance.getModel(), "tunecraft", [
       {
-        ...this.rangeProps(error.location),
+        ...this.range(error.location),
         owner: "tc",
         code: "?Syntax error",
         message: error?.message,
@@ -113,20 +49,44 @@ export class EditorState {
     ]);
   }
 
-  range({ start, end }) {
-    return new monaco.Range(
-      start.line, start.column,
-      end.line, end.column
-    )
+  setSelectedMarkers(notes) {
+    console.log('set', toJS(notes));
+    if (!this.instance) return;
+    const deco = notes.map(note => ({
+      range: this.range(note.location),
+      options: {
+        isWholeLine: false,
+        inlineClassName: "tc selected inline",
+        marginClassName: "tc selected margin",
+      }
+    }))
+
+    const markers = notes.map(note => ({
+      ...this.range(note.location),
+      owner: "tc",
+      code: "Selected Note",
+      message: pitchToText(note.note),
+      severity: 4,
+    }))
+
+    this.decorations = this.instance.deltaDecorations(this.decorations, deco);
+    this.monaco.editor.setModelMarkers(this.instance.getModel(), "tunecraft", markers);
+
+    let last = notes[notes.length - 1];
+    if (!last) return;
+    this.instance.revealRangeInCenter(this.range(last.location))
+
   }
 
-  rangeProps({ start, end }) {
-    return {
-      startLineNumber: start.line,
-      startColumn: start.column,
-      endLineNumber: end.line,
-      endColumn: end.column,
+  range(first, ...rest) {
+    if (typeof first === 'object') {
+      const { start, end } = first;
+      return new monaco.Range(
+        start.line, start.column,
+        end.line, end.column
+      )
     }
+    return new this.monaco.Range(first, ...rest)
   }
 
   get value() {
@@ -163,16 +123,111 @@ export class EditorState {
   }
 
   autoload() {
-    const stored = storageGet('tunecraft_tabs',null);
+    const stored = storageGet('tunecraft_tabs', null);
     if (!stored) {
-      this.openTab('tune',"// type your music here");
+      this.openTab('tune', "// type your music here");
       return;
     }
-    let {active,tabs} = stored;
+    let { active, tabs } = stored;
     for (const id of tabs) {
-      const source = storageGet('tunecraft_tab_'+id,"");
+      const source = storageGet('tunecraft_tab_' + id, "");
     }
   }
+
+  @action.bound
+  willMount(monaco) {
+    if (!monaco) return;
+    this.monaco = monaco;
+
+    monaco.languages?.register({ id: 'tunecraft' });
+    monaco.languages?.setMonarchTokensProvider('tunecraft', tokenizer);
+    const instrumentSuggestions = instrumentNames.map(name => ({
+      label: name,
+      kind: monaco.languages.CompletionItemKind.Function,
+      insertText: name
+    }))
+
+    monaco.languages.registerCompletionItemProvider('tunecraft', {
+      provideCompletionItems: (model, position) => {
+        // find out if we are completing a property in the 'dependencies' object.
+        var textUntilPosition = model.getValueInRange(this.range(
+          1, 1,
+          position.lineNumber, position.column
+        ));
+        var match = textUntilPosition.match(/"\w*$/);
+        if (!match) return { suggestions: [] };
+        var word = model.getWordUntilPosition(position);
+        return {
+          suggestions: instrumentSuggestions.map(s => ({ ...s, word }))
+        };
+      },
+      triggerCharacters: ['"']
+    });
+
+
+    monaco.editor.defineTheme('myTheme', {
+      base: 'vs',
+      inherit: true,
+      rules: [{
+        token: 'invalid.my',
+        background: 'ff0000',
+        fontStyle:"bold italic"
+      },{
+        token: 'delimiter.bars',
+        foreground: '000000',
+        fontStyle:"bold"
+      },{
+        token: 'keyword.note',
+        foreground: '008040',
+        fontStyle:"bold"
+      },{
+        token: 'keyword.keys',
+        foreground: '800080',
+        fontStyle:"bold"
+      },{
+        token: 'identifier.macro',
+        foreground: '004080',
+        fontStyle:"bold",
+      },{
+        token: 'keyword.meta',
+        foreground: '999999',
+        fontStyle:"bold",
+      },{
+        token: 'string',
+        foreground: 'c06000',
+        fontStyle:"bold italic",
+      }
+    ],
+    });
+  }
+
+  @action.bound
+  didMount(instance, monaco) {
+    //console.log('did mount',editor)
+    monaco.editor.setTheme('myTheme');
+    this.instance = instance;
+    instance.addAction({
+      id: 'my-play',
+      label: 'Play',
+      keybindings: [
+        monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter
+      ],
+      precondition: null,
+      keybindingContext: null,
+      contextMenuGroupId: 'transport',
+      contextMenuOrder: 1.5,
+      run: function (ed) {
+        app.player.toggle();
+        return null;
+      }
+    });
+    autorun(() => this.setSelectedMarkers(this.app.selectedNotes))
+  }
+
+  onChange = debounce(action(value => {
+    this.app.source = value
+  }), 300)
+
 }
 
 class EditorTabState {

@@ -1,4 +1,5 @@
 import classNames from "classnames";
+import { action } from "mobx";
 export const classes = classNames;
 
 export const debounce = (func, wait, immediate) => {
@@ -110,3 +111,40 @@ export function storageSet(name, value, def = null) {
     localStorage[name] = JSON.stringify(def);
   }
 }
+
+export function pitchToText(pitch) {
+  const tone = pitch % 12;
+  const octave = (pitch-tone)/12+1;
+  return ['C','C♯','D','D♯','E','F','F♯','G','G♯','A','A♯','B'][tone]+octave.toFixed(0);
+}
+
+export function handleMouse(handlers) {
+  return action(e=>{
+    if (handlers.before) handlers.before(e);
+    let id = e.buttons % 8;
+    if (e.ctrlKey) id+=MOUSE.CTRL;
+    if (e.shiftKey) id+=MOUSE.SHIFT;
+    if (handlers[id]) handlers[id](e)
+    if (handlers.after) handlers.after(e);
+  })
+}
+
+export const MOUSE = {
+  NONE: 0,
+  LEFT: 1,
+  RIGHT: 2,
+  MIDDLE: 4,
+  CTRL: 8,
+  SHIFT: 16,
+  CTRL_LEFT: 1 | 8,
+  SHIFT_LEFT: 1 | 16,
+  CTRL_SHIFT_LEFT: 1 | 8 | 16,
+  CTRL_RIGHT: 2 | 8,
+  SHIFT_RIGHT: 2 | 16,
+  CTRL_SHIFT_RIGHT: 2 | 8 | 16,
+  CTRL_MIDDLE: 4 | 8,
+  SHIFT_MIDDLE: 4 | 16,
+  CTRL_SHIFT_MIDDLE: 4 | 8 | 16,
+  
+}
+

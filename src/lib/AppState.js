@@ -17,11 +17,10 @@ import { EditorState } from "./EditorState";
 
 export class AppState {
   context = new AudioContext();
-
-  @observable player = null;
-  @observable editor = null;
-  @observable scroller = null;
-
+  @observable selectedNotes=[];
+  @observable player = new PlayerState(this);
+  @observable scroller = new ScrollerState(this);
+  @observable editor = new EditorState(this);
   @observable
   editorWidth = 500;
 
@@ -199,13 +198,17 @@ export class AppState {
   }
 
   @action
-  moveViewLeft(value) {
+  moveViewLeft(value,instant) {
+    if (instant) document.body.classList.add('zooming');
     this.viewLeft += value;
+    if (instant) document.body.classList.remove('zooming');
   }
 
   @action
-  moveViewTime(time) {
+  moveViewTime(time,instant) {
+    if (instant) document.body.classList.add('zooming');
     this.viewBeginTime += time;
+    if (instant) document.body.classList.remove('zooming');
   }
 
   @observable
@@ -219,12 +222,11 @@ export class AppState {
 
   @computed
   get mouseTrackIndex() {
-    let sum = 0
-    for (const i in this.trackHeights) {
-      sum += this.trackHeights[i]
-      if (sum > this.mouseY) return i;
-    }
+    const y= this.mouseY;
+    const bottoms = this.trackBottoms;
+    for (const i in bottoms) if (bottoms[i]>y) return i;
     return null;
+    return bottoms.findIndex(b=>b>y)
   }
 
   @computed
@@ -233,28 +235,27 @@ export class AppState {
   @computed
   get mouseNote() {
     const t = this.mouseTrack
-    if (!t) return;
-    return t.notesAtTime.find(e => e.note == this.mouseTrackPitch)
+    if (!t) return null;
+    return t.notesAtTime(this.mouseTime).find(e => e.note == this.mouseTrackPitch)
   }
+
+  @computed get trackBottoms() {
+    let a = 0;
+    return this.trackHeights.map(h=>a+=h)
+  }
+
 
   @computed
   get mouseTrackY() {
-    let sum = 0, last = 0
-    for (const i in this.trackHeights) {
-      sum += this.trackHeights[i]
-      if (sum > this.mouseY) return this.mouseY - last
-      last = sum
-    }
-    return null;
+    const b = this.trackBottoms[this.mouseTrackIndex-1]??0;
+    return this.mouseY-b;
   }
 
   @computed
   get mouseTrackPitch() {
-    console.log('trac')
     if (!this.mouseTrackIndex) return null;
     const trackComponent = this.trackComponents[this.mouseTrackIndex];
     if (!trackComponent) {
-      console.log('no trac', this.mouseTrackIndex, this.trackComponents[this.mouseTrackIndex])
       return;
     }
     return trackComponent.max - Math.floor(this.mouseTrackY / this.zoomY)
@@ -301,7 +302,7 @@ export class AppState {
 
   @action.bound
   zoomInY() {
-    if (this.settings.zoomY < 8) {
+    if (this.settings.zoomY < 16) {
       let y = this.mouseY - this.viewTop;
       let t = this.mouseY / this.zoomY;
       this.settings.zoomY++;
@@ -458,13 +459,9 @@ export class AppState {
   }
 
   constructor() {
-    top.app = this;
+    top.tc = this;
     let lastResult;
     makeObservable(this);
-    this.player = new PlayerState(this);
-    this.scroller = new ScrollerState(this);
-    this.editor = new EditorState(this);
-
     reaction(
       () => {
         this.tune;
