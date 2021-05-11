@@ -30,6 +30,7 @@ export class Viewer extends React.Component {
           </a>
         </div>
         <TrackHeaders app={app} />
+        <Status app={app} />
       </div>
     )
   }
@@ -84,6 +85,18 @@ export class ViewPort extends React.Component {
       <div className="tc viewport" ref={ref => this.ref = ref} >
         <View app={app} />
         <Overlay app={app} />
+      </div>
+    )
+  }
+}
+
+@observer
+export class Status extends React.Component {
+  render() {
+    const { app } = this.props;
+    return (
+      <div className="tc status">
+        <span className="message">{app.mouseTime}</span>
       </div>
     )
   }

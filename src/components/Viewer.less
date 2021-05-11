@@ -10,6 +10,7 @@ body.zooming {
   --top-height     : 52px;
   --scroller-height: 48px;
   --ruler-height   : 24px;
+  --status-height  : 24px;
 
   position: absolute;
   top     : 0px;
@@ -22,11 +23,12 @@ body.zooming {
     "logo splitter controls time links"
     "logo splitter scroller scroller scroller"
     "logo splitter ruler ruler ruler"
-    "headers splitter viewport viewport viewport";
+    "headers splitter viewport viewport viewport"
+    "status status status status status";
 
   grid-template-columns: max-content 0px 1fr max-content 1fr;
   grid-template-rows   :
-    var(--top-height) var(--scroller-height) var(--ruler-height) 1fr;
+    var(--top-height) var(--scroller-height) var(--ruler-height) 1fr var(--status-height);
 
 
   >.logo {
@@ -37,6 +39,14 @@ body.zooming {
     grid-area: splitter;
 
   }
+}
+
+.tc.status {
+  grid-area: status;
+  overflow : hidden;
+  position:relative;
+  background: gray;
+  span { padding: 1em 1em; }
 }
 
 .tc.viewport {
