@@ -99,7 +99,7 @@ export class AppState {
   @observable trackComponents = [];
 
   @computed get trackHeights() {
-    return this.trackComponents.map(it=>it.height);
+    return this.trackComponents.map(it => it.height);
   }
 
   @observable
@@ -220,9 +220,9 @@ export class AppState {
   @computed
   get mouseTrackIndex() {
     let sum = 0
-    for(const i in this.trackHeights) {
+    for (const i in this.trackHeights) {
       sum += this.trackHeights[i]
-      if(sum > this.mouseY) return i; 
+      if (sum > this.mouseY) return i;
     }
     return null;
   }
@@ -233,16 +233,16 @@ export class AppState {
   @computed
   get mouseNote() {
     const t = this.mouseTrack
-    if(!t) return;
-    return t.events.find(e=>e.event='N' && e.at==this.mouseTime && e.note==this.mouseTrackPitch)
+    if (!t) return;
+    return t.notesAtTime.find(e => e.note == this.mouseTrackPitch)
   }
 
   @computed
   get mouseTrackY() {
-    let sum = 0,last = 0
-    for(const i in this.trackHeights) {
+    let sum = 0, last = 0
+    for (const i in this.trackHeights) {
       sum += this.trackHeights[i]
-      if(sum > this.mouseY) return this.mouseY - last
+      if (sum > this.mouseY) return this.mouseY - last
       last = sum
     }
     return null;
@@ -254,10 +254,10 @@ export class AppState {
     if (!this.mouseTrackIndex) return null;
     const trackComponent = this.trackComponents[this.mouseTrackIndex];
     if (!trackComponent) {
-      console.log('no trac',this.mouseTrackIndex,this.trackComponents[this.mouseTrackIndex])
+      console.log('no trac', this.mouseTrackIndex, this.trackComponents[this.mouseTrackIndex])
       return;
     }
-    return trackComponent.max - Math.floor(this.mouseTrackY/this.zoomY)
+    return trackComponent.max - Math.floor(this.mouseTrackY / this.zoomY)
   }
 
   @computed

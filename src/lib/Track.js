@@ -98,6 +98,22 @@ export class Track extends BaseTrack {
     );
   }
 
+  @computed get _notesAtTime() {
+    const ret = {};
+    for (const e of events) {
+      if (e.event!=='N') continue;
+      ret[e.at]||=[];
+      ret[e.at].push(e);
+    }
+    return ret;
+  }
+
+  notesAtTime(time) {
+    return this._notesAtTime[time] || [];
+  }
+
+
+
   @computed get midiInstrument() {
     return Math.max(0, instrumentNames.indexOf(this.instrument));
   }

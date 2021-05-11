@@ -103,7 +103,10 @@ export class TrackHeaderList extends React.Component {
         <div>{app.mouseTrackIndex}</div>
         <div>{app.mouseTrackY}</div>
         <div>{app.mouseTrackPitch}</div>
-        <div>{app.mouseNote?.note}</div>
+        <div>{app.mouseNote?.location.start.line}</div>
+        <div>{app.mouseNote?.location.start.column}</div>
+        <div>{app.mouseNote?.location.end.line}</div>
+        <div>{app.mouseNote?.location.end.column}</div>
       </div>
     );
   }
