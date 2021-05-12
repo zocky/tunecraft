@@ -51,3 +51,19 @@ export class EditorStatus extends React.Component {
     )
   }
 }
+
+
+@observer
+export class EditorTabs extends React.Component {
+  render() {
+    const {app} = this.props;
+    return (
+      <div className="tc status">
+        <div className="message">
+          {app.error?.message ?? "OK"}
+        </div>
+      </div>
+    )
+  }
+}
+

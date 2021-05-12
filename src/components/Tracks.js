@@ -2,7 +2,7 @@ import React from "react";
 import { observer } from "mobx-react";
 import { action, computed, observable, makeObservable, toJS, trace } from "mobx";
 import "./Tracks.less";
-import { Draggable, onResize, onWheel, Wheelable } from "./Utils";
+import { AppContext, Draggable, onResize, onWheel, Wheelable } from "./Utils";
 import { classes } from "../lib/utils";
 import { TrackView } from "./TrackView";
 
@@ -36,9 +36,23 @@ const COLORS = [
 
 
 @observer
-export class TrackList extends React.Component {
+export class Tracks extends React.Component {
+  static contextType = AppContext;
   render() {
-    const { app } = this.props;
+    const { app } = this.context;
+    return (
+      <div className="tracks" style={{ top: -app.viewTop }}>
+        <TrackList />
+      </div>
+    )
+  }
+}
+
+@observer
+export class TrackList extends React.Component {
+  static contextType = AppContext;
+  render() {
+    const { app } = this.context;
     console.log("render", this.constructor.name);
     //const tracks = app.tracks.filter(({ events }) => events.length);
     return (
@@ -59,10 +73,14 @@ export class TrackList extends React.Component {
   }
 }
 
+
+
+
 @observer
 export class TrackHeaders extends React.Component {
+  static contextType = AppContext;
   render() {
-    const { app } = this.props;
+    const { app } = this.context;
     console.log("render", this.constructor.name);
     //const tracks = app.tracks.filter(({ events }) => events.length);
     return (
@@ -70,38 +88,51 @@ export class TrackHeaders extends React.Component {
         e.preventDefault();
         e.stopPropagation();
         if (e.shiftKey) {
-            if (e.deltaY > 0) {
-              app.zoomOutY()
-            } else {
-              app.zoomInY()
-            }
-        } 
+          if (e.deltaY > 0) {
+            app.zoomOutY()
+          } else {
+            app.zoomInY()
+          }
+        }
         if (!e.ctrlKey && !e.shiftKey) {
           app.moveViewTop(e.deltaY);
         }
       })}>
-        <TrackHeaderList app={app} />
+        <TrackHeadersPositioned />
       </div>
     );
   }
 }
 
 @observer
-export class TrackHeaderList extends React.Component {
+export class TrackHeadersPositioned extends React.Component {
+  static contextType = AppContext;
   render() {
-    const { app } = this.props;
+    const { app } = this.context;
+    return (
+      <div className="headers" style={{ top: -app.viewTop }}>
+        <TrackHeaderList />
+      </div>
+    )
+  }
+}
+
+
+@observer
+export class TrackHeaderList extends React.Component {
+  static contextType = AppContext;
+  render() {
+    const { app } = this.context;
 
     return (
-      <div className="headers">
-        {app.trackKeys.map((idx) => (
-          <TrackHeader
-            key={idx}
-            app={app}
-            idx={idx}
-            color={COLORS[idx % COLORS.length]}
-          />
-        ))}
-      </div>
+      app.trackKeys.map((idx) => (
+        <TrackHeader
+          key={idx}
+          app={app}
+          idx={idx}
+          color={COLORS[idx % COLORS.length]}
+        />
+      ))
     );
   }
 }

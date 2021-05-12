@@ -3,67 +3,29 @@ import React from "react";
 import { observer } from "mobx-react";
 import { action, computed, makeObservable } from "mobx";
 //import "./Tracks.less";
-import { Draggable, onResize, onWheel, Wheelable } from "./Utils";
+import { AppContext, Draggable, onResize, onWheel, Wheelable } from "./Utils";
 import { handleMouse, MOUSE } from "../lib/utils";
+
 
 @observer
 export class Overlay extends React.Component {
+  static contextType = AppContext;
+  render() {
+    const { app } = this.context;
+    return (
+      <div className="tc overlay" style={{ left: -app.viewLeft }}>
+        <OverlayContent />
+      </div>
+    )
+  }
+}
 
-  onMouseDown = handleMouse({
-    [MOUSE.LEFT]: e => {
-      const { app } = this.props;
-      app.player.hold();
-      app.player.seek(app.mouseTime);
-    },
-    [MOUSE.CTRL_LEFT]: e => {
-      const { app } = this.props;
-      const note = app.mouseNote;
-      if (!note) app.selectedNotes = [];
-      else {
-        app.selectedNotes=[note];
-        app.player.playSingleNote(note);
-      }
-    },
-    [MOUSE.CTRL_SHIFT_LEFT]: e => {
-      const { app } = this.props;
-      const note = app.mouseNote;
-      if (!note) return;
-      if (app.selectedNotes.includes(note)) app.selectedNotes.remove(note);
-      else {
-        app.player.playSingleNote(note);
-        app.selectedNotes.push(note);
-      }
-    }
-  })
-
-  onMouseUp = handleMouse({
-    [MOUSE.LEFT]: e => {
-      const { app } = this.props;
-      app.player.unhold();
-    }
-  })
-
-  onMouseMove = handleMouse({
-    before: e => {
-      const { app } = this.props;
-      const rect = this.ref.getBoundingClientRect();
-      const x = e.pageX - rect.left;
-      const y = e.pageY - rect.top;
-      app.mouseX = x;
-      app.mouseY = y;
-    },
-    [MOUSE.LEFT]: e => {
-      const { app } = this.props;
-      app.player.seek(app.mouseTime)
-    },
-    [MOUSE.MIDDLE]: e => {
-      const { app } = this.props;
-      app.moveViewLeft(-e.movementX, true);
-    }
-  })
+@observer
+export class OverlayContent extends React.Component {
+  static contextType = AppContext;
 
   render() {
-    const { app } = this.props;
+    const { app } = this.context;
     console.log('render', this.constructor.name)
     return (
       <div className="overlay"
@@ -82,7 +44,64 @@ export class Overlay extends React.Component {
       </div>
     )
   }
+
+  onMouseDown = handleMouse({
+    [MOUSE.LEFT]: e => {
+      const { app } = this.context;
+      app.player.hold();
+      app.player.seek(app.mouseTime);
+    },
+    [MOUSE.CTRL_LEFT]: e => {
+      const { app } = this.context;
+      const note = app.mouseNote;
+      if (!note) app.selectedNotes = [];
+      else {
+        app.selectedNotes=[note];
+        app.player.playSingleNote(note);
+      }
+    },
+    [MOUSE.CTRL_SHIFT_LEFT]: e => {
+      const { app } = this.context;
+      const note = app.mouseNote;
+      if (!note) return;
+      if (app.selectedNotes.includes(note)) app.selectedNotes.remove(note);
+      else {
+        app.player.playSingleNote(note);
+        app.selectedNotes.push(note);
+      }
+    }
+  })
+
+  onMouseUp = handleMouse({
+    [MOUSE.LEFT]: e => {
+      const { app } = this.context;
+      app.player.unhold();
+    }
+  })
+
+  onMouseMove = handleMouse({
+    before: e => {
+      const { app } = this.context;
+      const rect = this.ref.getBoundingClientRect();
+      const x = e.pageX - rect.left;
+      const y = e.pageY - rect.top;
+      app.mouseX = x;
+      app.mouseY = y;
+    },
+    [MOUSE.LEFT]: e => {
+      const { app } = this.context;
+      app.player.seek(app.mouseTime)
+    },
+    [MOUSE.MIDDLE]: e => {
+      const { app } = this.context;
+      app.moveViewLeft(-e.movementX, true);
+    }
+  })
+
 }
+
+
+
 
 
 @observer

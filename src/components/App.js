@@ -5,9 +5,8 @@ import "./App.less";
 
 import { Editor } from "./Editor";
 
-import {Draggable} from "./Utils";
+import {Draggable, AppContext } from "./Utils.js";
 import { Viewer } from "./Viewer";
-
 
 @observer
 export class App extends React.Component {
@@ -18,16 +17,14 @@ export class App extends React.Component {
     const { app } = this.props;
 
     return (
-      <div className="tc app" style={{
-        "--tc-view-top": -app.viewTop+'px',
-        "--tc-view-left": -app.viewLeft+'px',
-      }}>
+      <AppContext.Provider value={{app}}>
+      <div className="tc app">
         <MainView app={app}/>
       </div>
+      </AppContext.Provider>
     )
   }
 }
-
 
 @observer
 export class MainView extends React.Component {
@@ -51,19 +48,3 @@ export class MainView extends React.Component {
     )
   }
 }
-
-
-
-@observer
-export class Output extends React.Component {
-  render() {
-    const { app } = this.props;
-    switch (app.viewerMode) {
-      case 'tracks':
-        return <Viewer app={app} />
-      case 'result':
-        return <pre className="tc json">{JSON.stringify([app.tune?.tempoTrack.tickOffsets, app.tune?.events], null, 2)}</pre>
-    }
-  }
-}
-

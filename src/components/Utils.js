@@ -104,6 +104,27 @@ export class Resizable extends React.Component {
 }
 
 
+@observer
+export class Positioned extends React.Component {
+  static contextType = AppContext;
+  render() {
+    const { className,...rest} = this.props;
+    const style = {};
+    for (const id in rest) {
+      const value = rest[id]();
+      if (value ?? true) style[id]=value;
+    }
+    return (
+      <div className={className} style={style}>
+        {children}
+      </div>
+    )
+  }
+}
+
+
+
+
 export function onResize(element,handler) {
   if(!element) return;
   const onResize = action(handler);

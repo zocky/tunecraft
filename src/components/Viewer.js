@@ -6,10 +6,9 @@ import "./Viewer.less";
 import { Draggable, formatTime, onResize, onWheel, Wheelable } from "./Utils";
 import { Scroller } from "./Scroller";
 import { Overlay, Ruler } from "./Overlay";
-import { TrackHeaders, TrackList } from "./Tracks";
+import { TrackHeaders, TrackList, Tracks } from "./Tracks";
 import logo from "url:../tunecraft.svg";
 import { PlayerControls, PlayerLinks, PlayerTime } from "./Player";
-import { pitchToText } from "../lib/utils";
 import { Status } from "./Status";
 
 @observer
@@ -38,20 +37,7 @@ export class Viewer extends React.Component {
   }
 }
 
-@observer
-export class View extends React.Component {
-  componentDidUpdate() {
-    document.body.classList.remove('zooming');
-  }
-  render() {
-    const { app } = this.props;
-    return (
-      <div className="view">
-        <TrackList app={app} />
-      </div>
-    )
-  }
-}
+
 
 
 @observer
@@ -88,6 +74,21 @@ export class ViewPort extends React.Component {
       <div className="tc viewport" ref={ref => this.ref = ref} >
         <View app={app} />
         <Overlay app={app} />
+      </div>
+    )
+  }
+}
+
+@observer
+export class View extends React.Component {
+  componentDidUpdate() {
+    document.body.classList.remove('zooming');
+  }
+  render() {
+    const { app } = this.props;
+    return (
+      <div className="view" style={{left: -app.viewLeft}}>
+        <Tracks app={app} />
       </div>
     )
   }
