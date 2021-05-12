@@ -209,11 +209,28 @@ export class TrackBackground extends React.Component {
     return canvas.toDataURL("image/png");
   }
 
+  @computed 
+  get trackSvg() {
+    const { trackView, app } = this.props;
+    const {bars,span,max} = trackView;
+    let svgString=`<svg xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" viewBox="0 0 ${app.viewTotalTime} ${span}">
+      <g stroke="#666" stroke-width="1px">
+        ${bars.map((e,i)=>`<line x1="${e.at}" x2="${e.at}" y1="0" y2="${span}" vector-effect="non-scaling-stroke" />`)}
+      </g>
+    </svg>`
+    var decoded = unescape(encodeURIComponent(svgString));
+    var base64 = btoa(decoded);
+    return `data:image/svg+xml;base64,${base64}`;
+  }
+
   render() {
     const { app } = this.props;
     //console.log('render track',this.props.idx)
     return (
-      <img className="background" draggable={false} src={this.trackImage} />
+      <>
+        <img className="background" draggable={false} src={this.trackImage} />
+        <img className="background" draggable={false} src={this.trackSvg} />
+      </>
     );
   }
 }
