@@ -8,6 +8,19 @@ export class Editor extends React.Component {
   render() {
     const {app} = this.props;
     return (
+      <div className="tc editor">
+        <MonacoEditor app={app}/>
+      </div>
+    )
+  }
+}
+
+
+export class MonacoEditor extends React.Component {
+ 
+  render() {
+    const {app} = this.props;
+    return (
         <Monaco
           height="100%"
           theme="vs-light"

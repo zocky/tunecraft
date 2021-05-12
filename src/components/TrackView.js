@@ -33,7 +33,7 @@ export class TrackView extends React.Component {
   }
 
   @computed get eventsJSON() {
-    return JSON.stringify(toJS(this.tuneTrack?.events));
+    return JSON.stringify(toJS(this.tuneTrack?.events||[]));
   }
 
   @computed get tuneTrack() {
@@ -120,8 +120,8 @@ export class TrackNotes extends React.Component {
     const { trackView, app } = this.props;
     const {notes,span,color,max} = trackView;
     let svgString=`<svg xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" viewBox="0 0 ${app.viewTotalTime} ${span}">
-      <g fill="${color}">
-        ${notes.map((e,i)=>`<rect x="${e.at}" y="${max-e.note}" width="${e.duration}" height="1"/>`)}
+      <g fill="${color}" stroke="#0008" stroke-width="1px">
+        ${notes.map((e,i)=>`<rect x="${e.at}" y="${max-e.note}" width="${e.duration}" height="1" vector-effect="non-scaling-stroke" />`)}
       </g>
     </svg>`
     var decoded = unescape(encodeURIComponent(svgString));
@@ -164,8 +164,8 @@ export class TrackSelectedNotes extends React.Component {
     const { trackView, app } = this.props;
     const {selectedNotes,span,max} = trackView;
     let svgString=`<svg xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" viewBox="0 0 ${app.viewTotalTime} ${span}">
-      <g fill="white">
-        ${selectedNotes.map((e,i)=>`<rect x="${e.at}" y="${max-e.note}" width="${e.duration}" height="1"/>`)}
+      <g fill="white" stroke="black" stroke-width="1px">
+        ${selectedNotes.map((e,i)=>`<rect x="${e.at}" y="${max-e.note}" width="${e.duration}" height="1" vector-effect="non-scaling-stroke" />`)}
       </g>
     </svg>`
     var decoded = unescape(encodeURIComponent(svgString));
@@ -292,16 +292,23 @@ function drawKeys(ctx, { color, index, min, max, app:{zoomY} }) {
   ctx.fillStyle="#666";
   ctx.fillRect(0, 0, ctx.canvas.width,ctx.canvas.height);
   
-  ctx.globalAlpha = 0.125;
+  ctx.globalAlpha = 0.225;
   ctx.fillStyle=color;
   ctx.fillRect(0, 0, ctx.canvas.width,ctx.canvas.height);
 
   ctx.globalAlpha = 1;
   ctx.fillStyle = '#333';
+  ctx.fillRect(0, 0, ctx.canvas.width, 1);
+  ctx.fillRect(0, ctx.canvas.height-1, ctx.canvas.width, 1);
   for (let i = min; i <= max; i++) {
-    if (black[ i % 2 ]) {
+    if (black[ i % 12 ]) {
+      ctx.fillStyle = '#333';
       ctx.fillRect(0, (max - i) * zoomY , ctx.canvas.width, zoomY);
     } 
+    if (line[i%12]) {
+      ctx.fillStyle = '#333';
+      ctx.fillRect(0, (max - i) * zoomY - 0.5 , ctx.canvas.width, 1);
+    }
   }
   ctx.restore();
 }
