@@ -2,12 +2,13 @@
   "name": "tunecraft",
   "version": "1.0.0",
   "description": "",
-  "main": "index.html",
-  "appModern": "dist/index.html",
+  "appModern": "docs/index.html",
   "targets": {
     "appModern": {
       "engines": {
-        "browsers": ["last 1 chrome version"]
+        "browsers": [
+          "last 1 chrome version"
+        ]
       }
     }
   },
@@ -34,10 +35,10 @@
   "devDependencies": {
     "@babel/plugin-proposal-class-properties": "^7.13.0",
     "@babel/plugin-proposal-decorators": "^7.13.5",
-    "@parcel/transformer-less": "^2.0.0-beta.2",
+    "@parcel/transformer-less": "^2.0.0-nightly.662",
     "babel-plugin-relay": "^11.0.2",
     "express": "^4.17.1",
-    "parcel": "^2.0.0-beta.2",
+    "parcel": "^2.0.0-nightly.660",
     "parcel-transformer-pegjs": "^1.0.1"
   }
 }
