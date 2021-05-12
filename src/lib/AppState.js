@@ -95,10 +95,10 @@ export class AppState {
     return !!this.playingTracks[id];
   }
 
-  @observable trackComponents = [];
+  @observable trackViews = [];
 
   @computed get trackHeights() {
-    return this.trackComponents.map(it => it.height);
+    return this.trackViews.map(it => it.height);
   }
 
   @observable
@@ -192,8 +192,14 @@ export class AppState {
   set viewLeft(value) {
     this.viewBeginTime = this.getTime(value);
   }
+  @computed get totalTrackSpan() {
+    return this.trackViews.reduce((a,b)=>a+b.span,0);
+  };
 
-  @observable totalTrackHeight;
+  @computed get totalTrackHeight() {
+    return this.totalTrackSpan * this.zoomY;
+  };
+
   @computed get viewTop() {
     return this.clampViewTop(this.settings.viewTop);
   }
@@ -211,14 +217,15 @@ export class AppState {
   moveViewLeft(value,instant) {
     if (instant) document.body.classList.add('zooming');
     this.viewLeft += value;
-    if (instant) document.body.classList.remove('zooming');
+    if (instant) requestIdleCallback(()=> document.body.classList.remove('zooming'));
+
   }
 
   @action
   moveViewTime(time,instant) {
     if (instant) document.body.classList.add('zooming');
     this.viewBeginTime += time;
-    if (instant) document.body.classList.remove('zooming');
+    if (instant) requestIdleCallback(()=> document.body.classList.remove('zooming'));
   }
 
   @observable
@@ -264,7 +271,7 @@ export class AppState {
   @computed
   get mouseTrackPitch() {
     if (!this.mouseTrackIndex) return null;
-    const trackComponent = this.trackComponents[this.mouseTrackIndex];
+    const trackComponent = this.trackViews[this.mouseTrackIndex];
     if (!trackComponent) {
       return;
     }

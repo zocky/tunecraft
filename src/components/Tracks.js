@@ -58,7 +58,6 @@ export class TrackList extends React.Component {
     return (
       <div
         className="tracks"
-        ref={(ref) => onResize(ref, (e) => (app.totalTrackHeight = e.height))}
       >
         {app.trackKeys.map((idx) => (
           <TrackView

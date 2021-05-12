@@ -17,7 +17,7 @@ export class TrackView extends React.Component {
   @action
   componentDidMount() {
     console.log('mounted')
-    this.props.app.trackComponents[this.props.idx] = this;
+    this.props.app.trackViews[this.props.idx] = this;
   }
 
   @computed get width() {

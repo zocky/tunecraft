@@ -82,7 +82,6 @@ export class ViewPort extends React.Component {
 @observer
 export class View extends React.Component {
   componentDidUpdate() {
-    document.body.classList.remove('zooming');
   }
   render() {
     const { app } = this.props;

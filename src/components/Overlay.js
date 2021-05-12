@@ -106,30 +106,42 @@ export class OverlayContent extends React.Component {
 
 @observer
 export class Ruler extends React.Component {
+  static contextType = AppContext;
+
+  render() {
+    const { app } = this.context;
+    return (
+      <div className="tc ruler">
+        <div className="units" style={{left:-app.viewLeft}}>
+          <RulerUnits />
+        </div>
+      </div>
+    )
+  }
+}
+
+
+@observer
+export class RulerUnits extends React.Component {
   constructor(...args) {
     super(...args);
     makeObservable(this);
   }
 
   @computed get seconds() {
-    const { app } = this.props;
+    const { app } = this.context;
     return Math.max(app.player.totalTime, app.viewDuration);
   }
+
+  static contextType = AppContext;
   render() {
-    const { app } = this.props;
-    //if (!app.tune) return null;
+    const { app } = this.context;
     const seconds = [];
     let step = Math.ceil(64 / app.zoomX)
     for (let i = 0; i <= this.seconds; i += step) {
       seconds.push(<div key={i} className="second" style={{ width: app.zoomX * step }}>{i}</div>)
     }
-    return (
-      <div className="tc ruler">
-        <div className="units">
-          {seconds}
-        </div>
-      </div>
-    )
+    return seconds;
   }
 }
 
