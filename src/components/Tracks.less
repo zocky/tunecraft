@@ -1,36 +1,44 @@
-
 .track() {
-  background   : #000400;
-  background   : linear-gradient(to bottom, #181818 0%,  #111 60%, #060606 100%);
+  background: #000400;
+  background: linear-gradient(to bottom, #181818 0%, #111 60%, #060606 100%);
 
 
 }
 
 .tc.track {
-  display      : block;
+
+  display : block;
+  overflow: hidden;
+  margin:0;
+  padding:0;
   .track();
-  position:relative;
-  >.notes {
-    position:absolute;
-    top:0;
-    left:0;
+  position: relative;
+  > img, > svg {
+    position: absolute;
+    top     : 0;
+    left    : 0;
+    width:100%;
+    height:100%;    
+    image-rendering: pixelated;
+    object-fit:fill;
+    display:block;
   }
-  //box-shadow:0 1px 0 0 #f806 inset;
 }
 
 .tc.track-headers {
-  grid-area: headers;
-  overflow : hidden;
-  position : relative;
-  box-shadow:0px 0 6px 0 #0008;
+  grid-area : headers;
+  overflow  : hidden;
+  position  : relative;
+  box-shadow: 0px 0 6px 0 #0008;
   background: #222;
-  width:140px;
+  width     : 140px;
+
   >.headers {
-    position:absolute;
-    left:0;
-    right:0;
-    height:auto;
-    top:var(--tc-view-top)
+    position: absolute;
+    left    : 0;
+    right   : 0;
+    height  : auto;
+    top     : var(--tc-view-top)
   }
 }
 
@@ -41,56 +49,63 @@
   display       : block;
   font-weight   : 400;
   font-size     : 13px;
-  white-space: nowrap;
-  position:relative;
-  display:flex;
+  white-space   : nowrap;
+  position      : relative;
+  display       : flex;
   .track();
+
   .track-id:before {
-    content:"";
-    display:inline-block;
-    width:8px;
-    height:8px;
-    background: var(--track-color);
-    margin-right:4px;
+    content     : "";
+    display     : inline-block;
+    width       : 8px;
+    height      : 8px;
+    background  : var(--track-color);
+    margin-right: 4px;
   }
+
   .track-id {
-    overflow      : hidden;
-    flex: 1 1;
-    text-overflow : ellipsis;
+    overflow     : hidden;
+    flex         : 1 1;
+    text-overflow: ellipsis;
 
   }
 }
 
 
 .tc.track-button {
-  vertical-align:middle;
-  color        : #818181;
-  background   : linear-gradient(to bottom, #282828 0%, #0F0F0F 5%, #060606 100%);
-  box-shadow   : 0 0 1px 1px rgb(10, 10, 10), 0 0 2px 2px #fff2;
-  border       : none;
-   height       : 20px;
-   width    : 20px;
-  text-align   : center;
+  vertical-align : middle;
+  color          : #818181;
+  background     : linear-gradient(to bottom, #282828 0%, #0F0F0F 5%, #060606 100%);
+  box-shadow     : 0 0 1px 1px rgb(10, 10, 10), 0 0 2px 2px #fff2;
+  border         : none;
+  height         : 20px;
+  width          : 20px;
+  text-align     : center;
   //margin       : 4px auto;
-  font-size    : 11px;
-  font-weight  : 400;
-  border-radius: 4px;
-  margin-left:3px;
-  position     : relative;
-  padding:0;
+  font-size      : 11px;
+  font-weight    : 400;
+  border-radius  : 4px;
+  margin-left    : 3px;
+  position       : relative;
+  padding        : 0;
+
   &:hover {
-    color:white;
+    color: white;
   }
+
   &.active {
-    color: black;
-    box-shadow   : 0 0 1px 1px rgb(10, 10, 10), 0 0 2px 2px #ff04;
+    color     : black;
+    box-shadow: 0 0 1px 1px rgb(10, 10, 10), 0 0 2px 2px #ff04;
   }
+
   &.solo.active {
-    background:#fc0,
+    background: #fc0,
   }
+
   &.mute.active {
-    background:#800;
-    color:white;
+    background: #800;
+    color     : white;
   }
+
   transition:all 0.1s;
 }

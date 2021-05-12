@@ -7,7 +7,7 @@ import { Draggable, onResize, onWheel, Wheelable } from "./Utils";
 
 
 @observer
-export class Track extends React.Component {
+export class TrackView extends React.Component {
   constructor(...args) {
     super(...args);
     this.app = this.props.app;
@@ -18,27 +18,27 @@ export class Track extends React.Component {
   componentDidMount() {
     console.log('mounted')
     this.props.app.trackComponents[this.props.idx] = this;
-    onResize(this.ref, (e) => {
-      //this.props.app.trackHeights[this.props.idx] = e.height;
-      this.height = e.height;
-
-    });
   }
 
-  @observable height = 0;
-
-  @computed get selectedNotes() {
-    return this.props.app.selectedNotes.filter(e=>e.track === this.track.id)
-  }
-
-  @computed get canvasWidth() {
+  @computed get width() {
     return this.app.viewTotalWidth;
   }
 
-  @computed get canvasHeight() {
-    return this.app.zoomY * (this.max - this.min);
+  @computed get height() {
+    return this.app.zoomY * this.span;
   }
 
+  @computed get span() {
+    return (this.max - this.min +1);
+  }
+
+  @computed get eventsJSON() {
+    return JSON.stringify(toJS(this.tuneTrack?.events));
+  }
+
+  @computed get tuneTrack() {
+    return this.app.tracks[this.props.idx];
+  }
 
   @computed get events() {
     return JSON.parse(this.eventsJSON);
@@ -55,41 +55,38 @@ export class Track extends React.Component {
   @computed get color() {
     return this.props.color;
   }
-
-  @computed get eventsJSON() {
-    return JSON.stringify(toJS(this.track?.events));
+  @computed get index() {
+    return this.props.idx;
   }
 
-  @computed get track() {
-    return this.app.tracks[this.props.idx];
+  @computed get selectedNotes() {
+    return this.props.app.selectedNotes.filter(e=>e.track === this.tuneTrack.id)
+  }
+
+
+  @computed get min() {
+    if (!this.notes.length) return 60;
+    return Math.min(...this.notes.map((e) => e.note - 2));
+  }
+
+  @computed get max() {
+    if (!this.notes.length) return 71;
+    return Math.max(...this.notes.map((e) => e.note +2 ));
   }
 
   render() {
     const { app } = this;
     //console.log('render track',this.props.idx)
     return (
-      <div className="tc track" ref={(ref) => (this.ref = ref)}>
+      <div className="tc track" ref={(ref) => (this.ref = ref)} style={{
+        width: this.width,
+        height: this.height
+      }}>
         <TrackBackground app={app} trackView={this} />
         <TrackNotes app={app} trackView={this} />
         <TrackSelectedNotes app={app} trackView={this} />
       </div>
     );
-  }
-
-  @computed get min() {
-    const {zoomY} = this.app;
-    if (zoomY>=4) {
-      return Math.min(Infinity, ...this.notes.map((e) => e.note - 2));
-    }
-    return Math.min(48, ...this.notes.map((e) => e.note - 2));
-  }
-
-  @computed get max() {
-    const {zoomY} = this.app;
-    if (zoomY>=4) {
-      return Math.max(-Infinity, ...this.notes.map((e) => e.note +2 ));
-    }
-    return Math.max(72, ...this.notes.map((e) => e.note + 2));
   }
 }
 
@@ -103,25 +100,39 @@ export class TrackNotes extends React.Component {
 
   @computed
   get trackImage() {
+    console.log('drawing notes')
     const canvas = document.createElement("canvas");
     const { app, trackView } = this.props;
 
-    const { zoomX, zoomY } = app;
-    const { events, notes, min, max, canvasWidth, canvasHeight, color } = trackView;
-    canvas.height = canvasHeight;
-    canvas.width = canvasWidth;
+    const { zoomX} = app;
+    const { bars, notes, min, max, width, color, span } = trackView;
+    canvas.height = span;
+    canvas.width = width;
     const ctx = canvas.getContext("2d");
 
-    drawNotes(ctx, notes, { color, min, max, zoomX, zoomY });
-    drawBars(ctx, events, { color, min, max, zoomX, zoomY });
+    drawNotes(ctx, notes, { color, min, max, zoomX, zoomY:1 });
+    drawBars(ctx, bars, { color, min, max, zoomX, zoomY:1 });
     return canvas.toDataURL("image/png");
   }
 
+  @computed 
+  get trackSvg() {
+    const { trackView, app } = this.props;
+    const {notes,span,color,max} = trackView;
+    let svgString=`<svg xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" viewBox="0 0 ${app.viewTotalTime} ${span}">
+      <g fill="${color}">
+        ${notes.map((e,i)=>`<rect x="${e.at}" y="${max-e.note}" width="${e.duration}" height="1"/>`)}
+      </g>
+    </svg>`
+    var decoded = unescape(encodeURIComponent(svgString));
+    var base64 = btoa(decoded);
+    return `data:image/svg+xml;base64,${base64}`;
+  }
+
+
   render() {
-    const { app } = this.props;
-    //console.log('render track',this.props.idx)
     return (
-      <img className="notes" draggable={false} src={this.trackImage} />
+      <img className="notes" draggable={false} src={this.trackSvg}/>
     );
   }
 }
@@ -139,20 +150,33 @@ export class TrackSelectedNotes extends React.Component {
     const { app, trackView } = this.props;
 
     const { zoomX, zoomY } = app;
-    const { selectedNotes, min, max, canvasWidth, canvasHeight, color } = trackView;
-    canvas.height = canvasHeight;
-    canvas.width = canvasWidth;
+    const { selectedNotes, min, max, width, height, color } = trackView;
+    canvas.height = height;
+    canvas.width = width;
     const ctx = canvas.getContext("2d");
 
     drawNotes(ctx, selectedNotes, { color:'#FFF', min, max, zoomX, zoomY });
     return canvas.toDataURL("image/png");
   }
 
+  @computed 
+  get trackSvg() {
+    const { trackView, app } = this.props;
+    const {selectedNotes,span,max} = trackView;
+    let svgString=`<svg xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" viewBox="0 0 ${app.viewTotalTime} ${span}">
+      <g fill="white">
+        ${selectedNotes.map((e,i)=>`<rect x="${e.at}" y="${max-e.note}" width="${e.duration}" height="1"/>`)}
+      </g>
+    </svg>`
+    var decoded = unescape(encodeURIComponent(svgString));
+    var base64 = btoa(decoded);
+    return `data:image/svg+xml;base64,${base64}`;
+  }
+
+
   render() {
-    const { app } = this.props;
-    //console.log('render track',this.props.idx)
     return (
-      <img className="notes" draggable={false} src={this.trackImage} />
+      <img className="notes" draggable={false} src={this.trackSvg}/>
     );
   }
 }
@@ -171,16 +195,16 @@ export class TrackBackground extends React.Component {
     const canvas = document.createElement("canvas");
     const { app, trackView } = this.props;
 
-    const { zoomX, zoomY } = app;
-    const { events, notes, min, max, canvasWidth, canvasHeight, color } = trackView;
-    canvas.height = canvasHeight;
-    canvas.width = canvasWidth;
+    const { zoomY } = app;
+    const { min, max, height } = trackView;
+    canvas.height = height;
+    canvas.width = 1;
     const ctx = canvas.getContext("2d");
 
     if (zoomY >= 4) {
-      drawKeys(ctx, { color, min, max, zoomY })
+      drawKeys(ctx, trackView)
     } else {
-      drawLines(ctx, { min, max, zoomY });
+      drawLines(ctx, trackView);
     }
     return canvas.toDataURL("image/png");
   }
@@ -246,7 +270,7 @@ function drawBars(
   ctx.fill();
 }
 
-function drawLines(ctx, { color, min, max, zoomY }) {
+function drawLines(ctx, { color, min, max,  app:{zoomY}  }) {
   for (let i = min + 12 - (min % 12); i <= max - (min % 12); i += 12) {
     if (i == 60) ctx.fillStyle = "#fff8";
     else ctx.fillStyle = "#fff2";
@@ -254,20 +278,30 @@ function drawLines(ctx, { color, min, max, zoomY }) {
   }
 }
 
-function drawKeys(ctx, { min, max, zoomY }) {
-  for (let i = min; i <= max; i++) {
+function drawKeys(ctx, { color, index, min, max, app:{zoomY} }) {
+  const
+    w1 = color,
+    w2 = w1,
+    b1 = '#111',
+    b2 = b1;
+  const colors = [w1,b1,w1,b1,w1,w2,b2,w2,b2,w2,b2,w2]
+  const line  =   [ 0 , 0 , 0 , 0 , 1 , 0 , 0 , 0 , 0 , 0 , 0 , 1 ]
+  const black = [ 0 , 1 , 0 , 1 , 0 , 0 , 1 , 0 , 1 , 0 , 1 , 0]
+  ctx.save();
 
-    switch (i % 12) {
-      case 1:
-      case 3:
-      case 6:
-      case 8:
-      case 10:
-        ctx.fillStyle = "#fff2";
-        break;
-      default:
-        ctx.fillStyle = "#fff6";
-    }
-    ctx.fillRect(0, (max - i) * zoomY + 0.5, ctx.canvas.width, zoomY - 1);
+  ctx.fillStyle="#666";
+  ctx.fillRect(0, 0, ctx.canvas.width,ctx.canvas.height);
+  
+  ctx.globalAlpha = 0.125;
+  ctx.fillStyle=color;
+  ctx.fillRect(0, 0, ctx.canvas.width,ctx.canvas.height);
+
+  ctx.globalAlpha = 1;
+  ctx.fillStyle = '#333';
+  for (let i = min; i <= max; i++) {
+    if (black[ i % 2 ]) {
+      ctx.fillRect(0, (max - i) * zoomY , ctx.canvas.width, zoomY);
+    } 
   }
+  ctx.restore();
 }

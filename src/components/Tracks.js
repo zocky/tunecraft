@@ -4,7 +4,7 @@ import { action, computed, observable, makeObservable, toJS, trace } from "mobx"
 import "./Tracks.less";
 import { Draggable, onResize, onWheel, Wheelable } from "./Utils";
 import { classes } from "../lib/utils";
-import { Track } from "./Track";
+import { TrackView } from "./TrackView";
 
 const COLORS = [
   "#FF695E",
@@ -47,7 +47,7 @@ export class TrackList extends React.Component {
         ref={(ref) => onResize(ref, (e) => (app.totalTrackHeight = e.height))}
       >
         {app.trackKeys.map((idx) => (
-          <Track
+          <TrackView
             key={idx}
             app={app}
             idx={idx}

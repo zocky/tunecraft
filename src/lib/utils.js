@@ -38,7 +38,7 @@ export const throttle = (func, limit) => {
   }
 }
 
-export const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
+export const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 
 export function findClosest(needle, haystack) {
 

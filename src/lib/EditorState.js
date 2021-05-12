@@ -50,6 +50,7 @@ export class EditorState {
   }
 
   setSelectedMarkers(notes) {
+    return;
     if (!this.instance) return;
     const deco = notes.map(note => ({
       range: this.range(note.location),
@@ -258,7 +259,7 @@ export class EditorState {
       return;
     }));
 
-    autorun(() => this.setSelectedMarkers(this.app.selectedNotes))
+    //autorun(() => this.setSelectedMarkers(this.app.selectedNotes))
   }
 
   onChange = debounce(action(value => {

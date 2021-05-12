@@ -2,6 +2,8 @@ import React from "react";
 import { observer } from "mobx-react";
 import { action, computed, makeObservable } from "mobx";
 
+export const AppContext = React.createContext(null);
+
 @observer
 export class Draggable extends React.Component {
   onMouseDown = e => {
