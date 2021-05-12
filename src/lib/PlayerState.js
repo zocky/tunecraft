@@ -48,6 +48,16 @@ export class PlayerState {
   timerID = null;
   queueTime = 0;
 
+  playSingleNote(e) {
+    if (this.playing) return;
+    const { event, duration, track, note, velocity } = e;
+    if (event !== 'N') return;
+    this.instruments[track].play(note, this.currentTime, {
+      duration: duration,
+      gain: velocity / 100
+    })
+  }
+
   @computed({keepAlive:true})
   get notes() {
     const notes = this.app.tune.events.filter(e => {

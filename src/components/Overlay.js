@@ -17,14 +17,22 @@ export class Overlay extends React.Component {
     },
     [MOUSE.CTRL_LEFT]: e => {
       const { app } = this.props;
-      app.selectedNotes = app.mouseNote ? [app.mouseNote] : [];
+      const note = app.mouseNote;
+      if (!note) app.selectedNotes = [];
+      else {
+        app.selectedNotes=[note];
+        app.player.playSingleNote(note);
+      }
     },
     [MOUSE.CTRL_SHIFT_LEFT]: e => {
       const { app } = this.props;
       const note = app.mouseNote;
       if (!note) return;
       if (app.selectedNotes.includes(note)) app.selectedNotes.remove(note);
-      else app.selectedNotes.push(note);
+      else {
+        app.player.playSingleNote(note);
+        app.selectedNotes.push(note);
+      }
     }
   })
 

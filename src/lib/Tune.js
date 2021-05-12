@@ -39,6 +39,29 @@ export class Tune {
     return [...ret];
   }
 
+  @computed({ keepAlive: true })
+  get _eventsAtOffset() {
+    const ret = {};
+
+    for (const e of this.events) {
+      if (!e.location) continue;
+      let start = ret[e.location.start.offset] ||= [];
+      let end = ret[e.location.end.offset] ||= [];
+      start.push(e)
+      //end.push(e);
+    }
+    return ret;
+  }
+
+  eventsAtOffset(offset) {
+    return this._eventsAtOffset[offset] || [];
+  }
+
+  eventsBetweenOffsets(start, end) {
+    return Object.keys(this._eventsAtOffset)
+    .filter(i => i >= start && i <= end)
+    .flatMap(i => this._eventsAtOffset[i])
+  }
 
   @observable ticks = 0;
 
@@ -94,10 +117,10 @@ export class Tune {
     this.soundfonts = { default: "MusyngKite", ...soundfonts };
     this.TPQ = TPQ;
     this.tempoTrack = new TempoTrack(this, { events: tempo, TPQ });
-  
+
     let channel = 0;
     for (const id in tracks) {
-      tracks[id].channel = (channel++)%16;
+      tracks[id].channel = (channel++) % 16;
       this.tracksById[id] = new Track(this, tracks[id]);
     }
   }

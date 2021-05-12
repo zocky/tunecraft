@@ -17,7 +17,7 @@ import { EditorState } from "./EditorState";
 
 export class AppState {
   context = new AudioContext();
-  @observable selectedNotes=[];
+  @observable.shallow selectedNotes=[];
   @observable player = new PlayerState(this);
   @observable scroller = new ScrollerState(this);
   @observable editor = new EditorState(this);
@@ -158,6 +158,16 @@ export class AppState {
 
   set viewBeginTime(time) {
     this.settings.viewBeginTime = this.clampViewBeginTime(time);
+  }
+
+  @computed get
+  viewTotalTime() {
+    return this.tune ? this.tune.length : 0;
+  }
+
+  @computed get
+  viewTotalWidth() {
+    return this.viewTotalTime * this.zoomX;
   }
 
   @computed get viewCenterTime() {

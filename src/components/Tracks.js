@@ -3,9 +3,8 @@ import { observer } from "mobx-react";
 import { action, computed, observable, makeObservable, toJS, trace } from "mobx";
 import "./Tracks.less";
 import { Draggable, onResize, onWheel, Wheelable } from "./Utils";
-import { Scroller } from "./Scroller";
-import { Overlay, Ruler } from "./Overlay";
 import { classes } from "../lib/utils";
+import { Track } from "./Track";
 
 const COLORS = [
   "#FF695E",
@@ -106,125 +105,7 @@ export class TrackHeaderList extends React.Component {
     );
   }
 }
- 
-@observer
-export class Track extends React.Component {
-  constructor(...args) {
-    super(...args);
-    makeObservable(this);
-  }
 
-  @action
-  componentDidMount() {
-    console.log('mounted')
-    this.props.app.trackComponents[this.props.idx] = this;
-    onResize(this.ref, (e) => {
-      //this.props.app.trackHeights[this.props.idx] = e.height;
-      this.height = e.height;
-      
-    });
-  }
-
-  @observable height=0;
-
-  @computed get canvasWidth() {
-    const { app } = this.props;
-    return app.zoomX * app.tune.length;
-  }
-
-  @computed get canvasHeight() {
-    const { app } = this.props;
-    return app.zoomY * (this.max - this.min);
-  }
-
-  @computed
-  get trackImage() {
-    console.log('drawing');
-    const canvas = document.createElement("canvas");
-    const { app, color } = this.props;
-
-    const zoomX = app.zoomX;
-    const zoomY = app.zoomY;
-
-    const notes = this.events.filter((e) => e.event === "ON");
-    const min = (this.min = Math.min(48, ...notes.map((e) => e.note - 4)));
-    const max = (this.max = Math.max(72, ...notes.map((e) => e.note + 2)));
-
-    canvas.height = zoomY * (max - min);
-    canvas.width = this.canvasWidth;
-
-    const ctx = canvas.getContext("2d");
-
-    if (zoomY >= 4) {
-      for (let i = min; i <= max; i++) {
-        switch (i % 12) {
-          case 1:
-          case 3:
-          case 6:
-          case 8:
-          case 10:
-            ctx.fillStyle = "#0004";
-            break;
-          default:
-            ctx.fillStyle = "#fff4";
-        }
-        ctx.fillRect(0, (max - i) * zoomY + 0.5, canvas.width, zoomY - 1);
-      }
-    } else {
-      for (let i = min + 12 - (min % 12); i <= max - (min % 12); i += 12) {
-        if (i == 60) ctx.fillStyle = "#fff6";
-        else ctx.fillStyle = "#fff2";
-        ctx.fillRect(0, (max - i - 0.5) * zoomY, canvas.width, 1);
-      }
-    }
-
-    drawNotes(ctx, this.events, { color, min, max, zoomX, zoomY });
-    const ret = canvas.toDataURL("image/png");
-    //console.timeEnd('drawing');
-    return ret;
-  }
-
-  @computed get events() {
-    return JSON.parse(this.eventsJSON);
-  }
-
-  @computed get eventsJSON() {
-    return JSON.stringify(toJS(this.track?.events));
-  }
-
-  @computed get track() {
-    return this.props.app.tracks[this.props.idx];
-  }
-
-  @action.bound onMouseEnter(e) {
-    const { app } = this.props;
-    app.mouseTrackIndex = this;
-  }
-
-  @action.bound onMouseLeave(e) {
-    const { app } = this.props;
-    app.mouseTrackIndex = null;
-    app.mouseTrackPitch = null;
-  }
-
-  @action.bound onMouseMove(e) {
-    const { app } = this.props;
-    const rect = e.target.getBoundingClientRect();
-    const y = Math.floor((e.pageY - rect.top) / app.zoomY);
-    app.mouseTrackPitch = this.max - y;
-  }
-
-  render() {
-    const { app } = this.props;
-    //console.log('render track',this.props.idx)
-    return (
-      <div className="tc track" ref={(ref) => (this.ref = ref)}>
-        <img draggable={false} 
-             src={this.trackImage} />
-      </div>
-    );
-  }
-}
 
 @observer
 export class TrackHeader extends React.Component {
@@ -272,48 +153,4 @@ export class TrackHeader extends React.Component {
       </div>
     );
   }
-}
-
-function drawNotes(
-  ctx,
-  events,
-  { color, max, min, zoomX, zoomY, fixedY, gap = 2 }
-) {
-  let n = 0;
-  //const now = performance.now();
-  ctx.beginPath();
-  //let _events = events.filter(e=>e.event==='N')
-  for (const e of events) {
-    if (e.event === "N") {
-      ctx.fillStyle = color;
-      let x = Math.floor(e.at * zoomX);
-      let y = (fixedY ?? max - e.note) * zoomY;
-      let w = Math.max(1, Math.floor(e.duration * zoomX - gap));
-      let h = zoomY;
-      ctx.rect(x, y, w, h);
-      n++;
-      if (n == 1000) {
-        ctx.fillStyle = color;
-        ctx.fill();
-        ctx.beginPath();
-        n = 0;
-      }
-    }
-  }
-  ctx.fillStyle = color;
-  ctx.fill();
-  ctx.beginPath();
-  for (const e of events) {
-    if (e.event === "B") {
-      let x = Math.round(e.at * zoomX) - 2 + 0.5;
-      let y = 0;
-      let w = 1;
-      let h = zoomY * (max - min);
-      ctx.rect(x, y, w, h);
-    }
-  }
-  ctx.fillStyle = "#444";
-  ctx.fill();
-  //const spent = performance.now()-now;
-  //console.log('per note',spent/events.length*1000000|0);
 }
