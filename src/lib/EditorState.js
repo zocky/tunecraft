@@ -186,7 +186,7 @@ export class EditorState {
       },{
         token: 'identifier.macro',
         foreground: '004080',
-        fontStyle:"bold",
+        fontStyle:"normal",
       },{
         token: 'keyword.meta',
         foreground: '999999',
