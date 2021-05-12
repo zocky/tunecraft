@@ -2,7 +2,9 @@
 import React from "react";
 import Monaco from "@monaco-editor/react";
 import "./Editor.less"
+import { observer } from "mobx-react";
 
+@observer
 export class Editor extends React.Component {
  
   render() {
@@ -10,6 +12,7 @@ export class Editor extends React.Component {
     return (
       <div className="tc editor">
         <MonacoEditor app={app}/>
+        <EditorStatus app={app}/>
       </div>
     )
   }
@@ -35,3 +38,16 @@ export class MonacoEditor extends React.Component {
   }
 }
 
+@observer
+export class EditorStatus extends React.Component {
+  render() {
+    const {app} = this.props;
+    return (
+      <div className="tc status">
+        <div className="message">
+          {app.error?.message ?? "OK"}
+        </div>
+      </div>
+    )
+  }
+}

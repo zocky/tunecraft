@@ -1,31 +1,42 @@
 .tc.editor {
-  position:absolute;
-  top:0;
-  left:0;
-  bottom:0;
-  right:0;
-  overflow: hidden;
-  display: grid;
-  grid-template-areas: "tabs" "editor" "status";
-  grid-template-rows: var(--top-height) 1fr var(--status-height);
+  position           : absolute;
+  top                : 0;
+  left               : 0;
+  bottom             : 0;
+  right              : 0;
+  overflow           : hidden;
+  display            : grid;
+  grid-template-areas: "tabs""editor""status";
+  grid-template-rows : var(--top-height) 1fr max-content;
 
-> section  {
-    grid-area:editor;
-    .tc.error.margin {
-      background-color: red;
-    }
-    .tc.error.inline {
-      text-decoration: underline dotted;
-      color: red;
-    }
-    .tc.selected.inline {
-      background:#cfc;
-      font-weight:bold;
-      color:#040;
-    }
-    .tc.selected.margin {
-      background:#4684;
-      font-weight:bold;
+  >.tc.status {
+    height:auto;
+    min-height:var(--status-height);
+  }
+
+  >section {
+    grid-area: editor;
+
+    .monaco-editor {
+      .tc.error.margin {
+        background-color: red;
+      }
+
+      .tc.error.inline {
+        text-decoration: underline dotted;
+        color          : red;
+      }
+
+      .tc.selected.inline {
+        background : #cfc;
+        font-weight: bold;
+        color      : #040;
+      }
+
+      .tc.selected.margin {
+        background : #4684;
+        font-weight: bold;
+      }
     }
   }
 }
