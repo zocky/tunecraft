@@ -95,10 +95,10 @@ export class AppState {
     return !!this.playingTracks[id];
   }
 
-  @observable trackComponents = [];
+  @observable trackViews = [];
 
   @computed get trackHeights() {
-    return this.trackComponents.map(it => it.height);
+    return this.trackViews.map(it => it.height);
   }
 
   @observable
@@ -264,7 +264,7 @@ export class AppState {
   @computed
   get mouseTrackPitch() {
     if (!this.mouseTrackIndex) return null;
-    const trackComponent = this.trackComponents[this.mouseTrackIndex];
+    const trackComponent = this.trackViews[this.mouseTrackIndex];
     if (!trackComponent) {
       return;
     }

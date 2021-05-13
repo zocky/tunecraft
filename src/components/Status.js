@@ -10,7 +10,7 @@ import { pitchToText } from "../lib/utils";
 export class Status extends React.Component {
   constructor(...args) {
     super(...args);
-    this.props.app.trackComponents[this.props.idx] = this;
+    this.props.app.trackViews[this.props.idx] = this;
     makeObservable(this);
   }
 
