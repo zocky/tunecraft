@@ -32,12 +32,12 @@ export class BaseTrack {
     return events;
   }
 
-  @computed get eventsForMidi() {
+  get eventsForMidi() {
     let events = this.events.filter(this.isMidiEvent);
     return this.diffEvents(events);
   }
 
-  @computed get toMidi() {
+  get toMidi() {
     const { channel } = this;
     const midi = [];
     for (const {
