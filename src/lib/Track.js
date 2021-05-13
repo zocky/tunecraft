@@ -1,7 +1,6 @@
 import { computed, makeObservable, observable } from "mobx";
 
 import instrumentNames from "./instruments.json";
-import Midi from "jsmidgen";
 import { findClosest } from "./utils";
 
 export class BaseTrack {
@@ -22,8 +21,7 @@ export class BaseTrack {
     //makeObservable(this)
   }
 
-
-  isMidiEvent = event => false;
+  isMidiEvent = (event) => false;
 
   diffEvents(events) {
     let lastTick = 0;
@@ -34,34 +32,46 @@ export class BaseTrack {
     return events;
   }
 
-  @computed get
-    eventsForMidi() {
+  @computed get eventsForMidi() {
     let events = this.events.filter(this.isMidiEvent);
     return this.diffEvents(events);
   }
 
   @computed get toMidi() {
-    const midi = new Midi.Track();
-    for (const event of this.eventsForMidi) {
-      switch (event.event) {
-        case 'ON':
-          midi.addNoteOn(this.channel, event.note, event.wait | 0, event.velocity);
+    const { channel } = this;
+    const midi = [];
+    for (const {
+      event,
+      velocity,
+      note: noteNumber,
+      wait: delta = 0,
+      ...rest
+    } of this.eventsForMidi) {
+      switch (event) {
+        case "ON":
+          midi.push({ noteOn: { noteNumber, velocity }, channel, delta });
           break;
-        case 'OFF':
-          midi.addNoteOff(this.channel, event.note, event.wait | 0, event.velocity);
+        case "OFF":
+          midi.push({ noteOff: { noteNumber, velocity }, channel, delta });
           break;
-        case 'I':
-          midi.setInstrument(this.channel, event.instrument, event.wait | 0);
+        case "I":
+          midi.push({
+            programChange: { programNumber: rest.instrument },
+            channel, delta,
+          });
           break;
-        case 'T':
-          midi.setTempo(event.tempo, event.wait | 0);
+        case "T":
+          const mspq = Math.round(60e6 / rest.tempo)
+          midi.push({
+            setTempo: { "microsecondsPerQuarter": mspq },
+            channel, delta,
+          });
           break;
-        case 'ID':
-          midi.addEvent(new Midi.MetaEvent({
-            type: Midi.MetaEvent.TRACK_NAME,
-            time: event.wait | 0,
-            data: event.id
-          }));
+        case "ID":
+          midi.push({
+            trackName: rest.id+'\u0000',
+            delta,
+          });
           break;
         default:
         //ignore others
@@ -73,61 +83,60 @@ export class BaseTrack {
 
 export class Track extends BaseTrack {
   makeEvents() {
-    this._events = ([{
-      event: 'ID',
-      tick: 0,
-      data: this.id
-    }, {
-      event: 'I',
-      tick: 0,
-      instrument: this.midiInstrument || 0
-    },
-    //...this.tune.tempoTrack.events,
-    ...this._events,
+    this._events = [
+      {
+        event: "ID",
+        tick: 0,
+        id: this.id,
+      },
+      {
+        event: "I",
+        tick: 0,
+        instrument: this.midiInstrument || 0,
+      },
+      ...this.tune.tempoTrack.events,
+      ...this._events,
     ]
-      .map(event => {
+      .map((event) => {
         const ret = { ...event };
         const { tick, ticks = 0 } = event;
         ret.track = this.id;
         ret.at = this.tune.timeAtTick(tick);
         if (ticks > 0) {
-          ret.duration = this.tune.timeAtTick(tick + ticks) - ret.at
+          ret.duration = this.tune.timeAtTick(tick + ticks) - ret.at;
         }
         return ret;
       })
-      .sort((a, b) => a.tick - b.tick)
-    );
+      .sort((a, b) => a.tick - b.tick);
   }
 
-  @computed({keepAlive:true})
+  @computed({ keepAlive: true })
   get uniqueTimes() {
     let ret = new Set();
     for (const e of this.events) ret.add(e.at);
     return [...ret];
   }
 
-  @computed({keepAlive:true})
+  @computed({ keepAlive: true })
   get notes() {
-    return this.events.filter(e=>e.event==='N')
+    return this.events.filter((e) => e.event === "N");
   }
 
-  @computed({keepAlive:true})
+  @computed({ keepAlive: true })
   get _notesAtTime() {
-    console.log('notes')
+    console.log("notes");
     const ret = {};
     const notes = this.notes;
     for (const at of this.uniqueTimes) {
-      ret[at]=notes.filter(n=>n.at == at || n.at+n.duration == at)
+      ret[at] = notes.filter((n) => n.at == at || n.at + n.duration == at);
     }
     return ret;
   }
 
   notesAtTime(time) {
-    const t = findClosest(time,this.uniqueTimes);
+    const t = findClosest(time, this.uniqueTimes);
     return this._notesAtTime[t] || [];
   }
-
-
 
   @computed get midiInstrument() {
     return Math.max(0, instrumentNames.indexOf(this.instrument));
@@ -144,17 +153,18 @@ export class Track extends BaseTrack {
     this.font = font;
     this.instrument = instrument;
     this.makeEvents();
-    makeObservable(this)
+    makeObservable(this);
   }
 
-  isMidiEvent = event => {
+  isMidiEvent = (event) => {
     switch (event.event) {
-      case 'I':
-      //case 'ID':
-      case 'ON':
-      case 'OFF':
-        return true
+      case "I":
+      case 'ID':
+      case 'T':
+      case "ON":
+      case "OFF":
+        return true;
     }
     return false;
-  }
+  };
 }
