@@ -1,0 +1,37 @@
+
+
+$p = 
+-1 & 
+( p 1:: 1) &
+( p 3 3) &
+( p 5) 
+
+$p2 = 
+-1 & 
+( p 3:: 3) &
+( p 5 5) &
+( p +1) 
+
+$p3 = 
+-1 & 
+( p -5:: -5) &
+( p 1 1) &
+( p 3) 
+
+$p4 = 
+-1 & (3 3) &( p 1: p 1:) & (p: -5 p: -5) 
+
+
+$house = [
+| I $p | III $p 
+| IV $p | VI -$p2
+| I $p | III $p
+| V $p3 | $p4 
+| I $p | III $p 
+| IV $p | -VI $p2
+| I $p | III $p
+| -V $p2 | I $p
+| -V $p2 | I $p
+]
+
+[T160  3/4 "acoustic_guitar_nylon" -Am|$house]

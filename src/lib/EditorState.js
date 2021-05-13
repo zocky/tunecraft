@@ -1,6 +1,6 @@
 
 import { action, observable, computed, makeObservable, flow, reaction, when, autorun, toJS } from "mobx";
-import { debounce, pitchToText, storageGet } from "./utils";
+import { debounce, pitchToText, storageGet, storageSet } from "./utils";
 import { tokenizer } from "./tunecraft/tunecraft.monarch"
 
 import instrumentNames from "./instruments.json"
@@ -98,6 +98,7 @@ export class EditorState {
   @observable tabs = [];
   @observable activeTab = null;
 
+  
   @action.bound
   openTab(filename, source) {
     const tab = this.tabs[filename] = new EditorTabState(this, filename, source);
@@ -119,6 +120,10 @@ export class EditorState {
 
   isTabActive(tab) {
     return tab === this.activeTab;
+  }
+
+  autosave() {
+    storageSet('tunecraft_tabs')
   }
 
   autoload() {
@@ -186,7 +191,7 @@ export class EditorState {
       },{
         token: 'identifier.macro',
         foreground: '004080',
-        fontStyle:"normal",
+        fontStyle:"bold",
       },{
         token: 'keyword.meta',
         foreground: '999999',

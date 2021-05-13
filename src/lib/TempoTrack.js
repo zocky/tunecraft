@@ -1,6 +1,5 @@
 import { computed, makeObservable, observable } from "mobx";
 import { BaseTrack } from "./Track";
-import Midi from "jsmidgen";
 
 export class TempoTrack extends BaseTrack {
 
