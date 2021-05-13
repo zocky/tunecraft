@@ -71,7 +71,7 @@ export class TrackView extends React.Component {
 
   @computed get max() {
     if (!this.notes.length) return 71;
-    return Math.max(...this.notes.map((e) => e.note +2 ));
+    return Math.max(this.min+12,...this.notes.map((e) => e.note +2 ));
   }
 
   render() {
