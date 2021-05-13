@@ -110,7 +110,7 @@ export class Tune {
     makeObservable(this);
     top.tune = this;
     this.ticks = ticks;
-    this.soundfonts = { default: "MusyngKite", ...soundfonts };
+    this.soundfonts = { default: "FatBoy", ...soundfonts };
     this.TPQ = TPQ;
     this.tempoTrack = new TempoTrack(this, { events: tempo, TPQ });
 
