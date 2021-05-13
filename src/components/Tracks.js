@@ -86,7 +86,7 @@ export class TrackHeaders extends React.Component {
       <div className="tc track-headers" ref={ref => ref && onWheel(ref, e => {
         e.preventDefault();
         e.stopPropagation();
-        if (e.shiftKey) {
+        if (e.ctrlKey) {
           if (e.deltaY > 0) {
             app.zoomOutY()
           } else {
