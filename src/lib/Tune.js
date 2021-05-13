@@ -90,15 +90,15 @@ export class Tune {
 
   @computed get toMidi() {
     const midi = { division: this.TPQ, format: 1, tracks: [] }
-    midi.tracks.push(this.tempoTrack.toMidi2);
+    midi.tracks.push(this.tempoTrack.toMidi);
     for (const track of this.tracks) {
-      midi.tracks.push(track.toMidi2);
+      midi.tracks.push(track.toMidi);
     }
     return midi;
   }
 
   async toMidiBuffer() {
-    const buffer = await encode(this.toMidi2)
+    const buffer = await encode(this.toMidi)
     return buffer;
   }
 
