@@ -2,7 +2,7 @@
 import React from "react";
 import { observer } from "mobx-react";
 import { action, computed, makeObservable } from "mobx";
-import { Draggable, Wheelable } from "./Utils";
+import { Draggable, Wheelable, AppContext } from "./Utils";
 const COLORS = [
   '#FF695E',
   '#FF851B',
@@ -34,6 +34,8 @@ const COLORS = [
 
 @observer
 export class Scroller extends React.Component {
+  static contextType = AppContext
+
   constructor(...args) {
     super(...args);
     makeObservable(this);
@@ -78,9 +80,24 @@ export class Scroller extends React.Component {
     return canvas.toDataURL("image/png");
   }
 
+  @computed 
+  get scrollerSvg() {
+    const { app } = this.context
+    let svgString=`<svg xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" viewBox="0 0 ${app.viewTotalTime} ${app.trackViews.length}">
+    ${app.trackViews.map((t,i)=>`
+      <g fill="${t.color}">
+        ${t.notes.map((e)=>`<rect x="${e.at}" y="${i}" width="${e.duration}" height="1" vector-effect="non-scaling-stroke" />`)}
+      </g>
+    `)}
+    </svg>`
+    var decoded = unescape(encodeURIComponent(svgString));
+    var base64 = btoa(decoded);
+    return `data:image/svg+xml;base64,${base64}`;
+  }
+
   @action.bound
   onMouseDown(e) {
-    const {app}=this.props;
+    const { app } = this.context;
     const x = e.pageX - this.ref.getBoundingClientRect().left;
     app.scroller.centerView(x);
     e.preventDefault();
@@ -88,7 +105,7 @@ export class Scroller extends React.Component {
   }
 
   render() {
-    const { app } = this.props;
+    const { app } = this.context;
 
     return (
       <div 
@@ -96,7 +113,7 @@ export class Scroller extends React.Component {
         ref={ref => this.ref = ref}
         onMouseDown={this.onMouseDown}
       >
-        <img style={{ imageRendering: "pixelated" }} className="track" src={this.scrollerImage} />
+        <img style={{ imageRendering: "pixelated" }} className="track" src={this.scrollerSvg} />
         <ScrollerSeekCursor app={app} />
         <ScrollerViewRegion app={app} />
       </div>

@@ -2,8 +2,8 @@ import { makeObservable, computed, observable } from "mobx";
 import { TempoTrack } from "./TempoTrack";
 import { Track } from "./Track";
 
-import Midi from "jsmidgen";
 import { findClosest } from "./utils";
+import { encode } from "json-midi-encoder";
 
 export class Tune {
   @observable
@@ -89,21 +89,17 @@ export class Tune {
   }
 
   @computed get toMidi() {
-    const midi = new Midi.File({ ticks: this.TPQ });
-    midi.addTrack(this.tempoTrack.toMidi);
+    const midi = { division: this.TPQ, format: 1, tracks: [] }
+    midi.tracks.push(this.tempoTrack.toMidi2);
     for (const track of this.tracks) {
-      midi.addTrack(track.toMidi);
+      midi.tracks.push(track.toMidi2);
     }
     return midi;
   }
 
-  @computed get toMidiBuffer() {
-    const midi = this.toMidi.toBytes();
-    const bytes = new Uint8Array(midi.length);
-    for (var i = 0; i < midi.length; i++) {
-      bytes[i] = midi.charCodeAt(i);
-    }
-    return bytes;
+  async toMidiBuffer() {
+    const buffer = await encode(this.toMidi2)
+    return buffer;
   }
 
   @computed get length() {

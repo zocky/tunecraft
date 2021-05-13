@@ -441,8 +441,8 @@ export class AppState {
 
   @observable fileName = "tune";
 
-  exportMidi() {
-    var blob = new Blob([this.tune.toMidiBuffer], { type: "audio/midi" });
+  async exportMidi() {
+    var blob = new Blob([await this.tune.toMidiBuffer()], { type: "audio/midi" });
     var link = document.createElement("a");
     const url = URL.createObjectURL(blob);
     link.href = url;

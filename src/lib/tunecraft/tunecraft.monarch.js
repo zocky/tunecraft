@@ -58,14 +58,13 @@ export const tokenizer = {
 			[/[|;]/, 'delimiter.bars'],
 
 			// notes
-			[/[-+]*[1-7](?:[#b]+|\b)/, 'keyword.note.numbered'],
-			[/[-+]*[a-g](?:[#b]+|\b)/, 'keyword.note.named'],
-			[/[-+]*[0p](?:[#b]+|\b)/, 'keyword.note.pause'],
+			[/[-+]*[1-7](?:[#b♭♯]+|\b)/, 'keyword.note.numbered'],
+			[/[-+]*[a-g](?:[#b♭♯]+|\b)/, 'keyword.note.named'],
+			[/[-+]*[0p](?:[#b♭♯]+|\b)/, 'keyword.note.pause'],
 	
 			// keys
-			[/[-+]*[A-G](?:[#b]*)(?:m|\(IV|[VI]I?I?\)|\b)/, 'keyword.keys.key'],
-			[/[-+]*(?:IV|[VI]I?I?)(?:[#b]+|\b)/, 'keyword.keys.shift'],
-			
+			[/[-+]*[A-G](?:[#b♭♯]*)(?:m|\(IV|[VI]I?I?\)|\b)/, 'keyword.keys.key'],
+			[/[-+]*(?:IV|[VI]I?I?)\b/, 'keyword.keys.shift'],
 
 			//repeat
 			[/\d+[×x]/, 'delimiter.bars'],
