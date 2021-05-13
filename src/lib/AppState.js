@@ -5,19 +5,21 @@ import {
   makeObservable,
   reaction,
   action,
+  autorun,
+  toJS,
 } from "mobx";
 import { compile } from "./tunecraft";
 
 import { PlayerState } from "./PlayerState";
 import { Tune } from "./Tune";
-import { clamp } from "./utils";
+import { clamp, storageGet, storageSet } from "./utils";
 import { ScrollerState } from "./ScrollerState";
 import dayjs from "dayjs";
 import { EditorState } from "./EditorState";
 
 export class AppState {
   context = new AudioContext();
-  @observable.shallow selectedNotes=[];
+  @observable.shallow selectedNotes = [];
   @observable player = new PlayerState(this);
   @observable scroller = new ScrollerState(this);
   @observable editor = new EditorState(this);
@@ -27,7 +29,7 @@ export class AppState {
   @observable
   settings = {
     zoomX: 12,
-    zoomY: 2,
+    zoomY: 8,
     loopIn: 0,
     loopOut: 1,
     hasLoop: false,
@@ -161,12 +163,12 @@ export class AppState {
   }
 
   @computed get
-  viewTotalTime() {
+    viewTotalTime() {
     return this.tune ? this.tune.length : 0;
   }
 
   @computed get
-  viewTotalWidth() {
+    viewTotalWidth() {
     return this.viewTotalTime * this.zoomX;
   }
 
@@ -193,7 +195,7 @@ export class AppState {
     this.viewBeginTime = this.getTime(value);
   }
   @computed get totalTrackSpan() {
-    return this.trackViews.reduce((a,b)=>a+b.span,0);
+    return this.trackViews.reduce((a, b) => a + b.span, 0);
   };
 
   @computed get totalTrackHeight() {
@@ -214,18 +216,18 @@ export class AppState {
   }
 
   @action
-  moveViewLeft(value,instant) {
+  moveViewLeft(value, instant) {
     if (instant) document.body.classList.add('zooming');
     this.viewLeft += value;
-    if (instant) requestIdleCallback(()=> document.body.classList.remove('zooming'));
+    if (instant) requestIdleCallback(() => document.body.classList.remove('zooming'));
 
   }
 
   @action
-  moveViewTime(time,instant) {
+  moveViewTime(time, instant) {
     if (instant) document.body.classList.add('zooming');
     this.viewBeginTime += time;
-    if (instant) requestIdleCallback(()=> document.body.classList.remove('zooming'));
+    if (instant) requestIdleCallback(() => document.body.classList.remove('zooming'));
   }
 
   @observable
@@ -239,11 +241,11 @@ export class AppState {
 
   @computed
   get mouseTrackIndex() {
-    const y= this.mouseY;
+    const y = this.mouseY;
     const bottoms = this.trackBottoms;
-    for (const i in bottoms) if (bottoms[i]>y) return i;
+    for (const i in bottoms) if (bottoms[i] > y) return i;
     return null;
-    return bottoms.findIndex(b=>b>y)
+    return bottoms.findIndex(b => b > y)
   }
 
   @computed
@@ -258,14 +260,14 @@ export class AppState {
 
   @computed get trackBottoms() {
     let a = 0;
-    return this.trackHeights.map(h=>a+=h)
+    return this.trackHeights.map(h => a += h)
   }
 
 
   @computed
   get mouseTrackY() {
-    const b = this.trackBottoms[this.mouseTrackIndex-1]??0;
-    return this.mouseY-b;
+    const b = this.trackBottoms[this.mouseTrackIndex - 1] ?? 0;
+    return this.mouseY - b;
   }
 
   @computed
@@ -478,7 +480,11 @@ export class AppState {
   constructor() {
     top.tc = this;
     let lastResult;
+    Object.assign(this.settings, storageGet('tunecraft_settings', {}))
     makeObservable(this);
+
+    autorun(()=>storageSet('tunecraft_settings',toJS(this.settings)));
+
     reaction(
       () => {
         this.tune;
@@ -487,7 +493,7 @@ export class AppState {
       ({ result, error }) => {
         if (result === lastResult) return;
         lastResult = result;
-        localStorage.tunecraft_save = this.source;
+        storageSet('tunecraft_save', this.source)
         if (result) {
           console.time("new tune");
           this.tune = new Tune(result);
@@ -514,6 +520,6 @@ export class AppState {
     this.init();
   }
   @action init() {
-    this.source = localStorage.tunecraft_save || "";
+    this.source = storageGet("tunecraft_save", "")
   }
 }
