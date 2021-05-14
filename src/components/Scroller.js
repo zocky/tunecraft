@@ -83,7 +83,7 @@ export class Scroller extends React.Component {
   @computed 
   get scrollerSvg() {
     const { app } = this.context
-    let svgString=`<svg xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" viewBox="0 0 ${app.viewTotalTime} ${app.trackViews.length}">
+    let svgString=`<svg xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" viewBox="0 0 ${app.viewTotalTime} ${Math.max(8,app.trackViews.length)}">
     ${app.trackViews.map((t,i)=>`
       <g fill="${t.color}">
         ${t.notes.map((e)=>`<rect x="${e.at}" y="${i}" width="${e.duration}" height="1" vector-effect="non-scaling-stroke" />`)}

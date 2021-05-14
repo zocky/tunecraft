@@ -1,7 +1,7 @@
 const TPQ = 96;
 
 
-export function scheduleTree({ tree, tracks, soundfonts }) {
+export function scheduleTree({ tree, tracks, soundfonts, bars, signatures }) {
   const state = {
     measure: 1,
     nom: 4,
@@ -52,6 +52,7 @@ export function scheduleTree({ tree, tracks, soundfonts }) {
     soundfonts: state.soundfonts,
     tree,
     ticks: state.ticks,
+    bars, signatures,
     TPQ
   };
   return state;
@@ -112,7 +113,8 @@ const nodeScheduler = new class {
       note: node.note,
       velocity: node.velocity,
       ticks: Math.round(ticks),
-      location: node.location
+      location: node.location,
+      bar: node.bar
     });
     state.scheduleEvent(node.track, state.tick, "ON", {
       velocity: node.velocity,

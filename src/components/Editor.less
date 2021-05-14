@@ -6,15 +6,22 @@
   right              : 0;
   overflow           : hidden;
   display            : grid;
-  grid-template-areas: "tabs""editor""status";
-  grid-template-rows : var(--top-height) 1fr max-content;
+  grid-template-areas: "tabs""editor""inspector""status";
+  grid-template-rows : var(--top-height) 1fr max-content var(--status-height);
 
   >.tc.status {
-    height:auto;
-    min-height:var(--status-height);
+    grid-area:status;
+    position:relative;
+    overflow: hidden;
   }
-
+  >.tc.inspector {
+    grid-area:inspector;
+    position:relative;
+    overflow: hidden;
+  }
   >section {
+    position:relative;
+    overflow: hidden;
     grid-area: editor;
 
     .monaco-editor {

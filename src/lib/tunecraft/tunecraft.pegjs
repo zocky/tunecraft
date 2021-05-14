@@ -51,7 +51,7 @@ scope = "{" _ sub:composition _ "}" {
 	return {$:'scope',sub}
 }
 
-bars = "[" _ h:bar t:_bar* _ "]" { return {$:'bars',sub:[h].concat(t)} }
+bars = "[" _ h:bar t:_bar* _ "]" { return {$:'bars',sub:[h].concat(t), location:location() } }
 
 bar = bars/repeat_bars/seq_bar/"" { return {$:'bar',sub:[]}}
 
@@ -62,7 +62,7 @@ seq_bar = seq:seq {
 repeat_bars 
 = times:TIMES _ arg:bars {
 	return {
-    $:'repeat',
+    $:'repeat_bars',
     times:+times,
     arg,
     location: location()

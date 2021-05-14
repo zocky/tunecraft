@@ -99,36 +99,21 @@ export class TrackNotes extends React.Component {
   }
 
   @computed
-  get trackImage() {
-    console.log('drawing notes')
-    const canvas = document.createElement("canvas");
-    const { app, trackView } = this.props;
-
-    const { zoomX} = app;
-    const { bars, notes, min, max, width, color, span } = trackView;
-    canvas.height = span;
-    canvas.width = width;
-    const ctx = canvas.getContext("2d");
-
-    drawNotes(ctx, notes, { color, min, max, zoomX, zoomY:1 });
-    drawBars(ctx, bars, { color, min, max, zoomX, zoomY:1 });
-    return canvas.toDataURL("image/png");
-  }
-
-  @computed 
   get trackSvg() {
     const { trackView, app } = this.props;
     const {notes,span,color,max} = trackView;
     let svgString=`<svg xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" viewBox="0 0 ${app.viewTotalTime} ${span}">
-      <g fill="${color}" stroke="#0008" stroke-width="1px">
-        ${notes.map((e,i)=>`<rect x="${e.at}" y="${max-e.note}" width="${e.duration}" height="1" vector-effect="non-scaling-stroke" />`)}
+      <g fill="${color}" stroke="#444" stroke-width="2px">
+        ${notes.map((e,i)=>`
+          <rect x="${e.at}" y="${max-e.note}" width="${e.duration}" height="1" vector-effect="non-scaling-stroke" />
+          <rect x="${e.at}" y="${max-e.note}" stroke="none" fill="#0006" width="${e.duration}" height="${1-e.velocity/100}" vector-effect="non-scaling-stroke" />
+        `)}
       </g>
     </svg>`
     var decoded = unescape(encodeURIComponent(svgString));
     var base64 = btoa(decoded);
     return `data:image/svg+xml;base64,${base64}`;
   }
-
 
   render() {
     return (

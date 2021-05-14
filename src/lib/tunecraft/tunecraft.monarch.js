@@ -57,6 +57,9 @@ export const tokenizer = {
 			{ include: '@whitespace' },
 			[/[|;]/, 'delimiter.bars'],
 
+			[/\d\d?[/]\d\d?/, 'keyword.meta.time'],
+
+
 			// notes
 			[/[-+]*[1-7](?:[#b♭♯]+|\b)/, 'keyword.note.numbered'],
 			[/[-+]*[a-g](?:[#b♭♯]+|\b)/, 'keyword.note.named'],

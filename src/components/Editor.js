@@ -1,24 +1,30 @@
+
 import React from "react";
 import Monaco from "@monaco-editor/react";
-import "./Editor.less";
+import "./Editor.less"
 import { observer } from "mobx-react";
+import { AppContext } from "./Utils";
+import { pitchToText } from "../lib/utils";
 
 @observer
 export class Editor extends React.Component {
+  static contextType = AppContext;
   render() {
-    const { app } = this.props;
     return (
       <div className="tc editor">
-        <MonacoEditor app={app} />
-        <EditorStatus app={app} />
+        <MonacoEditor />
+        <EditorInspector />
+        <EditorStatus />
       </div>
-    );
+    )
   }
 }
 
+
 export class MonacoEditor extends React.Component {
+  static contextType = AppContext;
   render() {
-    const { app } = this.props;
+    const { app } = this.context;
     return (
       <Monaco
         height="100%"
@@ -30,30 +36,61 @@ export class MonacoEditor extends React.Component {
         onMount={app.editor.didMount}
         options={{ minimap: { enabled: false }, fontFamily: "Inconsolata" }}
       />
-    );
+    )
   }
 }
 
 @observer
 export class EditorStatus extends React.Component {
+  static contextType = AppContext;
   render() {
-    const { app } = this.props;
+    const { app } = this.context;
     return (
       <div className="tc status">
-        <div className="message">{app.error?.message ?? "OK"}</div>
+        <div className="message">
+          {app.error?.message ?? "OK"}
+        </div>
       </div>
-    );
+    )
   }
 }
 
+
 @observer
-export class EditorTabs extends React.Component {
+export class EditorInspector extends React.Component {
+  static contextType = AppContext;
   render() {
-    const { app } = this.props;
+    const { app } = this.context;
+    const note = app.selectedNotes.length>0 && app.selectedNotes[0];
+    if (!note) return null;
     return (
-      <div className="tc status">
-        <div className="message">{app.error?.message ?? "OK"}</div>
-      </div>
-    );
+      <table className="tc inspector" title={JSON.stringify(note, null, 2)}>
+        <tbody>
+          <tr>
+            <th>Track</th><td>{note.track}</td>
+          </tr>
+          <tr>
+            <th>Pitch</th><td>{pitchToText(note.note)} ({note.note})</td>
+          </tr>
+          <tr>
+            <th>Length</th><td>{ticksToText(note.ticks)} ({note.ticks})</td>
+          </tr>
+          <tr>
+            <th>Bar</th><td>{note.bar}</td>
+          </tr>
+        </tbody>
+      </table>
+    )
   }
+}
+
+
+function ticksToText(ticks, TPQ = 96) {
+  function gcd(a, b) {
+    if (b < 1) return a;
+    return gcd(0 | b, 0 | (a % b));
+  };
+  let whole = TPQ * 4;
+  let d = gcd(ticks, whole);
+  return (0 | (ticks / d)) + "/" + (0 | (whole / d))
 }
