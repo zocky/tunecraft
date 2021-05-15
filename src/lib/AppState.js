@@ -48,7 +48,7 @@ export class AppState {
     viewTop: 0,
     mutedTracks: {},
     soloTracks: {},
-    midiOutputIndex: 0,
+    midiOutputIndex: 'soundfont',
   };
 
   @action muteTrack(id) {
