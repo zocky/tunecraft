@@ -27,6 +27,13 @@ export class PlayerMidi extends PlayerState {
     for (let channel = 0; channel<16; channel++) {
       this.send([0xB0+channel, 0x7b, 0 ],0)
       this.send([0xB0+channel, 0x7b, 0 ],150)
+      this.send([0xB0+channel, 0x7b, 0 ],300)
+      this.send([0xB0+channel, 0x7b, 0 ],450)
+      this.send([0xB0+channel, 0x7b, 0 ],600)
+      this.send([0xB0+channel, 0x7b, 0 ],750)
+      this.send([0xB0+channel, 0x7b, 0 ],900)
+      this.send([0xB0+channel, 0x7b, 0 ],1200)
+      this.send([0xB0+channel, 0x7b, 0 ],1500)
     };
     //this.app.midiOutput.clear();
   }

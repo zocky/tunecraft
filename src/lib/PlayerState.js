@@ -70,7 +70,7 @@ export class PlayerState {
   loop() {
     const now = this.currentTime;
     const time = now - this.offsetTime;
-    const doneTime = time + 0.1;
+    const doneTime = time + 1;
     for (const e of this.events) {
       const { event, at, duration=0 } = e;
       if (at < this.queueTime) continue;
