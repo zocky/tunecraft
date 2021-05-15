@@ -180,7 +180,7 @@ export class TrackBackground extends React.Component {
     const canvas = document.createElement("canvas");
     const { trackView } = this.props;
 
-    const { height, zoomY } = trackView;
+    const { height, app:{ zoomY }} = trackView;
     canvas.height = height;
     canvas.width = 1;
     const ctx = canvas.getContext("2d");

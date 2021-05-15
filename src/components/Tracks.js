@@ -3,7 +3,7 @@ import { observer } from "mobx-react";
 import { action, computed, observable, makeObservable, toJS, trace } from "mobx";
 import "./Tracks.less";
 import { AppContext, Draggable, onResize, onWheel, Wheelable } from "./Utils";
-import { classes } from "../lib/utils";
+import { classes, indexToColor } from "../lib/utils";
 import { TrackView } from "./TrackView";
 
 @observer
@@ -120,14 +120,14 @@ export class TrackHeader extends React.Component {
     return this.props.app.trackHeights[this.props.idx];
   }
   render() {
-    const { app } = this.props;
+    const { app, idx } = this.props;
     const { id } = this.track;
     return (
       <div
         className="tc track-header"
         style={{
           height: this.height,
-          "--track-color": this.props.color,
+          "--track-color": indexToColor(idx),
         }}
       >
         <span className="track-id">{this.track.id}</span>
