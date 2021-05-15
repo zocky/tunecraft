@@ -35,7 +35,7 @@ export class MonacoEditor extends React.Component {
           onChange={app.editor.onChange}
           beforeMount={app.editor.willMount}
           onMount={app.editor.didMount}
-          options={{ minimap: { enabled: false }, fontFamily: "Ubuntu Mono", fontSize:"20" }}
+          options={{ minimap: { enabled: false }, fontFamily: "Ubuntu Mono", fontSize:"18" }}
         />
       </div>
     )
