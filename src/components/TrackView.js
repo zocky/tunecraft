@@ -186,7 +186,7 @@ export class TrackBackground extends React.Component {
     const ctx = canvas.getContext("2d");
 
     if (zoomY >= 4) {
-      drawKeys(ctx, trackView)
+      //drawKeys(ctx, trackView)
     } else {
       drawLines(ctx, trackView);
     }
@@ -196,10 +196,14 @@ export class TrackBackground extends React.Component {
   @computed
   get trackSvg() {
     const { trackView } = this.props;
-    const { bars, span, max, app } = trackView;
+    const {  span, max, app} = trackView;
+    const { beats } = app.tune;
     let svgString = `<svg xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" viewBox="0 0 ${app.viewTotalTime} ${span}">
-      <g stroke="#666" stroke-width="1px">
-        ${bars.map((e, i) => `<line x1="${e.at}" x2="${e.at}" y1="0" y2="${span}" vector-effect="non-scaling-stroke" />`)}
+      <g stroke-width="1px">
+        ${beats.map((e) => `<line 
+          stroke-width="${e.beat ? "1px" : "2px"}" stroke="${e.beat ? "#444" : "#444"}"
+          x1="${e.at}" x2="${e.at}" y1="0" y2="${span}"
+          vector-effect="non-scaling-stroke" />`)}
       </g>
     </svg>`
     var decoded = unescape(encodeURIComponent(svgString));

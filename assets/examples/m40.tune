@@ -8,18 +8,15 @@ $mf1 = p -7# 1 2
 $mf2 = 3: 4 3 2 p 1 p
 
 $bass = {
-  $A = -3 & -5 
-  $A2 = -3# & -5 
-  $B = -2 & -5
-  $b1 = -V (3# & 5 p);  (-VI 3 & 5) 
   [ I
-  | 1 & -1 | 1 & +1 | 1 & -1 | 1 & +1 
-  | 1 & +1 | 1 & +1 | -7# & 7# | -5# & 5# 
-  | 1 & -1 | 4 & -4 | 3 & -3 | 4 & -4
-  | 3 & -3 | -6# & $mf1 & (3. p') | -6# & $mf2 | $b1
-  | $b1 | $b1 
-  | (-V 3# & 5 p VI $A p V $A2 p VI $B p) 
-  | V $A2 p 
+  |  1' p:  
+  | +1' p:  |  1'  p:  | +1' p: |  1' p:  
+  | +1' p:  | -7#' p:  |  5' p: |  1' p:  
+  |  4      |  3       | 4      | 3
+  |  6#     |  6       
+  | 5 ; p (5 5) | 5 ; p (5 5) | 5 ; p (5 5)
+  | 5 (5 5) 5 (5 5)
+  | 5
   ] 
 }
 
@@ -85,7 +82,7 @@ $horn1 = [I
 [ V100 "violin" +$flute]
 [ V100 "viola" $flute]
 [ V100 "cello" -$flute]
-[ V100 "french_horn" $horn1 ]
+[ V100 "french_horn" -$horn1 ]
 [ V70 "french_horn2" -$horn ]
 [ V80 "contrabass" --$bass ]
 [ V80 "harpsichord" $piano ]

@@ -146,9 +146,11 @@ export class PlayerDropdown extends React.Component {
     const {app} = this.context;
     console.log('dropdown',...app.midiOutputs.keys())
     return (
-      <select value={app.midiOutputIndex} onChange={e=>app.midiOutputIndex = e.target.value}>
+      <select value={app.midioutputId} onChange={e=>app.midioutputId = e.target.value}>
         <option value="soundfont">Soundfont Player</option>
-        {app.midiOutputs.map((o,i)=><option key={i} value={i}>[{i}] {o.name}</option>)}
+        <optgroup label="MIDI Ports">
+          {app.midiOutputs.map((o,i)=><option key={i} value={o.id}>[{i}] {o.name}</option>)}
+        </optgroup>
       </select>
     )
   }

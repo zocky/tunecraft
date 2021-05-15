@@ -107,17 +107,47 @@ export class Tune {
     return this.tempoTrack.timeAtTick(this.ticks);
   }
 
-  constructor({ tracks, tempo, length, soundfonts, ticks, TPQ }) {
+  @computed get bars() {
+    return this.barTiming.map(b=>{
+      return {...b, at:this.tempoTrack.timeAtTick(b.tick)}
+    })
+  }
+
+  @computed get beats() {
+    const ret = [];
+    for (const t in this.barTiming) {
+      const bar = this.barTiming[t];
+      for (let beat = 0; beat<bar.nom; beat++) {
+        const tick = bar.tick + bar.ticks * beat/bar.denom;
+        ret.push({
+          bar: +t,
+          beat: beat,
+          tick: tick,
+          at: this.timeAtTick(tick)
+        })
+      }
+    }
+    return ret;
+  }
+
+  constructor({ tracks, tempo, barTiming, soundfonts, ticks, TPQ }) {
     makeObservable(this);
     top.tune = this;
     this.ticks = ticks;
     this.soundfonts = { default: "FatBoy", ...soundfonts };
     this.TPQ = TPQ;
     this.tempoTrack = new TempoTrack(this, { events: tempo, TPQ });
-
+    this.barTiming = barTiming;
     let channel = 0;
     for (const id in tracks) {
-      tracks[id].channel = (channel++) % 16;
+      if (id === 'percussion') {
+        tracks[id].channel = 9;
+      } else {
+        if (channel%16===9) channel++;
+        tracks[id].channel = channel%16;
+      }
+      channel++;
+      
       this.tracksById[id] = new Track(this, tracks[id]);
     }
   }

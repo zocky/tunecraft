@@ -10,11 +10,9 @@ export class PlayerMidi extends PlayerState {
   dispatchEvent(e, at) {
     const { event, duration, channel, note, velocity } = e;
     switch (e.event) {
-      case 'ON':
+      case 'N':
         this.send([0x90 + channel, note, velocity], at)
-        return;
-      case 'OFF':
-        this.send([0x80 + channel, note, velocity], at)
+        this.send([0x80 + channel, note, velocity], at+duration)
         return;
       case 'I':
         this.send([0xC0 + channel, e.instrument], at)
@@ -46,7 +44,7 @@ export class PlayerMidi extends PlayerState {
     const { event, duration, channel, note, velocity } = e;
     if (event !== 'N') return;
     this.send([0x90 + channel, note, velocity], at)
-    this.send([0x80 + channel, note, 1], at + duration * 1000)
+    this.send([0x80 + channel, note, 1], at + duration)
   }
 
   setInstrument(e, at = this.currentTime) {

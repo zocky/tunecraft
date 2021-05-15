@@ -25,8 +25,8 @@ export class AppState {
   @observable playerSoundfont = new PlayerSoundfont(this);
 
   @computed get player() {
-    if (this.midiOutputIndex==='soundfont') return this.playerSoundfont;
-    else return this.playerMidi;
+    if (this.midiOutput) return this.playerMidi;
+    else return this.playerSoundfont;
   }
 
   @observable scroller = new ScrollerState(this);
@@ -48,7 +48,7 @@ export class AppState {
     viewTop: 0,
     mutedTracks: {},
     soloTracks: {},
-    midiOutputIndex: 'soundfont',
+    midioutputId: 'soundfont',
   };
 
   @action muteTrack(id) {
@@ -220,7 +220,7 @@ export class AppState {
     this.viewBeginTime = this.getTime(value);
   }
   @computed get totalTrackSpan() {
-    return this.trackViews.reduce((a, b) => a + b.span, 0);
+    return this.trackViews.filter(t=>t.trackTune).reduce((a, b) => a + b.span, 0);
   };
 
   @computed get totalTrackHeight() {
@@ -516,19 +516,19 @@ export class AppState {
     fr.readAsText(file);
   }
 
-  @computed get midiOutputIndex() {
-    return this.settings.midiOutputIndex;
+  @computed get midioutputId() {
+    return this.settings.midioutputId;
   }
 
-  set midiOutputIndex(value) {
+  set midioutputId(value) {
     this.player?.stop();
-    this.settings.midiOutputIndex = value;
+    this.settings.midioutputId = value;
   }
 
   @observable midi = null;
   @observable midiOutputs = []
   @computed get midiOutput() {
-    return this.midiOutputs[this.midiOutputIndex]
+    return this.midiOutputs.find(o=>o.id===this.midioutputId)
   }
 
   constructor() {

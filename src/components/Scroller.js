@@ -16,7 +16,7 @@ export class Scroller extends React.Component {
 
   @action
   componentDidMount() {
-    const { app } = this.props;
+    const { app } = this.context;
     var ro = new ResizeObserver(action(entries => {
       for (let entry of entries) {
         const cr = entry.contentRect;
@@ -25,32 +25,6 @@ export class Scroller extends React.Component {
     }));
 
     ro.observe(this.ref);
-  }
-
-  @computed
-  get scrollerImage() {
-    const canvas = document.createElement('canvas');
-
-    const { app } = this.props;
-    if (app.tuneTotalTime) {
-    const { tracks } = app;
-
-    const zoomX = app.scroller.zoom;
-
-    canvas.height = tracks.length * 4;
-
-    canvas.width = zoomX * app.tune.length;
-    const ctx = canvas.getContext('2d');
-    //ctx.fillStyle = "#111";
-    //ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    for (let idx in tracks) {
-      let track = tracks[idx];
-      let color = indexToColor(idx);
-      drawNotes(ctx, track.events, { color, min: 0, max: tracks.length, zoomX, zoomY: 2, fixedY: idx * 2, gap: 0 });
-    }
-  }
-    return canvas.toDataURL("image/png");
   }
 
   @computed 

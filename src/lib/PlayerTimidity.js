@@ -15,14 +15,11 @@ export class PlayerState {
   offsetTime = 0;
 
   constructor(app) {
-    console.log('player')
     this.app = app;
     const {timidity} = this;
     app.tune && timidity.load(app.tune.toMidiBuffer)
     reaction(()=>app.tune,async tune=>{
-      console.log('loading tune')
       await timidity.load(tune.toMidiBuffer);
-      console.log('loaded');
     })
     timidity.on('playing',action(()=>{
       this.playing=true

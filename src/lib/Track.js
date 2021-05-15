@@ -90,7 +90,7 @@ export class Track extends BaseTrack {
         id: this.id,
       },
       {
-        event: "I",
+        event: this.channel===10 ? "D" : "I",
         tick: 0,
         instrument: this.midiInstrument || 0,
       },
