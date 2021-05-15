@@ -27,7 +27,32 @@ export function scheduleTree({ tree, tracks, soundfonts, bars, signatures }) {
     incTick(track, t, d = 0) {
       state.setTick(track, state.tick + t, d);
     },
-    getTicks: node => state.measure * node.length / state.factor * TPQ * 4
+    getTicks: node => {
+      if(!state.barTiming[node.bar]) {
+        console.log(node,state.barTiming)
+      };
+      return node.length / state.factor * state.barTiming[node.bar].ticks;
+    },
+    barTiming: [],
+  }
+
+  let cur = {nom:4, denom:4, tick: 0, ticks: TPQ * 4, measure: 1} ;
+    for (let i=0; i<bars; i++) {
+    let sig = signatures[i];
+    if (sig) {
+      const measure = sig.nom / sig.denom;
+      const ticks = measure * TPQ * 4;
+      const tick = cur.tick;
+      cur = { ...sig, tick, measure, ticks }
+      state.tempo.push({
+        event: 'S',
+        tick: cur.tick,
+        nom: sig.nom,
+        denom: sig.denom
+      })
+    }
+    state.barTiming[i] = {...cur};
+    cur.tick += cur.ticks;
   }
   for (const id in tracks) state.tracks[id] = {
     ...tracks[id],
@@ -52,7 +77,9 @@ export function scheduleTree({ tree, tracks, soundfonts, bars, signatures }) {
     soundfonts: state.soundfonts,
     tree,
     ticks: state.ticks,
-    bars, signatures,
+    barTiming: state.barTiming,
+    bars,
+    signatures,
     TPQ
   };
   return state;
@@ -114,7 +141,8 @@ const nodeScheduler = new class {
       velocity: node.velocity,
       ticks: Math.round(ticks),
       location: node.location,
-      bar: node.bar
+      bar: node.bar,
+      position: node.location.start.offset
     });
     state.scheduleEvent(node.track, state.tick, "ON", {
       velocity: node.velocity,

@@ -26,16 +26,18 @@ export class MonacoEditor extends React.Component {
   render() {
     const { app } = this.context;
     return (
-      <Monaco
-        height="100%"
-        theme="vs-light"
-        defaultValue={app.source}
-        defaultLanguage="tunecraft"
-        onChange={app.editor.onChange}
-        beforeMount={app.editor.willMount}
-        onMount={app.editor.didMount}
-        options={{ minimap: { enabled: false }, fontFamily: "Inconsolata" }}
-      />
+      <div className="tc monaco">
+        <Monaco
+          height="100%"
+          theme="vs-light"
+          defaultValue={app.source}
+          defaultLanguage="tunecraft"
+          onChange={app.editor.onChange}
+          beforeMount={app.editor.willMount}
+          onMount={app.editor.didMount}
+          options={{ minimap: { enabled: false }, fontFamily: "Ubuntu Mono", fontSize:"20" }}
+        />
+      </div>
     )
   }
 }
@@ -61,7 +63,7 @@ export class EditorInspector extends React.Component {
   static contextType = AppContext;
   render() {
     const { app } = this.context;
-    const note = app.selectedNotes.length>0 && app.selectedNotes[0];
+    const note = app.selectedNote;
     if (!note) return null;
     return (
       <table className="tc inspector" title={JSON.stringify(note, null, 2)}>

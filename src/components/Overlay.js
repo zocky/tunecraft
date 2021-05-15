@@ -54,20 +54,14 @@ export class OverlayContent extends React.Component {
     [MOUSE.CTRL_LEFT]: e => {
       const { app } = this.context;
       const note = app.mouseNote;
-      if (!note) app.selectedNotes = [];
-      else {
-        app.selectedNotes=[note];
-        app.player.playSingleNote(note);
+      if (!note) {
+        app.selectedNote = null;
+        app.highlightedNotes = null;
       }
-    },
-    [MOUSE.CTRL_SHIFT_LEFT]: e => {
-      const { app } = this.context;
-      const note = app.mouseNote;
-      if (!note) return;
-      if (app.selectedNotes.includes(note)) app.selectedNotes.remove(note);
       else {
+        app.selectedNote=note;
         app.player.playSingleNote(note);
-        app.selectedNotes.push(note);
+        app.highlightedNotes = app.tune.events.filter(e=>e.position===note.position);
       }
     }
   })

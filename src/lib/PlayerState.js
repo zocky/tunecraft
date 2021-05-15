@@ -1,6 +1,5 @@
 
 import { action, observable, computed, makeObservable, flow, reaction, when, autorun } from "mobx";
-import Soundfont from "soundfont-player";
 
 export class PlayerState {
   @observable ready = true;
@@ -19,12 +18,10 @@ export class PlayerState {
   }
 
   @computed get totalTime() {
-    return this.app.tune?.length ?? 0;
+    return this.app.tuneTotalTime ?? 0;
   }
 
   @observable playing = false;
-
-  @observable looping = true;
 
   @observable
   offsetTime = 0;
@@ -34,7 +31,6 @@ export class PlayerState {
   }
 
   constructor(app) {
-    this.ac = app.context;
     this.app = app;
     makeObservable(this);
     reaction(()=>this.tune,tune=>this.instruments);
@@ -48,68 +44,48 @@ export class PlayerState {
   timerID = null;
   queueTime = 0;
 
-  playSingleNote(e) {
+  playSingleNote(...args) {
     if (this.playing) return;
-    const { event, duration, track, note, velocity } = e;
-    if (event !== 'N') return;
-    this.instruments[track].play(note, this.currentTime, {
-      duration: duration,
-      gain: velocity / 100
-    })
+    this.playNote(...args);
   }
 
   @computed({keepAlive:true})
-  get notes() {
+  get events() {
     const notes = this.app.tune.events.filter(e => {
-      if (!this.app.isTrackPlaying(e.track)) return false;
-      if (e.event !== 'N') return false;
-      if (e.at + e.duration <= this.beginTime) return false;
-      if (e.at >= this.endTime) return false;
+      //if (!this.app.isTrackPlaying(e.track)) return false;
+      if (e.at + (e.duration||0) < this.beginTime) return false;
+      if (e.at > this.endTime) return false;
       return true;
     })
-    .map(e => ({ ...e }));
-    /*
-    for (const e of notes) {
-      if (e.at + e.duration > this.endTime) e.duration = this.endTime - e.at;
-    }
-    /*
-    for (const e of notes) {
-      
-      if (e.at > this.beginTime + 1) break;
-      notes.push({
-        ...e,
-        at: e.at + this.loopTime
-      })
-    }*/
+    //.map(e => ({ ...e }));
     return notes;
   }
 
+  dispatchEvent(e,at=this.currentTime) {
+  }
+
+ 
+
   @action.bound
   loop() {
-
     const now = this.currentTime;
     const time = now - this.offsetTime;
-    const doneTime = time + 1;
-    for (const e of this.notes) {
-      const { event, at, duration, track, note, velocity } = e;
-      if (event !== 'N') continue;
-      //if (at < this.beginTime) continue;
-      //if (at > this.endTime) continue;
+    const doneTime = time + 0.1;
+    for (const e of this.events) {
+      const { event, at, duration=0 } = e;
       if (at < this.queueTime) continue;
-      if (at + duration < time) continue;
-      if (at < time) continue;
+      //if (at + duration < time) continue;
+      //if (at < time) continue;
       if (at > doneTime) continue;
       const offset = at - time;
-      this.instruments[track].play(note, now + offset, {
-        duration: duration,
-        gain: velocity / 100
-      })
 
+      this.dispatchEvent(e, now + offset)
+      continue;
     }
 
     this.queueTime = doneTime; //this.beginTime + (doneTime - this.beginTime) % this.loopTime;
     if (time >= this.endTime) {
-      if (this.looping) {
+      if (this.app.looping) {
         this.seek(this.beginTime);
       } else {
         this.stop(true);
@@ -139,9 +115,7 @@ export class PlayerState {
     }
   }
 
-  @action.bound
-  async play() {
-    await this.app.context.resume();
+  play = async () => {
     this.start();
   }
 
@@ -177,10 +151,6 @@ export class PlayerState {
     }
   }
 
-  @action.bound
-  silence() {
-    for (const id in this.instruments) this.instruments[id].stop();
-  }
 
   @action.bound
   stop(reset = true) {
@@ -188,7 +158,6 @@ export class PlayerState {
     this.timerID = null;
     this.playing = false;
     this.silence();
-
     this.queueTime = 0;
     if (reset) this.playbackTime = this.beginTime;
   }
@@ -201,88 +170,5 @@ export class PlayerState {
 
   get currentTime() {
     return this.ac.currentTime;
-  }
-
-
-  @computed({keepAlive:true})
-  get soundfonts() {
-    if (!this.app.tune) return {};
-    return {
-      default: "FatBoy",
-      ...this.app.tune.soundfonts
-    }
-  }
-
-  @computed({keepAlive:true})
-  get instruments() {
-    console.log('get instruments');
-    const tune = this.app.tune;
-    const ret = {};
-    if (!tune) return {};
-    for (const track of tune.tracks) {
-      const { font, instrument, id, ...rest } = track;
-      const options = {}
-      if (rest.attack) options.attack = rest.attack / 1000;
-      if (rest.decay) options.decay = rest.decay / 1000;
-      if (rest.sustain) options.sustain = rest.sustain / 100;
-      if (rest.release) options.release = rest.release / 1000;
-      ret[id] = InstrumentState.create(this.app.context, this.soundfonts[font], instrument, options);
-    }
-    return ret;
-  }
-}
-
-class InstrumentState {
-  static _instruments = {};
-  static create(context, font, name, options) {
-    return new InstrumentState(context, font, name, options);
-  }
-
-  static async loadInstrument(context, font, name) {
-    const id = font + '\n' + name
-    if (!this._instruments[id]) {
-      console.log('loading',id)
-      try {
-        this._instruments[id] = await Soundfont.instrument(context, name, {
-          soundfont: font,
-          nameToUrl: (name, sf, format = 'mp3') => {
-            if (!sf.match(/^https?:/)) {
-              if (name === 'percussion') {
-                sf = "https://cdn.jsdelivr.net/gh/dave4mpls/midi-js-soundfonts-with-drums/FluidR3_GM"
-              } else {
-                sf = "https://gleitz.github.io/midi-js-soundfonts/" + sf;
-              }
-            }
-            return sf + '/' + name + '-' + format + '.js'
-          }
-        });
-      } catch (error) {
-        console.log(error);
-      }
-    }
-    return this._instruments[id];
-  }
-  instrument = null;
-  constructor(context, font, name, options) {
-    this.context = context;
-    this.font = font;
-    this.name = name;
-    this.options = options;
-    const id = font + '\n' + name;
-    this.instrument=this.constructor._instruments[id];
-    if (!this.instrument) {this.load()};
-
-  }
-  async load() {
-    this.instrument = await this.constructor.loadInstrument(this.context, this.font, this.name);
-  }
-
-  play(note, at, options = {}) {
-//    if(!this.instrument) console.log('no',this.name)
-    this.instrument?.play(note, at, { ...this.options, ...options });
-  }
-
-  stop() {
-    this.instrument?.stop();
   }
 }

@@ -5,7 +5,7 @@ import { action } from "mobx";
 
 import './Player.less';
 import { classes } from "../lib/utils";
-import { formatTime } from "./Utils";
+import { AppContext, formatTime } from "./Utils";
 
 @observer
 export class PlayerControls extends React.Component {
@@ -29,9 +29,9 @@ export class PlayerControls extends React.Component {
           ⏹
           </button>
         <button
-          onMouseDown={action(() => player.looping = !player.looping)}
+          onMouseDown={app.toggleLooping}
           className={classes('tc led-button loop', {
-            active: player.looping
+            active: app.looping
           })}
         >
           LOOP
@@ -73,7 +73,7 @@ export class PlayerTime extends React.Component {
   }
   get totalTime() {
     const { app } = this.props;
-    return this.formatTime(app.tune?.length);
+    return this.formatTime(app.tuneTotalTime);
   }
 
   render() {
@@ -135,6 +135,22 @@ export class PlayerLinks extends React.Component {
           EXPORT MP3
         </button>
       </div>)
+  }
+}
+
+
+@observer
+export class PlayerDropdown extends React.Component {
+  static contextType = AppContext;
+  render() {
+    const {app} = this.context;
+    console.log('dropdown',...app.midiOutputs.keys())
+    return (
+      <select value={app.midiOutputIndex} onChange={e=>app.midiOutputIndex = e.target.value}>
+        <option value="soundfont">Soundfont Player</option>
+        {app.midiOutputs.map((o,i)=><option key={i} value={i}>[{i}] {o.name}</option>)}
+      </select>
+    )
   }
 }
 

@@ -6,35 +6,6 @@ import { AppContext, Draggable, onResize, onWheel, Wheelable } from "./Utils";
 import { classes } from "../lib/utils";
 import { TrackView } from "./TrackView";
 
-const COLORS = [
-  "#FF695E",
-  "#FF851B",
-  "#FFE21F",
-  "#D9E778",
-  "#2ECC40",
-  "#6DFFFF",
-  "#54C8FF",
-  "#A291FB",
-  "#DC73FF",
-  "#FF8EDF",
-  "#D67C1C",
-  "#DCDDDE",
-  "#545454",
-  "#DB2828",
-  "#F2711C",
-  "#FBBD08",
-  "#B5CC18",
-  "#21BA45",
-  "#00B5AD",
-  "#2185D0",
-  "#6435C9",
-  "#A333C8",
-  "#E03997",
-  "#A5673F",
-  "#767676",
-];
-
-
 @observer
 export class Tracks extends React.Component {
   static contextType = AppContext;
@@ -64,7 +35,6 @@ export class TrackList extends React.Component {
             key={idx}
             app={app}
             idx={idx}
-            color={COLORS[idx % COLORS.length]}
           />
         ))}
       </div>
@@ -129,7 +99,6 @@ export class TrackHeaderList extends React.Component {
           key={idx}
           app={app}
           idx={idx}
-          color={COLORS[idx % COLORS.length]}
         />
       ))
     );

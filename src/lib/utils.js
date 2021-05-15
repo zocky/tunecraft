@@ -92,7 +92,7 @@ export function findClosest(needle, haystack) {
   // Only single element left after search
   return haystack[mid];
 
-  
+
 }
 
 
@@ -114,16 +114,16 @@ export function storageSet(name, value, def = null) {
 
 export function pitchToText(pitch) {
   const tone = pitch % 12;
-  const octave = (pitch-tone)/12+1;
-  return ['C','C♯','D','D♯','E','F','F♯','G','G♯','A','A♯','B'][tone]+octave.toFixed(0);
+  const octave = (pitch - tone) / 12 - 1;
+  return ['C', 'C♯', 'D', 'D♯', 'E', 'F', 'F♯', 'G', 'G♯', 'A', 'A♯', 'B'][tone] + octave.toFixed(0);
 }
 
 export function handleMouse(handlers) {
-  return action(e=>{
+  return action(e => {
     if (handlers.before) handlers.before(e);
     let id = e.buttons % 8;
-    if (e.ctrlKey) id+=MOUSE.CTRL;
-    if (e.shiftKey) id+=MOUSE.SHIFT;
+    if (e.ctrlKey) id += MOUSE.CTRL;
+    if (e.shiftKey) id += MOUSE.SHIFT;
     if (handlers[id]) handlers[id](e)
     if (handlers.after) handlers.after(e);
   })
@@ -145,6 +145,35 @@ export const MOUSE = {
   CTRL_MIDDLE: 4 | 8,
   SHIFT_MIDDLE: 4 | 16,
   CTRL_SHIFT_MIDDLE: 4 | 8 | 16,
-  
+
 }
 
+const COLORS = [
+  '#FF695E',
+  '#FF851B',
+  '#FFE21F',
+  '#D9E778',
+  '#2ECC40',
+  '#6DFFFF',
+  '#54C8FF',
+  '#A291FB',
+  '#DC73FF',
+  '#FF8EDF',
+  '#D67C1C',
+  '#DCDDDE',
+  '#545454',
+  '#DB2828',
+  '#F2711C',
+  '#FBBD08',
+  '#B5CC18',
+  '#21BA45',
+  '#00B5AD',
+  '#2185D0',
+  '#6435C9',
+  '#A333C8',
+  '#E03997',
+  '#A5673F',
+  '#767676',
+];
+
+export const indexToColor = idx => COLORS[idx % COLORS.length]

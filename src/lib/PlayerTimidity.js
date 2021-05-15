@@ -12,8 +12,6 @@ export class PlayerState {
   @observable duration = 0;
   @observable playing = false;
 
-  @observable looping = true;
-
   offsetTime = 0;
 
   constructor(app) {
@@ -30,7 +28,7 @@ export class PlayerState {
       this.playing=true
     }));
     timidity.on('ended',action(()=>{
-      if (looping) {
+      if (this.app.looping) {
         this.seek(0);
         this.start();
       } else {

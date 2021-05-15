@@ -3,33 +3,6 @@ import React from "react";
 import { observer } from "mobx-react";
 import { action, computed, makeObservable } from "mobx";
 import { Draggable, Wheelable, AppContext } from "./Utils";
-const COLORS = [
-  '#FF695E',
-  '#FF851B',
-  '#FFE21F',
-  '#D9E778',
-  '#2ECC40',
-  '#6DFFFF',
-  '#54C8FF',
-  '#A291FB',
-  '#DC73FF',
-  '#FF8EDF',
-  '#D67C1C',
-  '#DCDDDE',
-  '#545454',
-  '#DB2828',
-  '#F2711C',
-  '#FBBD08',
-  '#B5CC18',
-  '#21BA45',
-  '#00B5AD',
-  '#2185D0',
-  '#6435C9',
-  '#A333C8',
-  '#E03997',
-  '#A5673F',
-  '#767676',
-];
 
 
 @observer
@@ -59,7 +32,7 @@ export class Scroller extends React.Component {
     const canvas = document.createElement('canvas');
 
     const { app } = this.props;
-    if (app.tune?.length) {
+    if (app.tuneTotalTime) {
     const { tracks } = app;
 
     const zoomX = app.scroller.zoom;
@@ -73,7 +46,7 @@ export class Scroller extends React.Component {
 
     for (let idx in tracks) {
       let track = tracks[idx];
-      let color = COLORS[idx % COLORS.length];
+      let color = indexToColor(idx);
       drawNotes(ctx, track.events, { color, min: 0, max: tracks.length, zoomX, zoomY: 2, fixedY: idx * 2, gap: 0 });
     }
   }

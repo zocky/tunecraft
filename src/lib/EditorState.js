@@ -50,7 +50,6 @@ export class EditorState {
   }
 
   setSelectedMarkers(notes) {
-    return;
     if (!this.instance) return;
     const deco = notes.map(note => ({
       range: this.range(note.location),
@@ -74,7 +73,7 @@ export class EditorState {
 
     let last = notes[notes.length - 1];
     if (!last) return;
-    //this.instance.revealRangeInCenter(this.range(last.location))
+    this.instance.revealRangeInCenter(this.range(last.location))
   }
 
   range(first, ...rest) {
@@ -246,7 +245,7 @@ export class EditorState {
     instance.onDidChangeCursorPosition(action(e => {
       const offset = instance.getModel().getOffsetAt(e.position);
       const {app}=this;
-      app.selectedNotes = app.tune.eventsAtOffset(offset).filter(e=>e.event==='N');
+      app.highlightedNotes = app.tune.eventsAtOffset(offset).filter(e=>e.event==='N');
       return;
     }));
 
@@ -260,11 +259,13 @@ export class EditorState {
         column: e.selection.endColumn,
       })
       const {app}=this;
-      app.selectedNotes = app.tune.eventsBetweenOffsets(start,end).filter(e=>e.event==='N');
+      app.highlightedNotes = app.tune.eventsBetweenOffsets(start,end).filter(e=>e.event==='N');
       return;
     }));
 
-    //autorun(() => this.setSelectedMarkers(this.app.selectedNotes))
+    document.fonts.ready.then(()=> monaco.editor.remeasureFonts());
+
+    autorun(() => this.setSelectedMarkers([this.app.selectedNote].filter(Boolean)))
   }
 
   onChange = debounce(action(value => {

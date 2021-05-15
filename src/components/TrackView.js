@@ -1,23 +1,17 @@
 import React from "react";
 import { observer } from "mobx-react";
-import { action, computed, observable, makeObservable, toJS, trace } from "mobx";
-import { Draggable, onResize, onWheel, Wheelable } from "./Utils";
+import { action, computed, observable, makeObservable, toJS, trace, runInAction } from "mobx";
+import { AppContext, Draggable, onResize, onWheel, Wheelable } from "./Utils";
+
+import { indexToColor } from "../lib/utils"
 
 
 
-
-@observer
-export class TrackView extends React.Component {
-  constructor(...args) {
-    super(...args);
-    this.app = this.props.app;
+export class TrackViewState {
+  constructor(app, index) {
+    this.app = app;
+    this.index = index;
     makeObservable(this);
-  }
-
-  @action
-  componentDidMount() {
-    console.log('mounted')
-    this.props.app.trackViews[this.props.idx] = this;
   }
 
   @computed get width() {
@@ -29,15 +23,15 @@ export class TrackView extends React.Component {
   }
 
   @computed get span() {
-    return (this.max - this.min +1);
+    return (this.max - this.min + 1);
   }
 
   @computed get eventsJSON() {
-    return JSON.stringify(toJS(this.tuneTrack?.events||[]));
+    return JSON.stringify(toJS(this.tuneTrack?.events || []));
   }
 
   @computed get tuneTrack() {
-    return this.app.tracks[this.props.idx];
+    return this.app.tracks[this.index];
   }
 
   @computed get events() {
@@ -53,16 +47,17 @@ export class TrackView extends React.Component {
   }
 
   @computed get color() {
-    return this.props.color;
+    return indexToColor(this.index);
   }
-  @computed get index() {
-    return this.props.idx;
+
+
+  @computed get highlightedNotes() {
+    return this.app.highlightedNotes.filter(e => e.track === this.tuneTrack.id)
   }
 
   @computed get selectedNotes() {
-    return this.props.app.selectedNotes.filter(e=>e.track === this.tuneTrack.id)
+    return [this.app.selectedNote, this.app.mouseNote].filter(e => e && e.track === this.tuneTrack.id)
   }
-
 
   @computed get min() {
     if (!this.notes.length) return 60;
@@ -71,20 +66,35 @@ export class TrackView extends React.Component {
 
   @computed get max() {
     if (!this.notes.length) return 71;
-    return Math.max(this.min+12,...this.notes.map((e) => e.note +2 ));
+    return Math.max(this.min + 12, ...this.notes.map((e) => e.note + 2));
+  }
+}
+
+@observer
+export class TrackView extends React.Component {
+  static contextType = AppContext;
+  constructor(props, ...rest) {
+    super(props, ...rest);
+    const {app} = this.context;
+    const {idx} = props;
+    runInAction(()=>this.trackView = app.trackViews[idx] = new TrackViewState(app, idx));
+    makeObservable(this);
   }
 
+  @observable trackView = this;
+
+
   render() {
-    const { app } = this;
+    const { app, trackView } = this;
+    const { height, width } = trackView
     //console.log('render track',this.props.idx)
     return (
       <div className="tc track" ref={(ref) => (this.ref = ref)} style={{
-        width: this.width,
-        height: this.height
+        width, height
       }}>
-        <TrackBackground app={app} trackView={this} />
-        <TrackNotes app={app} trackView={this} />
-        <TrackSelectedNotes app={app} trackView={this} />
+        <TrackBackground trackView={trackView} />
+        <TrackNotes trackView={trackView} />
+        <TrackHighlightedNotes trackView={trackView} />
       </div>
     );
   }
@@ -100,13 +110,14 @@ export class TrackNotes extends React.Component {
 
   @computed
   get trackSvg() {
-    const { trackView, app } = this.props;
-    const {notes,span,color,max} = trackView;
-    let svgString=`<svg xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" viewBox="0 0 ${app.viewTotalTime} ${span}">
-      <g fill="${color}" stroke="#444" stroke-width="2px">
-        ${notes.map((e,i)=>`
-          <rect x="${e.at}" y="${max-e.note}" width="${e.duration}" height="1" vector-effect="non-scaling-stroke" />
-          <rect x="${e.at}" y="${max-e.note}" stroke="none" fill="#0006" width="${e.duration}" height="${1-e.velocity/100}" vector-effect="non-scaling-stroke" />
+    const { trackView } = this.props;
+    const { app, notes, span, color, max } = trackView;
+    let svgString = `<svg xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" viewBox="0 0 ${app.viewTotalTime} ${span}">
+      <g fill="${color}" stroke="#0005" stroke-width="2px">
+        ${notes.map((e, i) => `
+          <rect x="${e.at}" y="${max - e.note}" stroke="none" width="${e.duration}" height="1" vector-effect="non-scaling-stroke" />
+          <rect x="${e.at}" y="${max - e.note}" stroke="none" fill="#0006" width="${e.duration}" height="${1 - e.velocity / 100}" vector-effect="non-scaling-stroke" />
+          <line x1="${e.at}" x2="${e.at}" y1="${max - e.note}" y2="${max - e.note + 1}" width="${e.duration}" height="${1 - e.velocity / 100}" vector-effect="non-scaling-stroke" />
         `)}
       </g>
     </svg>`
@@ -117,40 +128,28 @@ export class TrackNotes extends React.Component {
 
   render() {
     return (
-      <img className="notes" draggable={false} src={this.trackSvg}/>
+      <img className="notes" draggable={false} src={this.trackSvg} />
     );
   }
 }
 
 @observer
-export class TrackSelectedNotes extends React.Component {
+export class TrackHighlightedNotes extends React.Component {
   constructor(...args) {
     super(...args);
     makeObservable(this);
   }
 
   @computed
-  get trackImage() {
-    const canvas = document.createElement("canvas");
-    const { app, trackView } = this.props;
-
-    const { zoomX, zoomY } = app;
-    const { selectedNotes, min, max, width, height, color } = trackView;
-    canvas.height = height;
-    canvas.width = width;
-    const ctx = canvas.getContext("2d");
-
-    drawNotes(ctx, selectedNotes, { color:'#FFF', min, max, zoomX, zoomY });
-    return canvas.toDataURL("image/png");
-  }
-
-  @computed 
   get trackSvg() {
-    const { trackView, app } = this.props;
-    const {selectedNotes,span,max} = trackView;
-    let svgString=`<svg xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" viewBox="0 0 ${app.viewTotalTime} ${span}">
-      <g fill="white" stroke="black" stroke-width="1px">
-        ${selectedNotes.map((e,i)=>`<rect x="${e.at}" y="${max-e.note}" width="${e.duration}" height="1" vector-effect="non-scaling-stroke" />`)}
+    const { trackView } = this.props;
+    const { app, highlightedNotes, selectedNotes, span, max } = trackView;
+    let svgString = `<svg xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" viewBox="0 0 ${app.viewTotalTime} ${span}">
+      <g fill="none" stroke="white" stroke-width="2px">
+        ${highlightedNotes.map((e, i) => `<rect x="${e.at}" y="${max - e.note}" width="${e.duration}" height="1" vector-effect="non-scaling-stroke" />`)}
+      </g>
+      <g fill="white" stroke="white" stroke-width="1px">
+        ${selectedNotes.map((e, i) => `<rect x="${e.at}" y="${max - e.note}" width="${e.duration}" height="1" vector-effect="non-scaling-stroke" />`)}
       </g>
     </svg>`
     var decoded = unescape(encodeURIComponent(svgString));
@@ -161,7 +160,7 @@ export class TrackSelectedNotes extends React.Component {
 
   render() {
     return (
-      <img className="notes" draggable={false} src={this.trackSvg}/>
+      <img className="notes" draggable={false} src={this.trackSvg} />
     );
   }
 }
@@ -170,6 +169,7 @@ export class TrackSelectedNotes extends React.Component {
 
 @observer
 export class TrackBackground extends React.Component {
+  
   constructor(...args) {
     super(...args);
     makeObservable(this);
@@ -178,10 +178,9 @@ export class TrackBackground extends React.Component {
   @computed
   get trackImage() {
     const canvas = document.createElement("canvas");
-    const { app, trackView } = this.props;
+    const { trackView } = this.props;
 
-    const { zoomY } = app;
-    const { min, max, height } = trackView;
+    const { height, zoomY } = trackView;
     canvas.height = height;
     canvas.width = 1;
     const ctx = canvas.getContext("2d");
@@ -194,13 +193,13 @@ export class TrackBackground extends React.Component {
     return canvas.toDataURL("image/png");
   }
 
-  @computed 
+  @computed
   get trackSvg() {
-    const { trackView, app } = this.props;
-    const {bars,span,max} = trackView;
-    let svgString=`<svg xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" viewBox="0 0 ${app.viewTotalTime} ${span}">
+    const { trackView } = this.props;
+    const { bars, span, max, app } = trackView;
+    let svgString = `<svg xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" viewBox="0 0 ${app.viewTotalTime} ${span}">
       <g stroke="#666" stroke-width="1px">
-        ${bars.map((e,i)=>`<line x1="${e.at}" x2="${e.at}" y1="0" y2="${span}" vector-effect="non-scaling-stroke" />`)}
+        ${bars.map((e, i) => `<line x1="${e.at}" x2="${e.at}" y1="0" y2="${span}" vector-effect="non-scaling-stroke" />`)}
       </g>
     </svg>`
     var decoded = unescape(encodeURIComponent(svgString));
@@ -209,8 +208,6 @@ export class TrackBackground extends React.Component {
   }
 
   render() {
-    const { app } = this.props;
-    //console.log('render track',this.props.idx)
     return (
       <>
         <img className="background" draggable={false} src={this.trackImage} />
@@ -220,59 +217,7 @@ export class TrackBackground extends React.Component {
   }
 }
 
-
-
-
-function drawNotes(
-  ctx,
-  events,
-  { color, max, min, zoomX, zoomY, fixedY, gap = 2 }
-) {
-  let n = 0;
-  //const now = performance.now();
-  ctx.beginPath();
-  //let _events = events.filter(e=>e.event==='N')
-  for (const e of events) {
-    if (e.event === "N") {
-      ctx.fillStyle = color;
-      let x = Math.floor(e.at * zoomX);
-      let y = (fixedY ?? max - e.note) * zoomY;
-      let w = Math.max(1, Math.floor(e.duration * zoomX - gap));
-      let h = zoomY;
-      ctx.rect(x, y, w, h);
-      n++;
-      if (n == 1000) {
-        ctx.fillStyle = color;
-        ctx.fill();
-        ctx.beginPath();
-        n = 0;
-      }
-    }
-  }
-  ctx.fillStyle = color;
-  ctx.fill();
-}
-
-function drawBars(
-  ctx,
-  events,
-  { max, min, zoomX, zoomY }
-) {
-  ctx.beginPath();
-  for (const e of events) {
-    if (e.event === "B") {
-      let x = Math.round(e.at * zoomX) - 2 + 0.5;
-      let y = 0;
-      let w = 1;
-      let h = zoomY * (max - min);
-      ctx.rect(x, y, w, h);
-    }
-  }
-  ctx.fillStyle = "#444";
-  ctx.fill();
-}
-
-function drawLines(ctx, { color, min, max,  app:{zoomY}  }) {
+function drawLines(ctx, { color, min, max, app: { zoomY } }) {
   for (let i = min + 12 - (min % 12); i <= max - (min % 12); i += 12) {
     if (i == 60) ctx.fillStyle = "#fff8";
     else ctx.fillStyle = "#fff2";
@@ -280,36 +225,37 @@ function drawLines(ctx, { color, min, max,  app:{zoomY}  }) {
   }
 }
 
-function drawKeys(ctx, { color, index, min, max, app:{zoomY} }) {
+function drawKeys(ctx, { color, index, min, max, app: { zoomY } }) {
   const
     w1 = color,
     w2 = w1,
     b1 = '#111',
     b2 = b1;
-  const colors = [w1,b1,w1,b1,w1,w2,b2,w2,b2,w2,b2,w2]
-  const line  =   [ 0 , 0 , 0 , 0 , 1 , 0 , 0 , 0 , 0 , 0 , 0 , 1 ]
-  const black = [ 0 , 1 , 0 , 1 , 0 , 0 , 1 , 0 , 1 , 0 , 1 , 0]
+  const colors = [w1, b1, w1, b1, w1, w2, b2, w2, b2, w2, b2, w2]
+  const line = [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1]
+  const black = [0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0]
   ctx.save();
 
-  ctx.fillStyle="#666";
-  ctx.fillRect(0, 0, ctx.canvas.width,ctx.canvas.height);
-  
-  ctx.globalAlpha = 0.225;
-  ctx.fillStyle=color;
-  ctx.fillRect(0, 0, ctx.canvas.width,ctx.canvas.height);
+  ctx.fillStyle = "#222";
+  ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+
+  ctx.globalAlpha = 0.1;
+  ctx.fillStyle = color;
+  ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
 
   ctx.globalAlpha = 1;
-  ctx.fillStyle = '#333';
+  ctx.fillStyle = '#000';
   ctx.fillRect(0, 0, ctx.canvas.width, 1);
-  ctx.fillRect(0, ctx.canvas.height-1, ctx.canvas.width, 1);
+
+  ctx.globalAlpha = 1;
   for (let i = min; i <= max; i++) {
-    if (black[ i % 12 ]) {
-      ctx.fillStyle = '#333';
-      ctx.fillRect(0, (max - i) * zoomY , ctx.canvas.width, zoomY);
-    } 
-    if (line[i%12]) {
-      ctx.fillStyle = '#333';
-      ctx.fillRect(0, (max - i) * zoomY - 0.5 , ctx.canvas.width, 1);
+    if (black[i % 12]) {
+      ctx.fillStyle = '#111';
+      ctx.fillRect(0, (max - i) * zoomY, ctx.canvas.width, zoomY);
+    }
+    if (line[i % 12]) {
+      ctx.fillStyle = '#000';
+      ctx.fillRect(0, (max - i) * zoomY - 0.5, ctx.canvas.width, 1);
     }
   }
   ctx.restore();

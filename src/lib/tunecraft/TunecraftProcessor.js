@@ -76,6 +76,7 @@ export function processTree(tree) {
       velocity: 100,
       keymode : 1,
       keybase: 60,
+      tempo: 120
     },
     soundfonts: {},
     length: 1,
@@ -84,7 +85,9 @@ export function processTree(tree) {
     measure: 1,
     transpose: 0,
     tempo: 120,
-    signatures:{},
+    signatures:{
+      0: {nom: 4, denom: 4}
+    },
     advanced: false,
     bar:0,
     bars:0
@@ -125,7 +128,7 @@ const nodeProcessor = new class {
     let divisions = sub.reduce((a, b) => a + (b.length || 0), 0);
     if (state.advanced) {
       state.bar++;
-      state.bars = Math.max(state.bar,state.bars)
+      state.bars = Math.max(state.bar+1,state.bars)
     }
     state.advanced = false;
     let { length, measure } = state;
@@ -258,10 +261,10 @@ const nodeProcessor = new class {
   }
 
   pause(node, state) {
-    let { length } = state;
+    let { length, bar } = state;
     let { track } = state._bars;
     state.advanced = true;
-    return { $$: 'pause', length, track }
+    return { $$: 'pause', length, track, bar }
   }
 
   shift(node, state) {
@@ -287,6 +290,7 @@ const nodeProcessor = new class {
     })
   }
   tempo(node, state) {
+    
     const { tempo } = node;
     return { $$: 'tempo', tempo }
   }
@@ -295,17 +299,13 @@ const nodeProcessor = new class {
     const { nom, denom } = node;
     const { signatures, bar, advanced } = state;
     if (advanced) state.throw("Time signature can only be changed at the beginning of a bar", node.location)
-    
-    
     const measure = nom / denom;
-
     const old = state.signatures[state.bar];
     if (old && (old.nom !== nom && old.denom!=denom )) {
       state.throw("Conflicting time signatures", node.location)
     }
-
-
-    state.signatures[state.bar] = {nom,denom}
+    state._bars.signature = {nom:nom,denom:+denom}
+    state.signatures[state.bar] = {nom,denom:+denom}
     return { $$: 'signature', nom, denom, measure, track: state._bars.track }
   }
   velocity(node, state) {

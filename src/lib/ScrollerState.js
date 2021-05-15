@@ -7,7 +7,7 @@ export class ScrollerState {
 
   @computed
   get zoom() {
-    return this.width / this.app.tune?.length
+    return this.width / this.app.tuneTotalTime
   }
 
   getTime(x) {
@@ -25,7 +25,7 @@ export class ScrollerState {
 
   @computed
   get viewWidth() {
-    return this.getX(Math.min(this.app.tune?.length,this.app.viewDuration));
+    return this.getX(Math.min(this.app.tuneTotalTime,this.app.viewDuration));
   }
 
   @computed

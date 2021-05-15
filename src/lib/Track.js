@@ -102,6 +102,7 @@ export class Track extends BaseTrack {
         const { tick, ticks = 0 } = event;
         ret.track = this.id;
         ret.at = this.tune.timeAtTick(tick);
+        ret.channel = this.channel;
         if (ticks > 0) {
           ret.duration = this.tune.timeAtTick(tick + ticks) - ret.at;
         }
@@ -119,24 +120,27 @@ export class Track extends BaseTrack {
 
   @computed({ keepAlive: true })
   get notes() {
+    console.log("notes");
     return this.events.filter((e) => e.event === "N");
   }
 
   @computed({ keepAlive: true })
   get _notesAtTime() {
-    console.log("notes");
+    console.log("notesAtTime");
     const ret = {};
     const notes = this.notes;
-    for (const at of this.uniqueTimes) {
-      ret[at] = notes.filter((n) => n.at == at || n.at + n.duration == at);
+    for (const at of this.tune.uniqueTimes) {
+      ret[at] = notes.filter((n) => at >= n.at && at <= n.at + n.duration).sort((a,b)=>a.note-b.note);
     }
     return ret;
   }
 
   notesAtTime(time) {
-    const t = findClosest(time, this.uniqueTimes);
+    const t = findClosest(time, this.tune.uniqueTimes);
     return this._notesAtTime[t] || [];
   }
+
+
 
   @computed get midiInstrument() {
     return Math.max(0, instrumentNames.indexOf(this.instrument));
