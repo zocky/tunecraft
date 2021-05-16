@@ -3,15 +3,26 @@ import { BaseTrack } from "./Track";
 
 export class TempoTrack extends BaseTrack {
 
-  @computed({keepAlive:true}) get
-    events() {
-    return ([{
-      event: 'T',
-      tick: 0,
-      tempo: 120
-    }, ...this._events
-    ].sort((a, b) => a.tick - b.tick)
-    );
+  @computed({ keepAlive: true }) get
+  events() {
+    let unique = {
+      T0: {
+        event: 'T',
+        tick: 0,
+        tempo: 120
+      },
+      S0: {
+        event: 'S',
+        tick: 0,
+        nom: 4,
+        denom: 4
+      }
+    }
+    for (const e of this._events) {
+      unique[e.event + e.tick] = e;
+    }
+    return Object.values(unique).sort((a, b) => a.tick - b.tick)
+
   }
 
 
@@ -24,8 +35,8 @@ export class TempoTrack extends BaseTrack {
     return ticks / this.ticksPerSecond(tempo);
   }
 
-  @computed({keepAlive:true}) get
-  tickOffsets() {
+  @computed({ keepAlive: true }) get
+    tickOffsets() {
     const ret = [{
       tick: 0,
       time: 0,
@@ -67,7 +78,7 @@ export class TempoTrack extends BaseTrack {
           ret = time + (tick - t) / TPS;
         };
       }
-      this.timeCache[tick]=ret;
+      this.timeCache[tick] = ret;
     }
     return this.timeCache[tick];
   }

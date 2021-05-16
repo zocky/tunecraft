@@ -54,6 +54,9 @@ export class BaseTrack {
         case "OFF":
           midi.push({ noteOff: { noteNumber, velocity }, channel, delta });
           break;
+        case "EOT":
+          midi.push({ endOfTrack: true, delta });
+          break;
         case "I":
           midi.push({
             programChange: { programNumber: rest.instrument },
@@ -64,7 +67,7 @@ export class BaseTrack {
           const mspq = Math.round(60e6 / rest.tempo)
           midi.push({
             setTempo: { "microsecondsPerQuarter": mspq },
-            channel, delta,
+            delta,
           });
           break;
         case "ID":
@@ -84,6 +87,7 @@ export class BaseTrack {
 export class Track extends BaseTrack {
   makeEvents() {
     this._events = [
+      ...this.tune.tempoTrack.events,
       {
         event: "ID",
         tick: 0,
@@ -94,8 +98,7 @@ export class Track extends BaseTrack {
         tick: 0,
         instrument: this.midiInstrument || 0,
       },
-      ...this.tune.tempoTrack.events,
-      ...this._events,
+      ...this._events
     ]
       .map((event) => {
         const ret = { ...event };
@@ -164,9 +167,10 @@ export class Track extends BaseTrack {
     switch (event.event) {
       case "I":
       case 'ID':
-      case 'T':
+      //case 'T':
       case "ON":
       case "OFF":
+      case "EOT":
         return true;
     }
     return false;
