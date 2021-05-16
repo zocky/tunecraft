@@ -61,6 +61,7 @@ export function processTree(tree) {
   const state = {
     throw: tree.throw,
     macros: {},
+    callStack: [],
     tracks: {
       default: {
         id: "default",
@@ -85,9 +86,7 @@ export function processTree(tree) {
     measure: 1,
     transpose: 0,
     tempo: 120,
-    signatures:{
-      0: {nom: 4, denom: 4}
-    },
+    signatures:{},
     advanced: false,
     bar:0,
     bars:0
@@ -301,8 +300,8 @@ const nodeProcessor = new class {
     if (advanced) state.throw("Time signature can only be changed at the beginning of a bar", node.location)
     const measure = nom / denom;
     const old = state.signatures[state.bar];
-    if (old && (old.nom !== nom && old.denom!=denom )) {
-      state.throw("Conflicting time signatures", node.location)
+    if (old && (old.nom !== nom || old.denom!=denom )) {
+      state.throw(`Conflicting time signatures ${nom}/${denom} ${old.nom}/${old.denom}`, node.location)
     }
     state._bars.signature = {nom:nom,denom:+denom}
     state.signatures[state.bar] = {nom,denom:+denom}
@@ -326,10 +325,15 @@ const nodeProcessor = new class {
     state.macros[node.name] = node.value;
   }
   var(node, state) {
-    if (!state.macros[node.name]) {
+    const macro = state.macros[node.name];
+    if (!macro) {
       throw { message: 'No such macro ' + node.name, location: node.location };
     }
-    return process(state.macros[node.name], state);
+    const position = node.location.start;
+    if (state.callStack.includes(position)) {
+      throw { message: 'Macro loop detected', location: node.location };
+    }
+    return process(state.macros[node.name], state, {callStack:state.callStack.concat(position)});
   }
   def_soundfont(node, state) {
     state.soundfonts[node.name] = node.url;

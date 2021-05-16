@@ -186,7 +186,7 @@ export class TrackBackground extends React.Component {
     const ctx = canvas.getContext("2d");
 
     if (zoomY >= 4) {
-      //drawKeys(ctx, trackView)
+      drawKeys(ctx, trackView)
     } else {
       drawLines(ctx, trackView);
     }

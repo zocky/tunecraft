@@ -551,11 +551,15 @@ export class AppState {
         lastResult = result;
         storageSet('tunecraft_save', this.source)
         if (result) {
-          console.time("new tune");
-          this.tune = new Tune(result);
-          console.timeEnd("new tune");
+          try {
+            console.time("new tune");
+            this.tune = new Tune(result);
+            console.timeEnd("new tune");
+        } catch (error) {
+          this.result={error}
         }
       }
+    }
     );
 
     reaction(

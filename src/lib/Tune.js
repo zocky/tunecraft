@@ -118,7 +118,7 @@ export class Tune {
     for (const t in this.barTiming) {
       const bar = this.barTiming[t];
       for (let beat = 0; beat<bar.nom; beat++) {
-        const tick = bar.tick + bar.ticks * beat/bar.denom;
+        const tick = bar.tick + bar.ticks / bar.nom * beat;
         ret.push({
           bar: +t,
           beat: beat,
