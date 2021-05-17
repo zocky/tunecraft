@@ -3,10 +3,9 @@ import React from "react";
 import { observer } from "mobx-react";
 import "./App.less";
 
-import { Editor } from "./Editor";
-
 import {Draggable, AppContext } from "./Utils.js";
 import { Viewer } from "./Viewer";
+import { Editor } from "./Editor";
 
 @observer
 export class App extends React.Component {

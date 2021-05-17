@@ -8,6 +8,9 @@ import {
   autorun,
   toJS,
 } from "mobx";
+
+import { MidiWriter } from "./MidiWriter";
+
 import { compile } from "./tunecraft";
 
 import { PlayerSoundfont } from "./PlayerSoundfont";
@@ -92,7 +95,7 @@ export class AppState {
   @computed get looping() {
     return this.settings.looping;
   }
-  set looping (value) {
+  set looping(value) {
     this.settings.looping = value;
   }
   @action.bound
@@ -183,12 +186,12 @@ export class AppState {
   }
 
   @computed get
-  viewTotalTime() {
+    viewTotalTime() {
     return this.tuneTotalTime;
   }
 
   @computed get
-  tuneTotalTime() {
+    tuneTotalTime() {
     return this.tune ? this.tune.length : 0;
   }
 
@@ -220,7 +223,7 @@ export class AppState {
     this.viewBeginTime = this.getTime(value);
   }
   @computed get totalTrackSpan() {
-    return this.trackViews.filter(t=>t.trackTune).reduce((a, b) => a + b.span, 0);
+    return this.trackViews.filter(t => t.trackTune).reduce((a, b) => a + b.span, 0);
   };
 
   @computed get totalTrackHeight() {
@@ -231,7 +234,8 @@ export class AppState {
     return this.clampViewTop(this.settings.viewTop);
   }
   clampViewTop(y) {
-    return clamp(y, 0, this.totalTrackHeight - 100);
+
+    return clamp(y, 0, this.totalTrackHeight + this.scrollHeight);
   }
   set viewTop(value) {
     this.settings.viewTop = this.clampViewTop(value);
@@ -283,18 +287,18 @@ export class AppState {
     const t = this.mouseTrack
     const at = this.mouseTime;
 
-    const d = e=> {
-      return Math.max(0, e.note-pitch-1, pitch-e.note)*this.zoomY;
+    const d = e => {
+      return Math.max(0, e.note - pitch - 1, pitch - e.note) * this.zoomY;
       return Math.hypot(
-        Math.max(0, e.at-at,at-e.at-e.duration)*this.zoomX,
-        Math.max(0, e.note-pitch-1, pitch-e.note)*this.zoomY,
+        Math.max(0, e.at - at, at - e.at - e.duration) * this.zoomX,
+        Math.max(0, e.note - pitch - 1, pitch - e.note) * this.zoomY,
       );
     }
 
     if (!t) return null;
     return t.notesAtTime(this.mouseTime)
-    .filter(e => d(e) < 12 )
-    .sort((a,b)=>d(a)-d(b))[0]
+      .filter(e => d(e) < 12)
+      .sort((a, b) => d(a) - d(b))[0]
   }
 
   @computed get trackBottoms() {
@@ -482,8 +486,12 @@ export class AppState {
 
   @observable fileName = "tune";
 
+  @computed get tuneMidi() {
+    return MidiWriter.toSmf(this.tune);
+  }
+
   async exportMidi() {
-    var blob = new Blob([await this.tune.toMidiBuffer()], { type: "audio/midi" });
+    var blob = new Blob([MidiWriter.toArrayBuffer(this.tune)], { type: "audio/midi" });
     var link = document.createElement("a");
     const url = URL.createObjectURL(blob);
     link.href = url;
@@ -528,19 +536,19 @@ export class AppState {
   @observable midi = null;
   @observable midiOutputs = []
   @computed get midiOutput() {
-    return this.midiOutputs.find(o=>o.id===this.midioutputId)
+    return this.midiOutputs.find(o => o.id === this.midioutputId)
   }
 
   constructor() {
     top.tc = this;
     let lastResult;
-    navigator.requestMIDIAccess().then(action(midi=>{
+    navigator.requestMIDIAccess().then(action(midi => {
       this.midi = midi;
       this.midiOutputs = Array.from(midi.outputs.values());
     }));
     Object.assign(this.settings, storageGet('tunecraft_settings', {}))
     makeObservable(this);
-    autorun(()=>storageSet('tunecraft_settings',toJS(this.settings)));
+    autorun(() => storageSet('tunecraft_settings', toJS(this.settings)));
     reaction(
       () => {
         this.tune;
@@ -555,11 +563,11 @@ export class AppState {
             console.time("new tune");
             this.tune = new Tune(result);
             console.timeEnd("new tune");
-        } catch (error) {
-          this.result={error}
+          } catch (error) {
+            this.result = { error }
+          }
         }
       }
-    }
     );
 
     reaction(

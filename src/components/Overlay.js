@@ -59,9 +59,9 @@ export class OverlayContent extends React.Component {
         app.highlightedNotes = null;
       }
       else {
-        app.selectedNote=note;
+        app.selectedNote = note;
         app.player.playSingleNote(note);
-        app.highlightedNotes = app.tune.events.filter(e=>e.position===note.position);
+        app.highlightedNotes = app.tune.events.filter(e => e.position === note.position);
       }
     }
   })
@@ -106,7 +106,7 @@ export class Ruler extends React.Component {
     const { app } = this.context;
     return (
       <div className="tc ruler">
-        <div className="units" style={{left:-app.viewLeft}}>
+        <div className="units" style={{ left: -app.viewLeft }}>
           <RulerUnits />
         </div>
       </div>
@@ -133,9 +133,22 @@ export class RulerUnits extends React.Component {
     const seconds = [];
     let step = Math.ceil(64 / app.zoomX)
     for (let i = 0; i <= this.seconds; i += step) {
-      seconds.push(<div key={i} className="second" style={{ width: app.zoomX * step }}>{i}</div>)
+      seconds.push(<div key={i} className="second" style={{ width: app.zoomX * step }}>{i}s</div>)
     }
-    return seconds;
+    const bars = [];
+    for (let i = 0; i < app.tune.bars.length; i+=step) {
+      bars.push(<div key={i} className="bar" style={{ width: app.zoomX * step * app.tune.bars[i].duration }}>{i+1}</div>)
+    }
+    return (
+      <>
+        <div className="seconds">
+          {seconds}
+        </div>
+        <div className="bars">
+          {bars}
+        </div>
+      </>
+    )
   }
 }
 

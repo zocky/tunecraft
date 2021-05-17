@@ -1,7 +1,7 @@
 
 import React from "react";
 import { observer } from "mobx-react";
-import { action } from "mobx";
+import { action, autorun } from "mobx";
 
 import './Player.less';
 import { classes } from "../lib/utils";
@@ -66,6 +66,7 @@ export class PlayerControls extends React.Component {
 }
 
 
+
 @observer
 export class PlayerTime extends React.Component {
   formatTime(time) {
@@ -79,9 +80,9 @@ export class PlayerTime extends React.Component {
   render() {
     const { app } = this.props;
     return (<div className="tc time">
-      <Time object={app.player} prop="playbackTime" className="playback"/>
-      <Time object={app.player} prop="beginTime" className="begin"/>
-      <Time object={app.player} prop="endTime" className="end"/>
+      <Time object={app.player} prop="playbackTime" className="playback" />
+      <Time object={app.player} prop="beginTime" className="begin" />
+      <Time object={app.player} prop="endTime" className="end" />
     </div>)
   }
 }
@@ -143,13 +144,13 @@ export class PlayerLinks extends React.Component {
 export class PlayerDropdown extends React.Component {
   static contextType = AppContext;
   render() {
-    const {app} = this.context;
-    console.log('dropdown',...app.midiOutputs.keys())
+    const { app } = this.context;
+    console.log('dropdown', ...app.midiOutputs.keys())
     return (
-      <select value={app.midioutputId} onChange={e=>app.midioutputId = e.target.value}>
+      <select value={app.midioutputId} onChange={e => app.midioutputId = e.target.value}>
         <option value="soundfont">Soundfont Player</option>
         <optgroup label="MIDI Ports">
-          {app.midiOutputs.map((o,i)=><option key={i} value={o.id}>[{i}] {o.name}</option>)}
+          {app.midiOutputs.map((o, i) => <option key={i} value={o.id}>[{i}] {o.name}</option>)}
         </optgroup>
       </select>
     )

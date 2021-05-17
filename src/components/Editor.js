@@ -1,6 +1,6 @@
 
 import React from "react";
-import Monaco from "@monaco-editor/react";
+import MonacoEditor from "react-monaco-editor";
 import "./Editor.less"
 import { observer } from "mobx-react";
 import { AppContext } from "./Utils";
@@ -12,7 +12,7 @@ export class Editor extends React.Component {
   render() {
     return (
       <div className="tc editor">
-        <MonacoEditor />
+        <CodeEditor />
         <EditorInspector />
         <EditorStatus />
       </div>
@@ -21,20 +21,20 @@ export class Editor extends React.Component {
 }
 
 
-export class MonacoEditor extends React.Component {
+export class CodeEditor extends React.Component {
   static contextType = AppContext;
   render() {
     const { app } = this.context;
     return (
       <div className="tc monaco">
-        <Monaco
+        <MonacoEditor
           height="100%"
           theme="vs-light"
           defaultValue={app.source}
-          defaultLanguage="tunecraft"
+          language="tunecraft"
           onChange={app.editor.onChange}
-          beforeMount={app.editor.willMount}
-          onMount={app.editor.didMount}
+          editorWillMount={app.editor.willMount}
+          editorDidMount={app.editor.didMount}
           options={{ minimap: { enabled: false }, fontFamily: "Ubuntu Mono", fontSize:"18" }}
         />
       </div>

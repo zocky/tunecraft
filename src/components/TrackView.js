@@ -52,7 +52,7 @@ export class TrackViewState {
 
 
   @computed get highlightedNotes() {
-    return this.app.highlightedNotes.filter(e => e.track === this.tuneTrack.id)
+    return this.app.highlightedNotes?.filter(e => e.track === this.tuneTrack.id) || []
   }
 
   @computed get selectedNotes() {

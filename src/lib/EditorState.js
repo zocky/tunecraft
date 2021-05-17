@@ -79,7 +79,7 @@ export class EditorState {
   range(first, ...rest) {
     if (typeof first === 'object') {
       const { start, end } = first;
-      return new monaco.Range(
+      return new this.monaco.Range(
         start.line, start.column,
         end.line, end.column
       )

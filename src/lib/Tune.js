@@ -108,8 +108,10 @@ export class Tune {
   }
 
   @computed get bars() {
-    return this.barTiming.map(b=>{
-      return {...b, at:this.tempoTrack.timeAtTick(b.tick)}
+    return this.barTiming.map(bar=>{
+      const at = this.timeAtTick(bar.tick);
+      const duration = this.timeAtTick(bar.tick+bar.ticks)-at;
+      return {...bar, at,duration}
     })
   }
 
@@ -118,12 +120,16 @@ export class Tune {
     for (const t in this.barTiming) {
       const bar = this.barTiming[t];
       for (let beat = 0; beat<bar.nom; beat++) {
-        const tick = bar.tick + bar.ticks / bar.nom * beat;
+        const beatTicks = bar.ticks / bar.nom
+        const tick = bar.tick + beat * beatTicks ;
+        const at = this.timeAtTick(tick);
+        const duration = this.timeAtTick(tick+beatTicks)-at;
         ret.push({
           bar: +t,
-          beat: beat,
-          tick: tick,
-          at: this.timeAtTick(tick)
+          beat,
+          tick,
+          at,
+          duration
         })
       }
     }

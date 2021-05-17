@@ -117,6 +117,11 @@ export function pitchToText(pitch) {
   const octave = (pitch - tone) / 12 - 1;
   return ['C', 'C♯', 'D', 'D♯', 'E', 'F', 'F♯', 'G', 'G♯', 'A', 'A♯', 'B'][tone] + octave.toFixed(0);
 }
+export function pitchToNoteName(pitch) {
+  const tone = pitch % 12;
+  const octave = (pitch - tone) / 12 - 1;
+  return ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'][tone] + octave.toFixed(0);
+}
 
 export function handleMouse(handlers) {
   return action(e => {

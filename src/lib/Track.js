@@ -167,7 +167,7 @@ export class Track extends BaseTrack {
     switch (event.event) {
       case "I":
       case 'ID':
-      //case 'T':
+      case 'T':
       case "ON":
       case "OFF":
       case "EOT":
