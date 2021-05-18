@@ -23,15 +23,15 @@ $p4 =
 
 
 $house = [
-| Am $p  | C  $p 
-| D  $p  | F -$p2
-| Am $p  | C  $p
-| E -$p3 | E -$p4 
-| Am $p  | C  $p 
-| D  $p  | F -$p2
-| Am $p  | C  $p
-| E -$p2 | Am $p
-| E -$p2 | Am $p
+| Am -$p2  | C   $p 
+| D   $p   | F   $p3
+| Am -$p2  | C   $p
+| E   $p3  | E   $p4 
+| Am -$p2  | C   $p 
+| D  -$p2  | F  -$p2
+| Am -$p2  | C   $p
+| E  -$p2  | Am -$p2
+| E  -$p2  | Am -$p2
 ]
 
 [T160  3/4 "acoustic_guitar_nylon" -Am|$house]

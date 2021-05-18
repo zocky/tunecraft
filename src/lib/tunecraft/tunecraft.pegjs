@@ -108,8 +108,8 @@ velocity
 }
 
 velocity_change 
-= down:"<"+ { return {$:'velocity_change',change: -down.length } }
-/ up:">"+ { return {$:'velocity_change',change: up.length } }
+= down:">"+ { return {$:'velocity_change',change: -down.length } }
+/ up:"<"+ { return {$:'velocity_change',change: up.length } }
 
 
 track

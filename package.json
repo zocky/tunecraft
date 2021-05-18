@@ -7,7 +7,7 @@
     "appModern": {
       "engines": {
         "browsers": [
-          "last 1 chrome version"
+          "last 2 chrome versions"
         ]
       }
     }

@@ -1,8 +1,5 @@
 {
-  "presets": [
-    [
-      "@parcel/babel-preset-env"
-    ],
+  "presets": [    
     [
       "@babel/preset-react",
       {
@@ -11,13 +8,13 @@
     ]
   ],
   "plugins": [
-    "@parcel/babel-plugin-transform-runtime",
     "relay",
     [
       "@babel/plugin-proposal-decorators",
       {
         "legacy": true
-      }
-    ]
+      },
+    ],
+    ["@babel/plugin-proposal-class-properties", {"loose":false}]
   ]
 }
