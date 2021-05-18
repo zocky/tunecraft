@@ -1,6 +1,7 @@
 * {
   box-sizing: border-box;
 }
+
 .tc.app {
 
   --top-height     : 52px;
@@ -8,64 +9,98 @@
   --ruler-height   : 28px;
   --status-height  : 24px;
 
-  position:fixed;
-  top:0;
-  left:0;
-  bottom:0;
-  right:0;
-  display:grid;
-  grid-template-areas: "left splitter right";
+  position             : fixed;
+  top                  : 0;
+  left                 : 0;
+  bottom               : 0;
+  right                : 0;
+  display              : grid;
+  grid-template-areas  : "left splitter right";
   grid-template-columns: 1fr 0 max-content;
-  background:#000;
-  color:white;
-  font-family:Roboto,sans-serif;
-  user-select: none;
-  overflow:hidden;
+  background           : #000;
+  color                : white;
+  font-family          : Roboto, sans-serif;
+  user-select          : none;
+  overflow             : hidden;
+
+  a {
+    cursor:pointer;
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+
   >.left {
-    grid-area:left;
-    overflow:hidden;
-    position:relative;
+    grid-area: left;
+    overflow : hidden;
+    position : relative;
   }
+
   >.splitter {
-    grid-area:splitter;
+    grid-area: splitter;
   }
+
   >.right {
-    grid-area:right;
-    overflow:hidden;
-    position:relative;
+    grid-area: right;
+    overflow : hidden;
+    position : relative;
   }
 }
 
 .tc.link {
-  margin:0 4px;
-  cursor:pointer;
-  &.active, &:hover {
-    text-decoration:underline;
+  margin: 0 4px;
+  cursor: pointer;
+
+  &.active,
+  &:hover {
+    text-decoration: underline;
   }
 }
 
 .tc.json {
-  overflow:auto;
+  overflow: auto;
 }
 
 .tc.splitter {
-  width:12px;
-  position:relative;
-  z-index:100;
-  cursor:col-resize;
-  margin:0 -6px;
+  width   : 12px;
+  position: relative;
+  z-index : 100;
+  cursor  : col-resize;
+  margin  : 0 -6px;
 }
 
 .tc.logo {
-  position:relative;
-  background:#364e59ff;
+  position     : relative;
+  background   : #364e59ff;
   border-bottom: solid 1px #999;
-  overflow:hidden;
+  overflow     : hidden;
+
   img {
-    position:absolute;
-    top:0;
-    left:0;
-    width:100%;
-    height:100%;
+    position: absolute;
+    top     : 0;
+    left    : 0;
+    width   : 100%;
+    height  : 100%;
+  }
+}
+
+.tc.inspector {
+  text-align : left;
+  font-size  : 14px;
+  line-height: 16px;
+
+  table {
+    display: inline-table;
+  }
+
+  th {
+    text-transform: uppercase;
+    font-size     : 12px;
+    color         : #999;
+    vertical-align: baseline;
+  }
+
+  td {
+    vertical-align: baseline;
   }
 }

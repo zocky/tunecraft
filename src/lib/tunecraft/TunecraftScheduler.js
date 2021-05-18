@@ -1,3 +1,5 @@
+import { clamp } from "../utils";
+
 const TPQ = 96;
 
 
@@ -133,27 +135,29 @@ const nodeScheduler = new class {
     });
   }
   note(node, state) {
-    var ticks = state.getTicks(node);
-    if (!ticks) debugger;
+    const unroundedTicks = state.getTicks(node);
+    const ticks = Math.round(unroundedTicks);
+    const velocity = clamp(node.velocity,1,127);
+    const {note,location,bar} = node;
 
     state.scheduleEvent(node.track, state.tick, "N", {
-      note: node.note,
-      velocity: node.velocity,
-      ticks: Math.round(ticks),
-      location: node.location,
-      bar: node.bar,
-      position: node.location.start.offset
+      note,
+      velocity,
+      ticks,
+      location,
+      bar,
+      position: node.location.start.offset,
+      callStack: node.callStack
     });
     state.scheduleEvent(node.track, state.tick, "ON", {
-      velocity: node.velocity,
-      note: node.note,
-      ticks: Math.round(ticks),
+      velocity,
+      note,
+      ticks,
     });
-    state.scheduleEvent(node.track, state.tick + ticks, "OFF", {
-      velocity: node.velocity,
-      note: node.note,
+    state.scheduleEvent(node.track, state.tick + unroundedTicks, "OFF", {
+      velocity, note, ticks,
     });
-    state.incTick(node.track, ticks);
+    state.incTick(node.track, unroundedTicks);
   }
   pause(node, state) {
     var ticks = state.getTicks(node);

@@ -131,6 +131,7 @@ export class RulerUnits extends React.Component {
   render() {
     const { app } = this.context;
     const seconds = [];
+    if (!app.tune) return null;
     let step = Math.ceil(64 / app.zoomX)
     for (let i = 0; i <= this.seconds; i += step) {
       seconds.push(<div key={i} className="second" style={{ width: app.zoomX * step }}>{i}s</div>)

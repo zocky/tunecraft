@@ -76,7 +76,7 @@ _seq2 = _ ";" _ e:seq2 { return e }
 seq2 = h:expr t:_expr* { return {$:'seq',sub:[h].concat(t)} }
 
 _expr = __ e:expr { return e }
-expr = track/signature/tempo/velocity/key/shift/repeat/poly
+expr = track/signature/tempo/velocity/velocity_change/key/shift/repeat/poly
 
 repeat
 = times:TIMES _ arg:poly {
@@ -106,6 +106,11 @@ velocity
     location: location()
   }
 }
+
+velocity_change 
+= down:"<"+ { return {$:'velocity_change',change: -down.length } }
+/ up:">"+ { return {$:'velocity_change',change: up.length } }
+
 
 track
 = '"' track:$([^"]+) '"' {
@@ -164,9 +169,20 @@ ROMAN
 
 
 
-poly = h:poly2 t:_poly2* { if(!t.length) return h; return {$:'poly',sub:[h].concat(t)}}
-_poly2 = _ "&" _ p:poly2 { return p}
-poly2 = dotted
+poly = h:modified_note t:_poly* { if(!t.length) return h; return {$:'poly',sub:[h].concat(t)}}
+_poly = _ "&" _ p:modified_note { return p}
+
+modified_note = accented
+
+accented 
+= arg:dotted accent:accent? {
+  if (!accent) return arg;
+  return {$:'accent',accent,arg}
+} 
+
+accent 
+= up:"!"+ { return up.length }
+/ down:"?"+ { return -down.length }
 
 
 dotted

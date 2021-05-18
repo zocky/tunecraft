@@ -69,14 +69,14 @@ export function processTree(tree) {
         instrument: "acoustic_grand_piano"
       }
     },
-    _bars: {
+    local: {
       track: 'default',
       noteScale: noteScale(60, 1),
       toneScale: noteScale(60, 1),
       keyToneScale: noteScale(60, 1),
-      velocity: 100,
-      keymode : 1,
-      keybase: 60,
+      velocity: 66,
+      keyMode: 1,
+      keyBase: 60,
       tempo: 120
     },
     soundfonts: {},
@@ -86,10 +86,10 @@ export function processTree(tree) {
     measure: 1,
     transpose: 0,
     tempo: 120,
-    signatures:{},
+    signatures: {},
     advanced: false,
-    bar:0,
-    bars:0
+    bar: 0,
+    bars: 0
   }
   const tree2 = process(tree, state);
   return {
@@ -127,11 +127,11 @@ const nodeProcessor = new class {
     let divisions = sub.reduce((a, b) => a + (b.length || 0), 0);
     if (state.advanced) {
       state.bar++;
-      state.bars = Math.max(state.bar+1,state.bars)
+      state.bars = Math.max(state.bar + 1, state.bars)
     }
     state.advanced = false;
     let { length, measure } = state;
-    let { track } = state._bars;
+    let { track } = state.local;
 
     return { $$: 'bar', divisions, length, sub, measure, track };
   }
@@ -142,7 +142,7 @@ const nodeProcessor = new class {
     for (let i = 0; i < node.times; i++) {
       const ss = process(node.arg, state);
       ret.push(ss);
-      length+=ss.length;
+      length += ss.length;
     }
     return {
       $$: 'seq',
@@ -182,11 +182,11 @@ const nodeProcessor = new class {
   }
 
   bars(node, state) {
-    if (state.advanced) state.throw('Cannot include bars here',node.location);
-    const _bars = { ...state._bars };
+    if (state.advanced) state.throw('Cannot include bars here', node.location);
+    const local = { ...state.local };
     const bar = state.bar;
     let sub = node.sub.map(node => process(node, state)).filter(Boolean);
-    state._bars = _bars;
+    state.local = local;
     let divisions = 1// sub.reduce((a, b) => a + (b.length || 0), 0);
     let { length } = state;
     return { $$: 'bars', divisions, length, sub, bars: state.bar - bar };
@@ -239,57 +239,55 @@ const nodeProcessor = new class {
       transpose: state.transpose + node.transpose
     });
   }
-  tone(node, state) {
-    let { length, transpose } = state;
-    let { track, velocity, toneScale } = state._bars;
-    let { tone, location } = node;
+
+  _note(node, note, state) {
+    let { length } = state;
+    let { track, velocity } = state.local;
+    let { location } = node;
     state.advanced = true;
-    //let note = base + scales[mode][tone - 1] + transpose;
-    let note = toneScale[tone - 1] + transpose;
-    
-    return { $$: 'note', track, note, length, velocity, location, bar: state.bar }
+    return { $$: 'note', track, note, length, velocity, location, bar: state.bar, callStack: [...state.callStack, location] }
+  }
+  tone(node, state) {
+    let note = state.local.toneScale[node.tone - 1] + state.transpose;
+    return this._note(node,note,state);
   }
 
   note(node, state) {
-    let { length, transpose } = state;
-    let { track, velocity, noteScale } = state._bars;
-    let { note: _note, location } = node;
-    let note = noteScale[_note - 1] + transpose;
-    state.advanced = true;
-    return { $$: 'note', track, note, length, velocity, location, bar: state.bar }
+    let note = state.local.noteScale[node.note - 1] + state.transpose;
+    return this._note(node,note,state);
   }
 
   pause(node, state) {
     let { length, bar } = state;
-    let { track } = state._bars;
+    let { track } = state.local;
     state.advanced = true;
     return { $$: 'pause', length, track, bar }
   }
 
   shift(node, state) {
-    const { keymode, keyToneScale } = state._bars;
+    const { keyMode, keyToneScale } = state.local;
     const { note, transpose } = node;
-    const base = state._bars.base = keyToneScale[note-1] + transpose;
-    const mode = state._bars.mode = (keymode + note + 5) % 7 + 1;
-    state._bars.toneScale =toneScale(base,mode);
+    const base = state.local.base = keyToneScale[note - 1] + transpose;
+    const mode = state.local.mode = (keyMode + note + 5) % 7 + 1;
+    state.local.toneScale = toneScale(base, mode);
   }
 
   key(node, state) {
-    const {note,mode,key} = node;
+    const { note, mode, key } = node;
     const base = toneScale(60 + node.transpose)[node.note - 1];
-    Object.assign(state._bars, {
+    Object.assign(state.local, {
       base,
-      keybase: base,
+      keyBase: base,
       key,
       mode,
-      keymode: mode,
+      keyMode: mode,
       noteScale: noteScale(base, mode),
-      toneScale: toneScale(base,mode),
-      keyToneScale: toneScale(base,mode),
+      toneScale: toneScale(base, mode),
+      keyToneScale: toneScale(base, mode),
     })
   }
   tempo(node, state) {
-    
+
     const { tempo } = node;
     return { $$: 'tempo', tempo }
   }
@@ -300,16 +298,27 @@ const nodeProcessor = new class {
     if (advanced) state.throw("Time signature can only be changed at the beginning of a bar", node.location)
     const measure = nom / denom;
     const old = state.signatures[state.bar];
-    if (old && (old.nom !== nom || old.denom!=denom )) {
+    if (old && (old.nom !== nom || old.denom != denom)) {
       state.throw(`Conflicting time signatures ${nom}/${denom} ${old.nom}/${old.denom}`, node.location)
     }
-    state._bars.signature = {nom:nom,denom:+denom}
-    state.signatures[state.bar] = {nom,denom:+denom}
-    return { $$: 'signature', nom, denom, measure, track: state._bars.track }
+    state.local.signature = { nom: nom, denom: +denom }
+    state.signatures[state.bar] = { nom, denom: +denom }
+    return { $$: 'signature', nom, denom, measure, track: state.local.track }
   }
-  velocity(node, state) {
-    state._bars.velocity = node.velocity;
+  velocity({ velocity }, state) {
+    state.local.velocity = velocity;
   }
+  velocity_change({ change }, state) {
+    state.local.velocity += change * 12;
+  }
+  accent({ accent, arg }, state) {
+    const velocity = state.local.velocity;
+    state.local.velocity += accent * 12;
+    const ret = process(arg, state);
+    state.local.velocity = velocity;
+    return ret;
+  }
+
   scope(node, state) {
     const { macros } = state;
     state.macros = { ...macros };
@@ -318,7 +327,9 @@ const nodeProcessor = new class {
     return ret;
   }
   brackets(node, state) {
-    var ret = process(node.arg, { ...state });
+    const local = { ...state.local };
+    var ret = process(node.arg, state);
+    state.local = local;
     return ret;
   }
   assign(node, state) {
@@ -327,13 +338,13 @@ const nodeProcessor = new class {
   var(node, state) {
     const macro = state.macros[node.name];
     if (!macro) {
-      throw { message: 'No such macro ' + node.name, location: node.location };
+      state.throw('No such macro ' + node.name, node.location);
     }
-    const position = node.location.start;
+    const position = node.location;
     if (state.callStack.includes(position)) {
       throw { message: 'Macro loop detected', location: node.location };
     }
-    return process(state.macros[node.name], state, {callStack:state.callStack.concat(position)});
+    return process(state.macros[node.name], state, { callStack: state.callStack.concat(position) });
   }
   def_soundfont(node, state) {
     state.soundfonts[node.name] = node.url;
@@ -346,7 +357,7 @@ const nodeProcessor = new class {
   }
   track(node, state) {
     const { track } = node;
-    state._bars.track = node.track;
+    state.local.track = node.track;
     if (!state.tracks[node.track]) {
       state.tracks[node.track] = {
         font: 'default',

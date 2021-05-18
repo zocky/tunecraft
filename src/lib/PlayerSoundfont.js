@@ -30,7 +30,7 @@ export class PlayerSoundfont extends PlayerState {
     if (event !== 'N') return;
     this.instruments[track].play(note, at, {
       duration: duration,
-      gain: velocity / 100
+      gain: (velocity / 128) ** 2
     })
   }
 

@@ -66,26 +66,48 @@ export class EditorInspector extends React.Component {
     const note = app.selectedNote;
     if (!note) return null;
     return (
-      <table className="tc inspector" title={JSON.stringify(note, null, 2)}>
+      <div className="tc inspector">
+      <table title={JSON.stringify(note, null, 2)}>
         <tbody>
           <tr>
-            <th>Track</th><td>{note.track}</td>
+            <th>Track</th><td colSpan={2}>{note.track}</td>
           </tr>
           <tr>
-            <th>Pitch</th><td>{pitchToText(note.note)} ({note.note})</td>
+            <th>Pitch</th>
+            <td>{pitchToText(note.note)}</td>
+            <td>{note.note}</td>
           </tr>
           <tr>
-            <th>Length</th><td>{ticksToText(note.ticks)} ({note.ticks})</td>
+            <th>Length</th>
+            <td>{ticksToText(note.ticks)}</td>
+            <td>{note.ticks}T</td>
+          </tr>          
+          <tr>
+            <th>Bar</th>
+            <td>{note.bar}</td>
           </tr>
           <tr>
-            <th>Bar</th><td>{note.bar}</td>
+            <th>Time</th>
+            <td>{note.at.toFixed(2)}s</td>
+            <td>{note.tick}T</td>
+          </tr>
+          
+          <tr>
+            <th>Call stack</th>
+            <td colSpan={2}>
+              {note.callStack.map((location,i)=><a key={i} onClick={()=>{
+                console.log(location);
+                app.editor.selectLocation(location)
+              }}>{location.start.line} </a>).reverse()}
+            </td>
+            
           </tr>
         </tbody>
       </table>
+      </div>
     )
   }
 }
-
 
 function ticksToText(ticks, TPQ = 96) {
   function gcd(a, b) {

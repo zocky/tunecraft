@@ -74,7 +74,7 @@ export const tokenizer = {
 
 			[/[VT]\d+/, 'keyword.meta'],
 
-			[/[;:.'&()+\-]/, 'delimiter'],
+			[/[;:.'&()+\-?!<>]/, 'delimiter'],
 	
 			// strings
 			[/"([^"\\]|\\.)*$/, 'invalid'],  // non-teminated string

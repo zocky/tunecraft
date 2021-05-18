@@ -204,6 +204,8 @@ export class EditorState {
     });
   }
 
+ 
+
   @action.bound
   didMount(instance, monaco) {
     //console.log('did mount',editor)
@@ -224,22 +226,6 @@ export class EditorState {
         app.player.toggle();
         return null;
       }
-    });
-    instance.addAction({
-      id: 'my-highlight',
-      label: 'highlight',
-      keybindings: [
-        monaco.KeyCode.F3
-      ],
-      precondition: null,
-      keybindingContext: null,
-      contextMenuGroupId: 'transport',
-      contextMenuOrder: 1.5,
-        run: action(e => {
-          const {app} = this;
-          const position = instance.getPosition();
-          console.log(position);
-        })
     });
 
     instance.onDidChangeCursorPosition(action(e => {
@@ -268,9 +254,17 @@ export class EditorState {
     autorun(() => this.setSelectedMarkers([this.app.selectedNote].filter(Boolean)))
   }
 
+  selectLocation(location) {
+    const range = this.range(location);
+    console.log(range);
+    this.instance.setSelection(range);
+    this.instance.revealRangeInCenter(range);
+  }
+
   onChange = debounce(action(value => {
     this.app.source = value
   }), 300)
+
 
 }
 
