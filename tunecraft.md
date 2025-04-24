@@ -53,18 +53,18 @@ $scale = 1 (2 3) 4 (5 6)
 
 | Syntax | Name | Description |
 | --- | --- | ---  |
-| `a - g` | Named note | Corresponds to staff lines in the current scale. Stays within the key's octave, `c` is always lower than `b`. Takes up one unit of time.
-| `1 - 7` | Numbered note | 1 is the root note of the current scale, depending on the key, mode and any scale shift. 2-7 are other notes in the scale above 1. 1 is always lower than 7. Takes up one unit of time.
-| `$name` | Macro expansion | Expand the specified macro using the current macro scope. Takes up one unit of time.
+| `a - g` | Named note | Corresponds to staff lines in the current scale. Stays within the key's octave, `c` is always lower than `b`. Takes up one share of time.
+| `1 - 7` | Numbered note | 1 is the root note of the current scale, depending on the key, mode and any scale shift. 2-7 are other notes in the scale above 1. 1 is always lower than 7. Takes up one share of time.
+| `$name` | Macro expansion | Expand the specified macro using the current macro scope. Takes up one share of time.
 | `X# Xb` | Sharp / Flat | Raises or lowers the pitch of `X` by one half-tone. Applies to notes, keys, groups, scale shifts, macro expansions. Can be repeated.
 | `+X -X` | Octave shift | Raises or lowers the pitch of `X` by one octave. Applies to notes, keys, groups, scale shifts, macro expansions. Can be repeated.
 | `X:` | Double length | Double the length of `X`. Applies to notes, groups, macro expansions. Can be repeated.
 | `X'` | Half length | Halve the length of `X`. Applies to notes, groups, macro expansions. Can be repeated.
 | `X.` | Dotted length | Increase the length of  `X` by 50%. Applies to notes, groups, macro expansions. Can be repeated to add 25%, 12.5% etc.
-| `X & Y & Z ...`| Polyphony | Play notes, groups and macro expansions at the same time. Each item can be modified with any of `: ' .` to change the number of units it takes up in the parent measure or group. Takes up as many units of time as the longest item.
-| `X Y Z ...`| Sequence | Play chords, notes, groups and macro expansions in sequence, with each item taking up one unit of time. Each item can be modified with any of `: ' .' to change the number of units it takes up.
+| `X & Y & Z ...`| Polyphony | Play notes, groups and macro expansions at the same time. Each item can be modified with any of `: ' .` to change the number of shares it takes up in the parent measure or group. Takes up as many share of time as the longest item.
+| `X Y Z ...`| Sequence | Play chords, notes, groups and macro expansions in sequence, with each item taking up one share of time. Each item can be modified with any of `: ' .' to change the number of shares it takes up.
 | ` ;` | Subdivision | Divide the length of the sequence into equal parts.
-| `( )` | Group | Group a sequence to take up one unit of time. Can be modified with any of `: ' . # b + -`
+| `( )` | Group | Group a sequence to take up one share of time. Can be modified with any of `: ' . # b + -`
 
 #### Keys, modes, scales
 
@@ -166,7 +166,7 @@ In the default 4/4 time signature (see Time Signature and Tempo below for how to
 will give us four quarters in the first measure and 2 half-notes in the second. You can use the additional constructs below to change how the measure is divided between notes.
 
 ### Grouping `()`
-You can use brackets `()` to group notes. Each group takes up one unit of time, i.e. the same as an ungrouped note.
+You can use brackets `()` to group notes. Each group takes up one share of time, i.e. the same as an ungrouped note.
 
 ````
 [ (1 1) 1 | (1 1 1) 1 ]
